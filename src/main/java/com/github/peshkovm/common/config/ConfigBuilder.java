@@ -1,4 +1,4 @@
-package com.github.peshkovm.common;
+package com.github.peshkovm.common.config;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;

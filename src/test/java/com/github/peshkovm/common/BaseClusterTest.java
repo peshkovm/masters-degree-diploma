@@ -2,12 +2,9 @@ package com.github.peshkovm.common;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.node.InternalNode;
+import com.github.peshkovm.node.InternalNodeFactory;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.typesafe.config.Config;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.AfterEach;
 
 /**
@@ -15,37 +12,18 @@ import org.junit.jupiter.api.AfterEach;
  */
 public class BaseClusterTest {
 
-  private List<InternalNode> nodes = Lists.newArrayList();
-  private Set<Integer> ports = Sets.newHashSet(); // List of cluster nodes ports
+  protected List<InternalNode> nodes = Lists.newArrayList();
 
-  private int nextPort() {
-    for (; ; ) {
-      int port = 8800 + ThreadLocalRandom.current().nextInt(100);
-      if (!ports.contains(port)) {
-        ports.add(port);
-        return port;
-      }
-    }
-  }
-
-  /**
-   * Creates leader node on local host with random port
-   */
-  protected final void createLeader() {
-    final int leaderPort = nextPort();
-    final Config config = new ConfigBuilder().with("transport.port", leaderPort).build();
-    final InternalNode node = new InternalNode(config);
+  /** Creates leader node on local host with random port */
+  protected final void createAndStartLeader() {
+    final InternalNode node = InternalNodeFactory.createLeaderNode();
     node.start();
     nodes.add(node);
   }
 
-  /**
-   * Creates follower node on local host with random port
-   */
-  protected final void createFollower() {
-    final int port = nextPort();
-    final Config config = new ConfigBuilder().with("transport.port", port).build();
-    final InternalNode node = new InternalNode(config);
+  /** Creates follower node on local host with random port */
+  protected final void createAndStartFollower() {
+    final InternalNode node = InternalNodeFactory.createFollowerNode();
     node.start();
     nodes.add(node);
   }
@@ -55,6 +33,6 @@ public class BaseClusterTest {
     nodes.forEach(LifecycleComponent::stop);
     nodes.forEach(LifecycleComponent::close);
     nodes = Lists.newArrayList();
-    ports = Sets.newHashSet();
+    InternalNodeFactory.reset();
   }
 }

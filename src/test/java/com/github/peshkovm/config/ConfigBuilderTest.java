@@ -1,6 +1,6 @@
 package com.github.peshkovm.config;
 
-import com.github.peshkovm.common.ConfigBuilder;
+import com.github.peshkovm.common.config.ConfigBuilder;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;

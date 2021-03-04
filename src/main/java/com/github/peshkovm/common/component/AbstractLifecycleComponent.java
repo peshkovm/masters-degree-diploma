@@ -1,5 +1,6 @@
 package com.github.peshkovm.common.component;
 
+import com.github.peshkovm.common.component.Lifecycle.State;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -7,7 +8,6 @@ import org.apache.logging.log4j.Logger;
  * Default implementation of {@link LifecycleComponent}.
  */
 public abstract class AbstractLifecycleComponent implements LifecycleComponent {
-
   protected final Logger logger = LogManager.getLogger(getClass());
   private final Lifecycle lifecycle = new Lifecycle();
 
@@ -16,9 +16,9 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
     if (lifecycle.canMoveToStarted()) {
       lifecycle.moveToStarted();
 
-      logger.info("Starting");
+      logger.debug("Starting");
       doStart();
-      logger.info("Started");
+      logger.debug("Started");
     } else {
       logger.warn("Can't move to started from " + lifecycle.getState() + " state");
     }
@@ -30,13 +30,18 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
   protected abstract void doStart();
 
   @Override
+  public boolean isStarted() {
+    return lifecycle.getState() == State.STARTED;
+  }
+
+  @Override
   public void stop() {
     if (lifecycle.canMoveToStopped()) {
       lifecycle.moveToStopped();
 
-      logger.info("Stopping");
+      logger.debug("Stopping");
       doStop();
-      logger.info("Stopped");
+      logger.debug("Stopped");
     } else {
       logger.warn("Can't move to stopped from " + lifecycle.getState() + " state");
     }
@@ -48,13 +53,18 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
   protected abstract void doStop();
 
   @Override
+  public boolean isStopped() {
+    return lifecycle.getState() == State.STOPPED;
+  }
+
+  @Override
   public void close() {
     if (lifecycle.canMoveToClosed()) {
       lifecycle.moveToClosed();
 
-      logger.info("Closing");
+      logger.debug("Closing");
       doClose();
-      logger.info("Closed");
+      logger.debug("Closed");
     } else {
       logger.warn("Can't move to closed from " + lifecycle.getState() + " state");
     }
@@ -64,4 +74,9 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
    * Component's clossing logic
    */
   protected abstract void doClose();
+
+  @Override
+  public boolean isClosed() {
+    return lifecycle.getState() == State.CLOSED;
+  }
 }

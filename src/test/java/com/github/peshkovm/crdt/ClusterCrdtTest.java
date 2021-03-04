@@ -7,9 +7,9 @@ public class ClusterCrdtTest extends BaseClusterTest {
 
   @BeforeEach
   public void setUpNodes() {
-    createLeader();
-    createFollower();
-    createFollower();
+    createAndStartLeader();
+    createAndStartFollower();
+    createAndStartFollower();
   }
 
   public void testLWWRegister() {
