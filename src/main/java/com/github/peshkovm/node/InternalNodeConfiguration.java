@@ -6,6 +6,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+/**
+ * Spring Configuration class for {@link InternalNode}
+ */
 @Configuration
 @ComponentScan("com.github.peshkovm")
 public class InternalNodeConfiguration {
