@@ -2,12 +2,21 @@ package com.github.peshkovm.common.component;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 
-/**
- * Evaluate lifecycle methods on all components implementing {@link LifecycleComponent}.
- */
-public class LifecycleService extends AbstractLifecycleComponent {
+/** Evaluate lifecycle methods on all components implementing {@link LifecycleComponent}. */
+public class LifecycleService extends AbstractLifecycleComponent implements BeanPostProcessor {
   private final List<LifecycleComponent> lifecycleQueue = new ArrayList<>();
+
+  @Override
+  public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    if (bean instanceof LifecycleComponent) {
+      LifecycleComponent lifecycleComponent = (LifecycleComponent) bean;
+      lifecycleQueue.add(lifecycleComponent);
+    }
+    return bean;
+  }
 
   @Override
   protected void doStart() {

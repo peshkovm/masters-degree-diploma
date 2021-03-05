@@ -5,18 +5,13 @@ import com.google.common.collect.Sets;
 import com.typesafe.config.Config;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-/**
- * Factory class to creates {@link InternalNode} instances.
- */
+/** Factory class to creates {@link InternalNode} instances. */
 public final class InternalClusterFactory {
 
   private static final Set<Integer> ports = Sets.newHashSet(); // List of cluster nodes ports
 
-  private InternalClusterFactory() {
-  }
+  private InternalClusterFactory() {}
 
   private static int nextPort() {
     for (; ; ) {
@@ -29,7 +24,7 @@ public final class InternalClusterFactory {
   }
 
   /**
-   * Creates leader node on local host with random port.
+   * Creates leader node on same JVM with random port.
    *
    * @return newly created InternalNode instance
    */
@@ -44,7 +39,7 @@ public final class InternalClusterFactory {
   }
 
   /**
-   * Creates follower node on local host with random port.
+   * Creates follower node on same JVM with random port.
    *
    * @return newly created InternalNode instance
    */
@@ -58,9 +53,7 @@ public final class InternalClusterFactory {
     return node;
   }
 
-  /**
-   * Resets cluster state to build new cluster from ground up
-   */
+  /** Resets cluster state to build new cluster from ground up */
   public static void reset() {
     ports.clear();
   }
