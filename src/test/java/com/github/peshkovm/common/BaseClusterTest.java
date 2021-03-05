@@ -1,8 +1,8 @@
 package com.github.peshkovm.common;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
+import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
-import com.github.peshkovm.node.InternalNodeFactory;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -11,19 +11,18 @@ import org.junit.jupiter.api.AfterEach;
  * Provides methods for cluster testing.
  */
 public class BaseClusterTest {
-
   protected List<InternalNode> nodes = Lists.newArrayList();
 
-  /** Creates leader node on local host with random port */
+  /** Creates leader node on same JVM with random port. */
   protected final void createAndStartLeader() {
-    final InternalNode node = InternalNodeFactory.createLeaderNode();
+    final InternalNode node = InternalClusterFactory.createLeaderNode();
     node.start();
     nodes.add(node);
   }
 
-  /** Creates follower node on local host with random port */
+  /** Creates follower node on sme JVM with random port. */
   protected final void createAndStartFollower() {
-    final InternalNode node = InternalNodeFactory.createFollowerNode();
+    final InternalNode node = InternalClusterFactory.createFollowerNode();
     node.start();
     nodes.add(node);
   }
@@ -33,6 +32,6 @@ public class BaseClusterTest {
     nodes.forEach(LifecycleComponent::stop);
     nodes.forEach(LifecycleComponent::close);
     nodes = Lists.newArrayList();
-    InternalNodeFactory.reset();
+    InternalClusterFactory.reset();
   }
 }

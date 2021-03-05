@@ -11,13 +11,11 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 /**
  * Factory class to creates {@link InternalNode} instances.
  */
-public final class InternalNodeFactory {
+public final class InternalClusterFactory {
 
   private static final Set<Integer> ports = Sets.newHashSet(); // List of cluster nodes ports
-  private static final ApplicationContext applicationContext =
-      new AnnotationConfigApplicationContext(InternalNodeConfiguration.class);
 
-  private InternalNodeFactory() {
+  private InternalClusterFactory() {
   }
 
   private static int nextPort() {
@@ -40,14 +38,9 @@ public final class InternalNodeFactory {
     final Config config =
         new ConfigBuilder().with("transport.port", port).with("transport.is_leader", true).build();
 
-    final InternalNode node = applicationContext.getBean(InternalNode.class);
-    node.setConfig(config);
+    final InternalNode node = new InternalNode(config);
 
     return node;
-  }
-
-  public static void reset() {
-    ports.clear();
   }
 
   /**
@@ -60,9 +53,15 @@ public final class InternalNodeFactory {
     final Config config =
         new ConfigBuilder().with("transport.port", port).with("transport.is_leader", false).build();
 
-    final InternalNode node = applicationContext.getBean(InternalNode.class);
-    node.setConfig(config);
+    final InternalNode node = new InternalNode(config);
 
     return node;
+  }
+
+  /**
+   * Resets cluster state to build new cluster from ground up
+   */
+  public static void reset() {
+    ports.clear();
   }
 }

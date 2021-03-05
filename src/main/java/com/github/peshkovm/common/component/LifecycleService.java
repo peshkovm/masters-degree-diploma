@@ -7,7 +7,6 @@ import java.util.List;
  * Evaluate lifecycle methods on all components implementing {@link LifecycleComponent}.
  */
 public class LifecycleService extends AbstractLifecycleComponent {
-
   private final List<LifecycleComponent> lifecycleQueue = new ArrayList<>();
 
   @Override

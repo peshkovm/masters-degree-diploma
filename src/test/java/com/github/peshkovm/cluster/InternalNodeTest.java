@@ -2,7 +2,7 @@ package com.github.peshkovm.cluster;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.node.InternalNode;
-import com.github.peshkovm.node.InternalNodeFactory;
+import com.github.peshkovm.node.InternalClusterFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -71,15 +71,10 @@ public class InternalNodeTest extends BaseClusterTest {
   void shouldCreateNewNodeEveryTime() {
     final ArrayList<InternalNode> nodes = new ArrayList<>();
 
-    nodes.add(InternalNodeFactory.createLeaderNode());
-    nodes.add(InternalNodeFactory.createFollowerNode());
-    nodes.add(InternalNodeFactory.createFollowerNode());
-    nodes.add(InternalNodeFactory.createFollowerNode());
-
-    nodes.forEach(
-        node -> {
-          System.out.println(node.getClass());
-        });
+    nodes.add(InternalClusterFactory.createLeaderNode());
+    nodes.add(InternalClusterFactory.createFollowerNode());
+    nodes.add(InternalClusterFactory.createFollowerNode());
+    nodes.add(InternalClusterFactory.createFollowerNode());
 
     Assertions.assertEquals(nodes.stream().distinct().count(), 4);
   }
