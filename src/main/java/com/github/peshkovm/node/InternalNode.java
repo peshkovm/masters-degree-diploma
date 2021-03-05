@@ -32,6 +32,7 @@ public class InternalNode extends AbstractLifecycleComponent implements Node {
     this.config = config;
     logger.info("Initializing...");
     final BeanFactoryBuilder beanFactoryBuilder = new BeanFactoryBuilder();
+
     beanFactoryBuilder.addBean(config, bd -> bd.setScope(ConfigurableBeanFactory.SCOPE_SINGLETON));
     beanFactoryBuilder.add(ComponentConfiguration.class);
 

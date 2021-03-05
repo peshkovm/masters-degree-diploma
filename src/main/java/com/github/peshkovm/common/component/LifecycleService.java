@@ -4,8 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /** Evaluate lifecycle methods on all components implementing {@link LifecycleComponent}. */
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class LifecycleService extends AbstractLifecycleComponent implements BeanPostProcessor {
   private final List<LifecycleComponent> lifecycleQueue = new ArrayList<>();
 

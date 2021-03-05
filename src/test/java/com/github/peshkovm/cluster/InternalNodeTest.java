@@ -65,17 +65,4 @@ public class InternalNodeTest extends BaseClusterTest {
 
     Assertions.assertEquals(nodes.stream().map(InternalNode::getHostAndPort).distinct().count(), 4);
   }
-
-  @Test
-  @DisplayName("Should create new node every time")
-  void shouldCreateNewNodeEveryTime() {
-    final ArrayList<InternalNode> nodes = new ArrayList<>();
-
-    nodes.add(InternalClusterFactory.createLeaderNode());
-    nodes.add(InternalClusterFactory.createFollowerNode());
-    nodes.add(InternalClusterFactory.createFollowerNode());
-    nodes.add(InternalClusterFactory.createFollowerNode());
-
-    Assertions.assertEquals(nodes.stream().distinct().count(), 4);
-  }
 }
