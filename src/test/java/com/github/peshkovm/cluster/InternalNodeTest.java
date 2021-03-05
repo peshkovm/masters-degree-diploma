@@ -2,8 +2,7 @@ package com.github.peshkovm.cluster;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.node.InternalNode;
-import com.github.peshkovm.node.InternalClusterFactory;
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
@@ -19,11 +18,11 @@ public class InternalNodeTest extends BaseClusterTest {
     final InternalNode leaderNode = nodes.get(0);
 
     Assertions.assertTrue(leaderNode.isStarted());
-    Assertions.assertTrue(leaderNode.isStarted());
     leaderNode.stop();
     Assertions.assertTrue(leaderNode.isStopped());
     leaderNode.close();
     Assertions.assertTrue(leaderNode.isClosed());
+    nodes = Lists.newArrayList();
   }
 
   @Test
@@ -37,6 +36,7 @@ public class InternalNodeTest extends BaseClusterTest {
     Assertions.assertTrue(followerNode.isStopped());
     followerNode.close();
     Assertions.assertTrue(followerNode.isClosed());
+    nodes = Lists.newArrayList();
   }
 
   @Test
