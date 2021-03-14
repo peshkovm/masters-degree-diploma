@@ -27,7 +27,6 @@ public class LifecycleService extends AbstractLifecycleComponent implements Bean
   protected void doStart() {
     lifecycleQueue.forEach(
         component -> {
-          logger.debug("Starting{}", component);
           component.start();
         });
   }
@@ -37,7 +36,6 @@ public class LifecycleService extends AbstractLifecycleComponent implements Bean
     final int size = lifecycleQueue.size();
     for (int i = size - 1; i >= 0; i--) {
       LifecycleComponent component = lifecycleQueue.get(i);
-      logger.debug("Stopping {}", component);
       component.stop();
     }
   }
@@ -47,7 +45,6 @@ public class LifecycleService extends AbstractLifecycleComponent implements Bean
     final int size = lifecycleQueue.size();
     for (int i = size - 1; i >= 0; i--) {
       LifecycleComponent component = lifecycleQueue.get(i);
-      logger.debug("Closing {}", component);
       component.close();
     }
   }
