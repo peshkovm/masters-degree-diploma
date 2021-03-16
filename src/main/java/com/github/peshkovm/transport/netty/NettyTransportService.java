@@ -127,7 +127,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
   public void send(DiscoveryNode discoveryNode, Message msg) {
     try {
       connectToNode(discoveryNode);
-      logger.info("Sending {} to node {}...", msg, discoveryNode);
+      logger.debug("Sending {} to node {}...", msg, discoveryNode);
       final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(msg);
       future.addListener(
           FIRE_EXCEPTION_ON_FAILURE); // Let object serialisation exceptions propagate.

@@ -67,7 +67,7 @@ public class ClientServerEchoTest extends BaseIntegrationTest {
   void clientShouldSendMessageToServerAndReceiveItBackConcurrently() throws Exception {
     final TransportService clientTransportService = transportServices.get(1);
     final DiscoveryNode serverDiscoveryNode = transportServers.get(0).localNode();
-    final int exchangeCount = 5;
+    final int exchangeCount = 1000;
 
     countDownLatch = new CountDownLatch(exchangeCount);
     executeConcurrently(
