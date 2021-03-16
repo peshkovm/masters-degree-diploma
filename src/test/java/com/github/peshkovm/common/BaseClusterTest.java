@@ -7,15 +7,20 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 
-/** Provides methods for cluster testing. */
-public class BaseClusterTest {
+/**
+ * Provides methods for cluster testing.
+ */
+public class BaseClusterTest extends BaseTest {
+
   protected List<InternalNode> nodes = Lists.newArrayList();
 
-  /** Creates and starts leader node on same JVM with random port. */
+  /**
+   * Creates and starts leader node on same JVM with random port.
+   */
   protected final void createAndStartLeader() {
     final InternalNode node = InternalClusterFactory.createLeaderNode();
-    node.start();
     nodes.add(node);
+    node.start();
   }
 
   /** Creates and starts follower node on sme JVM with random port. */

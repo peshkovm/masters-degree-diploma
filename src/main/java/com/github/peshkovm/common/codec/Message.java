@@ -1,5 +1,7 @@
 package com.github.peshkovm.common.codec;
 
+import java.io.Serializable;
+
 /**
  * The interface that represents message. Think of a message as a structured sequence of bytes
  * having meaning for a specific application-its data.
@@ -7,6 +9,6 @@ package com.github.peshkovm.common.codec;
  * <p>All application specific data that you want to send through a network should implement this
  * interface.
  */
-public interface Message {
+public interface Message extends Serializable {
 
 }

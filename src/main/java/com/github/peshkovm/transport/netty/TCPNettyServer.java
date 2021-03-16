@@ -3,6 +3,9 @@ package com.github.peshkovm.transport.netty;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.common.netty.NettyServer;
+import com.github.peshkovm.transport.DiscoveryNode;
+import com.github.peshkovm.transport.TransportController;
+import com.github.peshkovm.transport.TransportServer;
 import com.typesafe.config.Config;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -10,6 +13,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -20,32 +26,41 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
-public class NettyTransportServer extends NettyServer implements TransportServer {
+public class TCPNettyServer extends NettyServer implements TransportServer {
+
+  private final TransportController transportController;
 
   /**
    * Constructs a new instance.
    *
-   * @param config defines parameters for bootstrapping, host and port
+   * @param config defines parameters host and port
    * @param provider provides ServerSocketChannel, SocketChannel and EventLoopGroups
+   * @param transportController transport controller to dispatch messages
    */
   @Autowired
-  public NettyTransportServer(
+  public TCPNettyServer(
       @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") Config config,
-      NettyProvider provider) {
-    super(provider, config.getString("transport.host"), config.getInt("transport.port"));
+      NettyProvider provider,
+      TransportController transportController) {
+    super(
+        new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
+        provider);
+    this.transportController = transportController;
   }
 
   @Override
   protected ChannelInitializer<Channel> channelInitializer() {
-    return new TransportServerInitializer();
+    return new ServerChannelInitializer();
   }
 
   @ChannelHandler.Sharable
-  private class TransportServerInitializer extends ChannelInitializer<Channel> {
+  private class ServerChannelInitializer extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(Channel ch) throws Exception {
       ChannelPipeline pipeline = ch.pipeline();
+      pipeline.addLast(new ObjectEncoder());
+      pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
       pipeline.addLast(new TransportServerHandler());
     }
   }
@@ -57,17 +72,13 @@ public class NettyTransportServer extends NettyServer implements TransportServer
     }
 
     @Override
-    public boolean isSharable() {
-      return super.isSharable();
-    }
-
-    @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
+      transportController.dispatch(msg);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      logger.error("Unexpected channel error, close channel", cause);
+      logger.error("Unexpected channel error, closing channel...", cause);
       ctx.close();
     }
   }

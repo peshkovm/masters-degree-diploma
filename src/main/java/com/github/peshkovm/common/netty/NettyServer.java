@@ -1,6 +1,8 @@
 package com.github.peshkovm.common.netty;
 
 import com.github.peshkovm.common.component.AbstractLifecycleComponent;
+import com.github.peshkovm.transport.DiscoveryNode;
+import com.github.peshkovm.transport.TransportServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -10,30 +12,28 @@ import io.netty.handler.logging.LoggingHandler;
 /**
  * Abstract server bootstrapping class.
  */
-public abstract class NettyServer extends AbstractLifecycleComponent {
+public abstract class NettyServer extends AbstractLifecycleComponent implements TransportServer {
 
-  protected final String host;
-  protected final int port;
+  protected DiscoveryNode discoveryNode;
   protected ServerBootstrap bootstrap;
+
   protected NettyProvider provider;
 
   /**
    * Constructs a new instance.
    *
    * @param provider provides ServerSocketChannel, SocketChannel and EventLoopGroups
-   * @param host server host
-   * @param port serer port
+   * @param discoveryNode node's bind adress
    */
-  protected NettyServer(NettyProvider provider, String host, int port) {
+  protected NettyServer(DiscoveryNode discoveryNode, NettyProvider provider) {
     logger.info("Initializing...");
-    this.host = host;
-    this.port = port;
+    this.discoveryNode = discoveryNode;
     this.provider = provider;
     logger.info("Initialized");
   }
 
   /**
-   * Bootstraps server.
+   * Binds server to host and port, assigned in constructor
    */
   @Override
   protected void doStart() {
@@ -42,11 +42,12 @@ public abstract class NettyServer extends AbstractLifecycleComponent {
       bootstrap
           .group(provider.getParentEventLoopGroup(), provider.getChildEventLoopGroup())
           .channel(provider.getServerSocketChannel())
-          .handler(new LoggingHandler(LogLevel.INFO))
+          .handler(new LoggingHandler(LogLevel.DEBUG))
           .childHandler(channelInitializer());
 
-      bootstrap.bind(host, port).sync();
+      bootstrap.bind(discoveryNode.getHost(), discoveryNode.getPort()).sync();
     } catch (InterruptedException e) {
+      logger.error("Error bind to {}", discoveryNode, e);
       Thread.currentThread().interrupt();
       e.printStackTrace();
     }
@@ -58,6 +59,11 @@ public abstract class NettyServer extends AbstractLifecycleComponent {
    * @return ChannelInitializer instance.
    */
   protected abstract ChannelInitializer<Channel> channelInitializer();
+
+  @Override
+  public DiscoveryNode localNode() {
+    return discoveryNode;
+  }
 
   /**
    * Does nothing

@@ -80,4 +80,9 @@ public class InternalNode extends AbstractLifecycleComponent implements Node {
   public int hashCode() {
     return getHostAndPort() != null ? getHostAndPort().hashCode() : 0;
   }
+
+  @Override
+  public BeanFactory getBeanFactory() {
+    return beanFactory;
+  }
 }
