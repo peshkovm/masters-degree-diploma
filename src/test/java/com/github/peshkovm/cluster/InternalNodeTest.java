@@ -15,7 +15,7 @@ public class InternalNodeTest extends BaseClusterTest {
   @Test
   @DisplayName("Should start then stop and close leader node")
   void shouldStartThenStopAndCloseLeaderNode() {
-    createAndStartLeader();
+    createAndStartInternalNode();
     final InternalNode leaderNode = nodes.get(0);
 
     Assertions.assertTrue(leaderNode.isStarted());
@@ -29,7 +29,7 @@ public class InternalNodeTest extends BaseClusterTest {
   @Test
   @DisplayName("Should start then stop and close follower node")
   void shouldStartThenStopAndCloseFollowerNode() {
-    createAndStartFollower();
+    createAndStartInternalNode();
     final InternalNode followerNode = nodes.get(0);
 
     Assertions.assertTrue(followerNode.isStarted());
@@ -43,10 +43,10 @@ public class InternalNodeTest extends BaseClusterTest {
   @Test
   @DisplayName("Should create all nodes on localhost")
   void shouldCreateAllNodesOnLocalhost() {
-    createAndStartLeader();
-    createAndStartFollower();
-    createAndStartFollower();
-    createAndStartFollower();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
 
     Assertions.assertEquals(
         nodes.stream()
@@ -65,10 +65,10 @@ public class InternalNodeTest extends BaseClusterTest {
   @Test
   @DisplayName("Should create all nodes on different ports")
   void shouldCreateAllNodesOnDifferentPorts() {
-    createAndStartLeader();
-    createAndStartFollower();
-    createAndStartFollower();
-    createAndStartFollower();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
 
     Assertions.assertEquals(
         nodes.stream()

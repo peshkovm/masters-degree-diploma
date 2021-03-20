@@ -54,7 +54,7 @@ public final class Match {
    */
   public static final class MapperBuilder<SuperType, MapType> {
 
-    private Map<Class, Function<? extends SuperType, MapType>> map = new ConcurrentHashMap<>();
+    private final Map<Class, Function<? extends SuperType, MapType>> map = new ConcurrentHashMap<>();
 
     /**
      * Registers handler for specified type

@@ -24,29 +24,13 @@ public final class InternalClusterFactory {
   }
 
   /**
-   * Creates leader node on same JVM with random port.
+   * Creates internal node on same JVM with random port.
    *
    * @return newly created InternalNode instance
    */
-  public static InternalNode createLeaderNode() {
+  public static InternalNode createInternalNode() {
     final int port = nextPort();
-    final Config config =
-        new ConfigBuilder().with("transport.port", port).with("transport.is_leader", true).build();
-
-    final InternalNode node = new InternalNode(config);
-
-    return node;
-  }
-
-  /**
-   * Creates follower node on same JVM with random port.
-   *
-   * @return newly created InternalNode instance
-   */
-  public static InternalNode createFollowerNode() {
-    final int port = nextPort();
-    final Config config =
-        new ConfigBuilder().with("transport.port", port).with("transport.is_leader", false).build();
+    final Config config = new ConfigBuilder().with("transport.port", port).build();
 
     final InternalNode node = new InternalNode(config);
 

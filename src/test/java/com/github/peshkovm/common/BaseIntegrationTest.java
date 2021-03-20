@@ -32,7 +32,7 @@ public class BaseIntegrationTest extends BaseTest {
    * Creates and starts node on same JVM with specified port.
    */
   protected void createAndStartNode() {
-    final InternalNode node = InternalClusterFactory.createFollowerNode();
+    final InternalNode node = InternalClusterFactory.createInternalNode();
     nodes.add(node);
     transportServers.add(node.getBeanFactory().getBean(TransportServer.class));
     transportServices.add(node.getBeanFactory().getBean(TransportService.class));

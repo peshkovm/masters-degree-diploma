@@ -16,9 +16,9 @@ public class ClusterCrdtTest extends BaseClusterTest {
 
   @BeforeEach
   void setUpNodes() {
-    createAndStartLeader();
-    createAndStartFollower();
-    createAndStartFollower();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
 
     leaderIndex = getLeaderIndex();
 

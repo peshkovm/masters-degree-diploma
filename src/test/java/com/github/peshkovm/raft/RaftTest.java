@@ -17,13 +17,12 @@ public class RaftTest extends BaseClusterTest {
 
   private List<Raft> raftList;
   private List<RegisterClient> clients;
-  private int leaderIndex;
 
   @BeforeEach
   void setUpNodes() {
-    createAndStartLeader();
-    createAndStartFollower();
-    createAndStartFollower();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
 
     raftList =
         nodes.stream()
@@ -38,10 +37,10 @@ public class RaftTest extends BaseClusterTest {
   @Test
   @DisplayName("Should send ClientMessage to follower and receive it back")
   void shouldSendClientMessageToFollowerAndReceiveItBack() {
-    final String value1 = clients.get(0).get().get();
+    final String value1 = clients.get(0).getValue().get();
     Assertions.assertEquals("", value1);
 
-    final String value2 = clients.get(1).set("Hello World").get();
+    final String value2 = clients.get(1).setValue("Hello World").get();
     Assertions.assertEquals("Hello World", value2);
   }
 
@@ -55,13 +54,13 @@ public class RaftTest extends BaseClusterTest {
       this.raft = raft;
     }
 
-    public Future<String> set(String value) {
+    public Future<String> setValue(String value) {
       return raft.command(new RegisterValue(value))
           .filter(m -> m instanceof RegisterValue)
           .map(m -> ((RegisterValue) m).value);
     }
 
-    public Future<String> get() {
+    public Future<String> getValue() {
       return raft.command(new RegisterValue(""))
           .filter(msg -> msg instanceof RegisterValue)
           .map(msg -> ((RegisterValue) msg).getValue());

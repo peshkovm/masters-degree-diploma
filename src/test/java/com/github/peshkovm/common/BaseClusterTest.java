@@ -15,17 +15,10 @@ public class BaseClusterTest extends BaseTest {
   protected List<InternalNode> nodes = Lists.newArrayList();
 
   /**
-   * Creates and starts leader node on same JVM with random port.
+   * Creates and starts follower node on sme JVM with random port.
    */
-  protected final void createAndStartLeader() {
-    final InternalNode node = InternalClusterFactory.createLeaderNode();
-    nodes.add(node);
-    node.start();
-  }
-
-  /** Creates and starts follower node on sme JVM with random port. */
-  protected final void createAndStartFollower() {
-    final InternalNode node = InternalClusterFactory.createFollowerNode();
+  protected final void createAndStartInternalNode() {
+    final InternalNode node = InternalClusterFactory.createInternalNode();
     nodes.add(node);
     node.start();
   }

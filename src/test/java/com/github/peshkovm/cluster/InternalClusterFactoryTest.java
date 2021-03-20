@@ -13,10 +13,9 @@ public class InternalClusterFactoryTest {
   void shouldCreateNewNodeEveryTime() {
     final ArrayList<InternalNode> nodes = new ArrayList<>();
 
-    nodes.add(InternalClusterFactory.createLeaderNode());
-    nodes.add(InternalClusterFactory.createFollowerNode());
-    nodes.add(InternalClusterFactory.createFollowerNode());
-    nodes.add(InternalClusterFactory.createFollowerNode());
+    nodes.add(InternalClusterFactory.createInternalNode());
+    nodes.add(InternalClusterFactory.createInternalNode());
+    nodes.add(InternalClusterFactory.createInternalNode());
 
     Assertions.assertEquals(nodes.stream().distinct().count(), 4);
   }

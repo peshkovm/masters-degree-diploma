@@ -1,8 +1,5 @@
 package com.github.peshkovm.raft;
 
-import static com.github.peshkovm.raft.RaftState.FOLLOWER;
-import static com.github.peshkovm.raft.RaftState.LEADER;
-
 import com.github.peshkovm.common.Match;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.component.AbstractLifecycleComponent;
@@ -14,7 +11,6 @@ import com.github.peshkovm.raft.protocol.LogEntry;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
-import com.typesafe.config.Config;
 import io.vavr.concurrent.Future;
 import io.vavr.concurrent.Promise;
 import java.util.ArrayList;
@@ -36,43 +32,34 @@ public class Raft extends AbstractLifecycleComponent {
   private final TransportService transportService;
   private final TransportController transportController;
   private final ReentrantLock lock;
-  private volatile State state;
   private final ClusterDiscovery clusterDiscovery;
   private final List<LogEntry> replicatedLog;
-  private final Config config;
   private final Map<Long, Promise<Message>> sessionCommands;
+  private SourceState sourceState;
+  private ReplicaState replicaState;
 
   private final Match.Mapper<Message, State> mapper =
       Match.<Message, State>map()
-          .when(ClientMessage.class, e -> state.handle(e))
-          .when(AppendEntry.class, e -> state.handle(e))
+          .when(ClientMessage.class, sourceState::handle)
+          .when(AppendEntry.class, replicaState::handle)
+          .when(AppendSuccessful.class, sourceState::handle)
           .build();
 
   @Autowired
   public Raft(
       TransportService transportService,
       ClusterDiscovery clusterDiscovery,
-      TransportController transportController,
-      @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") Config config) {
+      TransportController transportController) {
     this.transportService = transportService;
     this.clusterDiscovery = clusterDiscovery;
     this.transportController = transportController;
-    this.config = config;
     this.lock = new ReentrantLock();
     this.replicatedLog = new ArrayList<>();
+    this.sessionCommands = new ConcurrentHashMap<>();
 
-    initState();
-    sessionCommands = new ConcurrentHashMap<>();
-  }
-
-  private void initState() {
     final RaftMetadata meta = new RaftMetadata(clusterDiscovery);
-
-    if (config.getBoolean("raft.is_leader")) {
-      this.state = new SourceState(meta);
-    } else {
-      // this.state = new FollowerState(meta);
-    }
+    this.sourceState = new SourceState(meta);
+    this.replicaState = new ReplicaState(meta);
   }
 
   public Future<Message> command(Message command) {
@@ -110,29 +97,13 @@ public class Raft extends AbstractLifecycleComponent {
     }
   }
 
-  private RaftState currentState() {
-    return state.getState();
-  }
-
-  private abstract class State {
+  private abstract static class State {
 
     @Getter
     private final RaftMetadata meta;
 
     private State(RaftMetadata meta) {
       this.meta = meta;
-      state = this;
-    }
-
-    public abstract RaftState getState();
-
-    public abstract State handle(ClientMessage message);
-
-    public abstract State handle(AppendEntry message);
-
-    public State handle(AppendSuccessful message) {
-      logger.debug("Unhandled {} in {}", () -> message, this::getState);
-      return this;
     }
   }
 
@@ -142,46 +113,16 @@ public class Raft extends AbstractLifecycleComponent {
       super(meta);
     }
 
-    @Override
-    public RaftState getState() {
-      return LEADER;
-    }
-
-    private void sendEntriesToFollowerNodes() {
-      logger.debug(
-          "Leader send entries to follower nodes: {}", () -> getMeta().getDiscoveryNodes());
-
-      getMeta().getDiscoveryNodesWithout(clusterDiscovery.getSelf()).forEach(this::sendEntries);
-    }
-
-    private void sendEntries(DiscoveryNode follower) {
-      final List<LogEntry> entries = new ArrayList<>(replicatedLog);
-      // replicatedLog.clear();
-
-      entries.forEach(
-          entry -> {
-            AppendEntry append = new AppendEntry(clusterDiscovery.getSelf(), entry);
-            send(follower, append);
-          });
-    }
-
-    @Override
     public State handle(ClientMessage message) {
       LogEntry entry = new LogEntry(message.getCommand(), message.getSession());
       replicatedLog.add(entry);
 
-      logger.debug("Leader appended command: [{}] to replicated log", message::getCommand);
+      logger.debug("Source node appended command: [{}] to replicated log", message::getCommand);
 
-      sendEntriesToFollowerNodes();
+      sendEntriesToAllReplicas();
       return this;
     }
 
-    @Override
-    public State handle(AppendEntry message) {
-      return null;
-    }
-
-    @Override
     public State handle(AppendSuccessful message) {
       logger.info("Leader received {}", message);
 
@@ -192,6 +133,20 @@ public class Raft extends AbstractLifecycleComponent {
               .get();
 
       return maybeCommitEntry(logEntry);
+    }
+
+    private void sendEntriesToAllReplicas() {
+      logger.debug("Source node send entries to replicas: {}", () -> getMeta().getDiscoveryNodes());
+
+      getMeta().getDiscoveryNodesWithout(clusterDiscovery.getSelf()).forEach(this::sendEntries);
+    }
+
+    private void sendEntries(DiscoveryNode follower) {
+      replicatedLog.forEach(
+          entry -> {
+            AppendEntry append = new AppendEntry(clusterDiscovery.getSelf(), entry);
+            send(follower, append);
+          });
     }
 
     private State maybeCommitEntry(LogEntry logEntry) {
@@ -210,6 +165,10 @@ public class Raft extends AbstractLifecycleComponent {
       super(meta);
     }
 
+    public State handle(AppendEntry message) {
+      return appendEntries(message);
+    }
+
     private State appendEntries(AppendEntry message) {
       logger.debug("Follower appended entry: [{}] to replicated log", message::getEntry);
       replicatedLog.add(message.getEntry());
@@ -221,21 +180,6 @@ public class Raft extends AbstractLifecycleComponent {
 
       return this;
     }
-
-    @Override
-    public RaftState getState() {
-      return FOLLOWER;
-    }
-
-    @Override
-    public State handle(ClientMessage message) {
-      return this;
-    }
-
-    @Override
-    public State handle(AppendEntry message) {
-      return appendEntries(message);
-    }
   }
 
   @Override
@@ -246,9 +190,6 @@ public class Raft extends AbstractLifecycleComponent {
   protected void doStop() {
   }
 
-  /**
-   * Does nothing
-   */
   @Override
   protected void doClose() {
   }
