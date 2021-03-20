@@ -84,12 +84,20 @@
       <artifactId>netty-all</artifactId>
       <version>4.1.59.Final</version>
     </dependency>
+    <!-- JetBrains -->
     <dependency>
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
       <version>RELEASE</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>io.vavr</groupId>
+      <artifactId>vavr</artifactId>
+      <version>0.10.1</version>
+    </dependency>
+    <!-- Javaslang -->
+
 
   </dependencies>
 

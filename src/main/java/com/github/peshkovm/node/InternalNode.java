@@ -5,13 +5,20 @@ import com.github.peshkovm.common.component.BeanFactoryBuilder;
 import com.github.peshkovm.common.component.ComponentConfiguration;
 import com.github.peshkovm.common.component.LifecycleService;
 import com.github.peshkovm.common.config.ConfigBuilder;
-import com.google.common.net.HostAndPort;
+import com.github.peshkovm.transport.DiscoveryNode;
+import com.github.peshkovm.transport.TransportServer;
 import com.typesafe.config.Config;
+import java.util.Objects;
+import lombok.Getter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
-/** Default implementation of {@link Node} interface. */
+/**
+ * Default implementation of {@link Node} interface.
+ */
 public class InternalNode extends AbstractLifecycleComponent implements Node {
+
+  @Getter
   private final Config config;
   private final BeanFactory beanFactory;
 
@@ -40,11 +47,6 @@ public class InternalNode extends AbstractLifecycleComponent implements Node {
     logger.info("Initialized");
   }
 
-  public HostAndPort getHostAndPort() {
-    return HostAndPort.fromParts(
-        config.getString("transport.host"), config.getInt("transport.port"));
-  }
-
   @Override
   protected void doStart() {
     beanFactory.getBean(LifecycleService.class).start();
@@ -71,14 +73,20 @@ public class InternalNode extends AbstractLifecycleComponent implements Node {
 
     InternalNode that = (InternalNode) o;
 
-    return getHostAndPort() != null
-        ? getHostAndPort().equals(that.getHostAndPort())
-        : that.getHostAndPort() == null;
+    final DiscoveryNode thisDiscoveryNode =
+        this.getBeanFactory().getBean(TransportServer.class).localNode();
+    final DiscoveryNode thatDiscoveryNode =
+        that.getBeanFactory().getBean(TransportServer.class).localNode();
+
+    return Objects.equals(thisDiscoveryNode, thatDiscoveryNode);
   }
 
   @Override
   public int hashCode() {
-    return getHostAndPort() != null ? getHostAndPort().hashCode() : 0;
+    final DiscoveryNode thisDiscoveryNode =
+        this.getBeanFactory().getBean(TransportServer.class).localNode();
+
+    return thisDiscoveryNode != null ? thisDiscoveryNode.hashCode() : 0;
   }
 
   @Override

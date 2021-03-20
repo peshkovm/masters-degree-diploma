@@ -26,8 +26,8 @@ public class BaseClusterTest extends BaseTest {
   /** Creates and starts follower node on sme JVM with random port. */
   protected final void createAndStartFollower() {
     final InternalNode node = InternalClusterFactory.createFollowerNode();
-    node.start();
     nodes.add(node);
+    node.start();
   }
 
   @AfterEach
@@ -36,5 +36,13 @@ public class BaseClusterTest extends BaseTest {
     nodes.forEach(LifecycleComponent::close);
     nodes = Lists.newArrayList();
     InternalClusterFactory.reset();
+  }
+
+  protected int getLeaderIndex() {
+    return nodes.indexOf(
+        nodes.stream()
+            .filter(node -> node.getConfig().getBoolean("transport.is_leader"))
+            .findFirst()
+            .get());
   }
 }

@@ -6,7 +6,6 @@ import com.github.peshkovm.transport.TransportServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 /**
@@ -42,7 +41,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
       bootstrap
           .group(provider.getParentEventLoopGroup(), provider.getChildEventLoopGroup())
           .channel(provider.getServerSocketChannel())
-          .handler(new LoggingHandler(LogLevel.DEBUG))
+          .handler(new LoggingHandler(LoggingHandler.class))
           .childHandler(channelInitializer());
 
       bootstrap.bind(discoveryNode.getHost(), discoveryNode.getPort()).sync();
@@ -72,9 +71,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
   protected void doStop() {
   }
 
-  /**
-   * Shutdowns Netty's components.
-   */
+  /** Shutdowns Netty's components. */
   @Override
   protected void doClose() {
     bootstrap = null;

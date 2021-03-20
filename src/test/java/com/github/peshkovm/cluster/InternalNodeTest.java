@@ -2,6 +2,7 @@ package com.github.peshkovm.cluster;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.node.InternalNode;
+import com.github.peshkovm.transport.TransportServer;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -49,7 +50,13 @@ public class InternalNodeTest extends BaseClusterTest {
 
     Assertions.assertEquals(
         nodes.stream()
-            .map(internalNode -> internalNode.getHostAndPort().getHost())
+            .map(
+                internalNode ->
+                    internalNode
+                        .getBeanFactory()
+                        .getBean(TransportServer.class)
+                        .localNode()
+                        .getHost())
             .distinct()
             .collect(Collectors.toList()),
         Collections.singletonList("127.0.0.1"));
@@ -63,6 +70,11 @@ public class InternalNodeTest extends BaseClusterTest {
     createAndStartFollower();
     createAndStartFollower();
 
-    Assertions.assertEquals(nodes.stream().map(InternalNode::getHostAndPort).distinct().count(), 4);
+    Assertions.assertEquals(
+        nodes.stream()
+            .map(node -> node.getBeanFactory().getBean(TransportServer.class).localNode())
+            .distinct()
+            .count(),
+        4);
   }
 }
