@@ -6,13 +6,13 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="io.netty.handler.logging" level="WARN" additivity="false">
+    <Logger name="io.netty.handler.logging" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.github.peshkovm" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Root level="INFO">
+    <Root level="WARN">
       <AppenderRef ref="Console"/>
     </Root>
   </Loggers>

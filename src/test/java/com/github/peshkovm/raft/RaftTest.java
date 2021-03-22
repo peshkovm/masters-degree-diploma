@@ -43,8 +43,6 @@ public class RaftTest extends BaseClusterTest {
     final String value1 = clients.get(0).getValue().get();
     Assertions.assertEquals("", value1);
 
-    logger.info("Thread: {}", Thread.currentThread().getName());
-
     final String value2 = clients.get(1).setValue("Hello World").get();
     Assertions.assertEquals("Hello World", value2);
   }

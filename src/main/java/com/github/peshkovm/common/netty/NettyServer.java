@@ -31,9 +31,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
     logger.info("Initialized");
   }
 
-  /**
-   * Binds server to host and port, assigned in constructor
-   */
+  /** Binds server to host and port, assigned in constructor */
   @Override
   protected void doStart() {
     try {
@@ -41,7 +39,10 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
       bootstrap
           .group(provider.getParentEventLoopGroup(), provider.getChildEventLoopGroup())
           .channel(provider.getServerSocketChannel())
-          .handler(new LoggingHandler(LoggingHandler.class))
+          .handler(
+              new LoggingHandler(
+                  LoggingHandler.class.getName() + "." + this.getClass().getSimpleName()
+                      + ".ServerChannel"))
           .childHandler(channelInitializer());
 
       bootstrap.bind(discoveryNode.getHost(), discoveryNode.getPort()).sync();
@@ -68,8 +69,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
    * Does nothing
    */
   @Override
-  protected void doStop() {
-  }
+  protected void doStop() {}
 
   /** Shutdowns Netty's components. */
   @Override

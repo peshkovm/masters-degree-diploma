@@ -16,6 +16,8 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -58,7 +60,9 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
     @Override
     protected void initChannel(Channel ch) throws Exception {
       ChannelPipeline pipeline = ch.pipeline();
-      pipeline.addLast(new LoggingHandler(LoggingHandler.class));
+      pipeline.addLast(
+          new LoggingHandler(
+              LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
       pipeline.addLast(new TransportServerHandler());
