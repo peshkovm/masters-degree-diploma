@@ -11,7 +11,6 @@ import com.github.peshkovm.transport.TransportService;
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -52,7 +51,6 @@ public class NettyTransportService extends NettyClient implements TransportServi
     return new ClientChannelInitializer();
   }
 
-  @ChannelHandler.Sharable
   private class ClientChannelInitializer extends ChannelInitializer<Channel> {
 
     @Override
@@ -85,14 +83,22 @@ public class NettyTransportService extends NettyClient implements TransportServi
   @Override
   public void connectToNode(DiscoveryNode discoveryNode) {
     if (isStarted()) {
-      if (connectedNodes.containsKey(discoveryNode)) { // already connected to node
+      Preconditions.checkNotNull(discoveryNode);
+
+      if (connectedNodes.get(discoveryNode) != null) { // already connected to node
         return;
       }
       connectionLock.lock();
       try {
+        if (connectedNodes.get(discoveryNode) != null) { // already connected to node
+          return;
+        }
+
         final Channel channel =
             bootstrap.connect(discoveryNode.getHost(), discoveryNode.getPort()).sync().channel();
         connectedNodes.put(discoveryNode, channel);
+
+        logger.info("Connected to {}", () -> discoveryNode);
       } catch (InterruptedException e) {
         logger.error("Error connecting to {}", discoveryNode, e);
         Thread.currentThread().interrupt();
@@ -124,11 +130,11 @@ public class NettyTransportService extends NettyClient implements TransportServi
   }
 
   @Override
-  public void send(DiscoveryNode discoveryNode, Message msg) {
+  public void send(DiscoveryNode discoveryNode, Message message) {
     try {
       connectToNode(discoveryNode);
-      logger.debug("Sending {} to node {}...", msg, discoveryNode);
-      final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(msg);
+      logger.debug("Sending {} to node {}...", message, discoveryNode);
+      final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(message);
       future.addListener(
           FIRE_EXCEPTION_ON_FAILURE); // Let object serialisation exceptions propagate.
     } catch (Exception e) {
@@ -143,5 +149,11 @@ public class NettyTransportService extends NettyClient implements TransportServi
       throw new IllegalArgumentException("Not connected to node: " + node);
     }
     return channel;
+  }
+
+  @Override
+  protected void doStop() {
+    connectedNodes.keySet().forEach(this::disconnectFromNode);
+    super.doStop();
   }
 }

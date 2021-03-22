@@ -5,12 +5,12 @@ import com.github.peshkovm.transport.DiscoveryNode;
 import lombok.Data;
 
 @Data
-public class AppendSuccessful implements Message {
+public class AppendMessage implements Message {
 
   private final DiscoveryNode discoveryNode;
-  private final AppendMessage message;
+  private final ClientMessage message;
 
-  public AppendSuccessful(DiscoveryNode discoveryNode, AppendMessage message) {
+  public AppendMessage(DiscoveryNode discoveryNode, ClientMessage message) {
     this.discoveryNode = discoveryNode;
     this.message = message;
   }

@@ -1,0 +1,7 @@
+<capture-points>
+  <capture-point enabled="true"
+    class-name="com.github.peshkovm.transport.netty.NettyTransportService"
+    method-name="send" capture-key-expression="message.toString()"
+    insert-class-name="com.github.peshkovm.transport.netty.TCPNettyServer$TransportServerHandler"
+    insert-method-name="channelRead0" insert-key-expression="message.toString()"/>
+</capture-points>

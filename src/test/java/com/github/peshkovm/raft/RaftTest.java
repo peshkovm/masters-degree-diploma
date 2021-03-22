@@ -2,10 +2,13 @@ package com.github.peshkovm.raft;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.raft.resource.ResourceRegistry;
 import io.vavr.concurrent.Future;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,11 +43,29 @@ public class RaftTest extends BaseClusterTest {
     final String value1 = clients.get(0).getValue().get();
     Assertions.assertEquals("", value1);
 
+    logger.info("Thread: {}", Thread.currentThread().getName());
+
     final String value2 = clients.get(1).setValue("Hello World").get();
     Assertions.assertEquals("Hello World", value2);
   }
 
   @Component
+  public static class RegisterResource {
+
+    private final Logger logger = LogManager.getLogger();
+    private volatile String value = "";
+
+    @Autowired
+    public RegisterResource(ResourceRegistry registry) {
+      registry.registerHandler(RegisterValue.class, this::handle);
+    }
+
+    public Message handle(RegisterValue registerValue) {
+      return new RegisterValue(registerValue.getValue());
+    }
+  }
+
+  @Component()
   public static class RegisterClient {
 
     private final Raft raft;

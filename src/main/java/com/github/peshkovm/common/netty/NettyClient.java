@@ -35,7 +35,7 @@ public abstract class NettyClient extends AbstractLifecycleComponent {
     bootstrap
         .group(provider.getChildEventLoopGroup())
         .channel(provider.getClientSocketChannel())
-        .handler(new LoggingHandler(LogLevel.DEBUG))
+        .handler(new LoggingHandler(LoggingHandler.class))
         .handler(channelInitializer());
   }
 

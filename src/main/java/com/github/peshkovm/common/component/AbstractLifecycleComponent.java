@@ -1,6 +1,7 @@
 package com.github.peshkovm.common.component;
 
 import com.github.peshkovm.common.component.Lifecycle.State;
+import com.github.peshkovm.node.InternalNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,17 +17,24 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
     if (lifecycle.canMoveToStarted()) {
       lifecycle.moveToStarted();
 
-      logger.debug("Starting");
+      if (this instanceof InternalNode) {
+        logger.info("Starting");
+      } else {
+        logger.debug("Starting");
+      }
+
       doStart();
-      logger.debug("Started");
+      if (this instanceof InternalNode) {
+        logger.info("Started");
+      } else {
+        logger.debug("Started");
+      }
     } else {
       logger.warn("Can't move to started from " + lifecycle.getState() + " state");
     }
   }
 
-  /**
-   * Component's starting logic
-   */
+  /** Component's starting logic */
   protected abstract void doStart();
 
   @Override
@@ -47,9 +55,7 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
     }
   }
 
-  /**
-   * Component's stopping logic
-   */
+  /** Component's stopping logic */
   protected abstract void doStop();
 
   @Override
@@ -70,9 +76,7 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
     }
   }
 
-  /**
-   * Component's clossing logic
-   */
+  /** Component's clossing logic */
   protected abstract void doClose();
 
   @Override

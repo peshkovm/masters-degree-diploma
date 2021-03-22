@@ -14,12 +14,11 @@ public class BaseClusterTest extends BaseTest {
 
   protected List<InternalNode> nodes = Lists.newArrayList();
 
-  /**
-   * Creates and starts follower node on sme JVM with random port.
-   */
+  /** Creates and starts follower node on sme JVM with random port. */
   protected final void createAndStartInternalNode() {
     final InternalNode node = InternalClusterFactory.createInternalNode();
     nodes.add(node);
+
     node.start();
   }
 

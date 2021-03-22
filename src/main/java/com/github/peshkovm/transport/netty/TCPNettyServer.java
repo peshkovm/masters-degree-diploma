@@ -8,7 +8,6 @@ import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportServer;
 import com.typesafe.config.Config;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -16,6 +15,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import io.netty.handler.logging.LoggingHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -53,12 +53,12 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
     return new ServerChannelInitializer();
   }
 
-  @ChannelHandler.Sharable
   private class ServerChannelInitializer extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(Channel ch) throws Exception {
       ChannelPipeline pipeline = ch.pipeline();
+      pipeline.addLast(new LoggingHandler(LoggingHandler.class));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
       pipeline.addLast(new TransportServerHandler());
@@ -68,12 +68,12 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
   private class TransportServerHandler extends SimpleChannelInboundHandler<Message> {
 
     public TransportServerHandler() {
-      super(true);
+      super(false);
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-      transportController.dispatch(msg);
+    protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
+      transportController.dispatch(message);
     }
 
     @Override

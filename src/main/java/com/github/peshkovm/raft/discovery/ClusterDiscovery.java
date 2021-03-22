@@ -19,7 +19,7 @@ public class ClusterDiscovery {
   @Getter
   private final DiscoveryNode self;
   @Getter
-  private final Set<DiscoveryNode> discoveryNodes; // Contains only self
+  private final Set<DiscoveryNode> discoveryNodes;
 
   @Autowired
   public ClusterDiscovery(

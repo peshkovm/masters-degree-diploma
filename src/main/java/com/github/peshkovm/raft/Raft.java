@@ -4,20 +4,19 @@ import com.github.peshkovm.common.Match;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.component.AbstractLifecycleComponent;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
-import com.github.peshkovm.raft.protocol.AppendEntry;
+import com.github.peshkovm.raft.protocol.AppendMessage;
 import com.github.peshkovm.raft.protocol.AppendSuccessful;
 import com.github.peshkovm.raft.protocol.ClientMessage;
-import com.github.peshkovm.raft.protocol.LogEntry;
+import com.github.peshkovm.raft.resource.ResourceRegistry;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
 import io.vavr.concurrent.Future;
 import io.vavr.concurrent.Promise;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,48 +32,56 @@ public class Raft extends AbstractLifecycleComponent {
   private final TransportController transportController;
   private final ReentrantLock lock;
   private final ClusterDiscovery clusterDiscovery;
-  private final List<LogEntry> replicatedLog;
   private final Map<Long, Promise<Message>> sessionCommands;
+  private final Map<Long, AtomicInteger> sessionReceives;
   private SourceState sourceState;
   private ReplicaState replicaState;
+  private final ResourceRegistry registry;
 
   private final Match.Mapper<Message, State> mapper =
       Match.<Message, State>map()
-          .when(ClientMessage.class, sourceState::handle)
-          .when(AppendEntry.class, replicaState::handle)
-          .when(AppendSuccessful.class, sourceState::handle)
+          .when(ClientMessage.class, message -> sourceState.handle(message))
+          .when(AppendMessage.class, message -> replicaState.handle(message))
+          .when(AppendSuccessful.class, message -> sourceState.handle(message))
           .build();
 
   @Autowired
   public Raft(
       TransportService transportService,
       ClusterDiscovery clusterDiscovery,
-      TransportController transportController) {
+      TransportController transportController,
+      ResourceRegistry registry) {
     this.transportService = transportService;
     this.clusterDiscovery = clusterDiscovery;
     this.transportController = transportController;
     this.lock = new ReentrantLock();
-    this.replicatedLog = new ArrayList<>();
     this.sessionCommands = new ConcurrentHashMap<>();
+    this.sessionReceives = new ConcurrentHashMap<>();
+    this.registry = registry;
 
-    final RaftMetadata meta = new RaftMetadata(clusterDiscovery);
-    this.sourceState = new SourceState(meta);
-    this.replicaState = new ReplicaState(meta);
+    //    final RaftMetadata meta = new RaftMetadata(clusterDiscovery);
+    //    this.sourceState = new SourceState(meta);
+    //    this.replicaState = new ReplicaState(meta);
   }
 
   public Future<Message> command(Message command) {
     final Promise<Message> promise = Promise.make();
     Promise<Message> prev;
     long session;
+
     do {
-      session = ThreadLocalRandom.current().nextLong();
+      session = ThreadLocalRandom.current().nextLong(0, Long.MAX_VALUE);
       prev = sessionCommands.putIfAbsent(session, promise);
     } while (prev != null);
 
-    long finalSession = session;
-    logger.info("Client command with session: {}", () -> finalSession);
+    sessionReceives.putIfAbsent(
+        session, new AtomicInteger(clusterDiscovery.getDiscoveryNodes().size() - 1));
 
+    long finalSession = session;
     final ClientMessage clientMessage = new ClientMessage(command, session);
+
+    logger.info("Create client command: {}", () -> clientMessage);
+
     apply(clientMessage);
 
     return promise.future();
@@ -114,45 +121,55 @@ public class Raft extends AbstractLifecycleComponent {
     }
 
     public State handle(ClientMessage message) {
-      LogEntry entry = new LogEntry(message.getCommand(), message.getSession());
-      replicatedLog.add(entry);
-
-      logger.debug("Source node appended command: [{}] to replicated log", message::getCommand);
-
-      sendEntriesToAllReplicas();
+      sendMessageToAllReplicas(message);
       return this;
     }
 
     public State handle(AppendSuccessful message) {
-      logger.info("Leader received {}", message);
+      logger.info("Source node received {}", message);
 
-      final LogEntry logEntry =
-          replicatedLog.stream()
-              .filter(entry -> entry.getSession() == message.getSession())
-              .findFirst()
-              .get();
-
-      return maybeCommitEntry(logEntry);
+      return maybeCommitMessage(message);
     }
 
-    private void sendEntriesToAllReplicas() {
-      logger.debug("Source node send entries to replicas: {}", () -> getMeta().getDiscoveryNodes());
+    private void sendMessageToAllReplicas(ClientMessage message) {
+      logger.info(
+          "Source node send client command to replicas: {}",
+          () -> getMeta().getDiscoveryNodesWithout(clusterDiscovery.getSelf()));
 
-      getMeta().getDiscoveryNodesWithout(clusterDiscovery.getSelf()).forEach(this::sendEntries);
+      getMeta()
+          .getDiscoveryNodesWithout(clusterDiscovery.getSelf())
+          .forEach(replica -> sendMessage(replica, message));
     }
 
-    private void sendEntries(DiscoveryNode follower) {
-      replicatedLog.forEach(
-          entry -> {
-            AppendEntry append = new AppendEntry(clusterDiscovery.getSelf(), entry);
-            send(follower, append);
-          });
+    private void sendMessage(DiscoveryNode replica, ClientMessage message) {
+      AppendMessage append = new AppendMessage(clusterDiscovery.getSelf(), message);
+      send(replica, append);
     }
 
-    private State maybeCommitEntry(LogEntry logEntry) {
-      final Promise<Message> promise = sessionCommands.remove(logEntry.getSession());
+    private State maybeCommitMessage(AppendSuccessful message) {
+      final long session = message.getMessage().getMessage().getSession();
+      final Message command = message.getMessage().getMessage().getCommand();
+
+      final Promise<Message> promise = sessionCommands.get(session);
+
       if (promise != null) {
-        promise.success(null);
+        final int countOfSessionReceived = sessionReceives.get(session).decrementAndGet();
+        if (countOfSessionReceived == 0) {
+          logger.info(() -> "Source node received AppendSuccessful from all replicas");
+          sessionCommands.remove(session);
+          sessionReceives.remove(session);
+
+          final Message result = registry.apply(command);
+          if (result != null) {
+            promise.success(result);
+          } else {
+            logger.error("Resource registry not found for {}", () -> command);
+            promise.failure(
+                new IllegalStateException("Resource registry not found for " + command));
+          }
+        }
+      } else {
+        logger.error("Unknown session. Source node can't commit message: " + message);
       }
 
       return this;
@@ -165,17 +182,13 @@ public class Raft extends AbstractLifecycleComponent {
       super(meta);
     }
 
-    public State handle(AppendEntry message) {
-      return appendEntries(message);
+    public State handle(AppendMessage message) {
+      return appendMessage(message);
     }
 
-    private State appendEntries(AppendEntry message) {
-      logger.debug("Follower appended entry: [{}] to replicated log", message::getEntry);
-      replicatedLog.add(message.getEntry());
-
-      logger.debug(() -> "Follower send AppendSuccessful");
-      final AppendSuccessful response =
-          new AppendSuccessful(clusterDiscovery.getSelf(), message.getEntry().getSession());
+    private State appendMessage(AppendMessage message) {
+      logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
+      final AppendSuccessful response = new AppendSuccessful(clusterDiscovery.getSelf(), message);
       send(message.getDiscoveryNode(), response);
 
       return this;
@@ -184,6 +197,9 @@ public class Raft extends AbstractLifecycleComponent {
 
   @Override
   protected void doStart() {
+    final RaftMetadata meta = new RaftMetadata(clusterDiscovery);
+    this.sourceState = new SourceState(meta);
+    this.replicaState = new ReplicaState(meta);
   }
 
   @Override

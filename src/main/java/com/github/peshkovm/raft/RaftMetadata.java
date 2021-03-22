@@ -4,12 +4,14 @@ import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.DiscoveryNode;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RaftMetadata {
 
+  @Getter
   private final ClusterDiscovery discovery;
 
   @Autowired

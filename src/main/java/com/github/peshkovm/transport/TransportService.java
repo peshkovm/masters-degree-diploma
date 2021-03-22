@@ -25,7 +25,7 @@ public interface TransportService {
    * Asynchronously sends message to node. This method will not wait for sending completion.
    *
    * @param discoveryNode node to send message to
-   * @param msg msg to send
+   * @param message message to send
    */
-  void send(DiscoveryNode discoveryNode, Message msg);
+  void send(DiscoveryNode discoveryNode, Message message);
 }

@@ -5,13 +5,11 @@ import com.github.peshkovm.transport.DiscoveryNode;
 import lombok.Data;
 
 @Data
-public class AppendEntry implements Message {
+public class AddServer implements Message {
 
   private final DiscoveryNode discoveryNode;
-  private final LogEntry entry;
 
-  public AppendEntry(DiscoveryNode discoveryNode, LogEntry entry) {
+  public AddServer(DiscoveryNode discoveryNode) {
     this.discoveryNode = discoveryNode;
-    this.entry = entry;
   }
 }
