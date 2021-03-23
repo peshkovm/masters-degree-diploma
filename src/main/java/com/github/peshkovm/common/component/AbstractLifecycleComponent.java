@@ -32,7 +32,8 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
       }
 
     } else {
-      logger.warn("Can't move to started from " + lifecycle.getState() + " state");
+      throw new IllegalStateException(
+          "Can't move to started from " + lifecycle.getState() + " state");
     }
   }
 
@@ -64,7 +65,8 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
       }
 
     } else {
-      logger.warn("Can't move to stopped from " + lifecycle.getState() + " state");
+      throw new IllegalStateException(
+          "Can't move to stopped from " + lifecycle.getState() + " state");
     }
   }
 
@@ -95,7 +97,8 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
         logger.debug("Closed");
       }
     } else {
-      logger.warn("Can't move to closed from " + lifecycle.getState() + " state");
+      throw new IllegalStateException(
+          "Can't move to closed from " + lifecycle.getState() + " state");
     }
   }
 

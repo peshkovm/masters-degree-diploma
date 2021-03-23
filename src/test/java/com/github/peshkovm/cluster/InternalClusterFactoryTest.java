@@ -1,7 +1,6 @@
 package com.github.peshkovm.cluster;
 
 import com.github.peshkovm.common.BaseClusterTest;
-import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
 import java.util.ArrayList;
@@ -22,8 +21,6 @@ public class InternalClusterFactoryTest extends BaseClusterTest {
 
     Assertions.assertEquals(nodes.stream().distinct().count(), 3);
 
-    nodes.forEach(LifecycleComponent::stop);
-    nodes.forEach(LifecycleComponent::close);
     InternalClusterFactory.reset();
   }
 }
