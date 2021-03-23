@@ -1,7 +1,7 @@
 package com.github.peshkovm.common;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
 import java.util.function.Function;
 
 /**
@@ -32,13 +32,11 @@ public final class Match {
       this.cases = cases;
     }
 
-    /**
-     * Maps clazz to corresponding handler's function return type
-     */
+    /** Maps clazz to corresponding handler's function return type */
     @SuppressWarnings({"SuspiciousMethodCalls", "unchecked"})
     public <T extends SuperType> MapType apply(T value) {
       Function<T, MapType> mapper =
-          (Function<T, MapType>) cases.getOrDefault(value.getClass(), null);
+          (Function<T, MapType>) cases.getOrElse(value.getClass(), null);
       if (mapper == null) {
         throw new IllegalArgumentException("Can't find mapper for: " + value.getClass());
       }
@@ -54,7 +52,7 @@ public final class Match {
    */
   public static final class MapperBuilder<SuperType, MapType> {
 
-    private final Map<Class, Function<? extends SuperType, MapType>> map = new ConcurrentHashMap<>();
+    private Map<Class, Function<? extends SuperType, MapType>> map = HashMap.empty();
 
     /**
      * Registers handler for specified type
@@ -66,7 +64,7 @@ public final class Match {
      */
     public <Type extends SuperType> MapperBuilder<SuperType, MapType> when(
         Class<Type> type, Function<Type, MapType> handler) {
-      map.put(type, handler);
+      map = map.put(type, handler);
       return this;
     }
 

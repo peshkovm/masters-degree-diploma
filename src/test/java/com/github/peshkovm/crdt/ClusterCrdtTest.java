@@ -2,8 +2,7 @@ package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.crdt.routing.ResourceType;
-import java.util.List;
-import java.util.stream.Collectors;
+import io.vavr.collection.Vector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 public class ClusterCrdtTest extends BaseClusterTest {
 
-  private List<CrdtService> crdtServices;
+  private Vector<CrdtService> crdtServices;
 
   @BeforeEach
   void setUpNodes() {
@@ -19,10 +18,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
     createAndStartInternalNode();
     createAndStartInternalNode();
 
-    crdtServices =
-        nodes.stream()
-            .map(node -> node.getBeanFactory().getBean(CrdtService.class))
-            .collect(Collectors.toList());
+    crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
   }
 
   @Disabled

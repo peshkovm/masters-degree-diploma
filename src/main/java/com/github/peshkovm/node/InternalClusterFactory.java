@@ -1,36 +1,28 @@
 package com.github.peshkovm.node;
 
 import com.github.peshkovm.common.config.ConfigBuilder;
-import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;
-import java.util.Set;
+import io.vavr.collection.HashSet;
+import io.vavr.collection.Set;
 
 /**
  * Factory class to creates {@link InternalNode} instances.
  */
 public final class InternalClusterFactory {
 
-  private static final Set<Integer> ports = Sets.newHashSet(); // List of cluster nodes ports
+  private static Set<Integer> ports = HashSet.empty(); // List of cluster nodes ports
 
   private InternalClusterFactory() {}
 
   private static int port() {
-    //    for (; ; ) {
-    //      int port = 8800 + ThreadLocalRandom.current().nextInt(100);
-    //      if (!ports.contains(port)) {
-    //        ports.add(port);
-    //        return port;
-    //      }
-    //    }
-
     final Config config = new ConfigBuilder().build();
     for (String nodeAddress : config.getStringList("raft.discovery.nodes")) {
       final HostAndPort hostAndPort = HostAndPort.fromString(nodeAddress);
       final int port = hostAndPort.getPort();
 
       if (!ports.contains(port)) {
-        ports.add(port);
+        ports = ports.add(port);
         return port;
       }
     }
@@ -62,6 +54,6 @@ public final class InternalClusterFactory {
 
   /** Resets cluster state to build new cluster from ground up */
   public static void reset() {
-    ports.clear();
+    ports = HashSet.empty();
   }
 }

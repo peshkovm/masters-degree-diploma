@@ -3,9 +3,8 @@ package com.github.peshkovm.raft.discovery;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import io.vavr.collection.HashSet;
+import io.vavr.collection.Set;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,17 +28,14 @@ public class ClusterDiscovery {
   }
 
   private Set<DiscoveryNode> parseDiscovery(Config config) {
-    final HashSet<DiscoveryNode> nodes = new HashSet<DiscoveryNode>(Collections.singleton(self));
+    Set<DiscoveryNode> nodes = HashSet.of(self);
 
     if (config.hasPath("raft.discovery.nodes")) {
-      config
-          .getStringList("raft.discovery.nodes")
-          .forEach(
-              nodeAddress -> {
-                final HostAndPort hostAndPort = HostAndPort.fromString(nodeAddress);
+      for (String nodeAddress : config.getStringList("raft.discovery.nodes")) {
+        final HostAndPort hostAndPort = HostAndPort.fromString(nodeAddress);
 
-                nodes.add(new DiscoveryNode(hostAndPort.getHost(), hostAndPort.getPort()));
-              });
+        nodes = nodes.add(new DiscoveryNode(hostAndPort.getHost(), hostAndPort.getPort()));
+      }
     }
 
     logger.info("Nodes: {}", nodes);

@@ -1,8 +1,8 @@
 package com.github.peshkovm.transport;
 
 import com.github.peshkovm.common.codec.Message;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class TransportController {
 
   private static final Logger logger = LogManager.getLogger();
-  private volatile Map<Class, TransportHandler> handlerMap = new ConcurrentHashMap<>();
+  private volatile Map<Class, TransportHandler> handlerMap = HashMap.empty();
 
   /**
    * Registers message's handler.
@@ -29,7 +29,7 @@ public class TransportController {
    */
   public synchronized <T extends Message> void registerMessageHandler(
       Class<T> requestClass, TransportHandler<T> handler) {
-    handlerMap.put(requestClass, handler);
+    handlerMap = handlerMap.put(requestClass, handler);
   }
 
   /**
@@ -38,7 +38,7 @@ public class TransportController {
    * @param message message t0 dispatch
    */
   public void dispatch(Message message) {
-    final TransportHandler handler = handlerMap.getOrDefault(message.getClass(), null);
+    final TransportHandler handler = handlerMap.getOrElse(message.getClass(), null);
 
     if (handler != null) {
       handler.handle(message);

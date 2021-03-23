@@ -3,9 +3,8 @@ package com.github.peshkovm.raft;
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.raft.resource.ResourceRegistry;
+import io.vavr.collection.Vector;
 import io.vavr.concurrent.Future;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,8 +17,7 @@ import org.springframework.stereotype.Component;
 
 public class RaftTest extends BaseClusterTest {
 
-  private List<Raft> raftList;
-  private List<RegisterClient> clients;
+  private Vector<RegisterClient> clients;
 
   @BeforeEach
   void setUpNodes() {
@@ -27,14 +25,7 @@ public class RaftTest extends BaseClusterTest {
     createAndStartInternalNode();
     createAndStartInternalNode();
 
-    raftList =
-        nodes.stream()
-            .map(n -> n.getBeanFactory().getBean(Raft.class))
-            .collect(Collectors.toList());
-    clients =
-        nodes.stream()
-            .map(n -> n.getBeanFactory().getBean(RegisterClient.class))
-            .collect(Collectors.toList());
+    clients = nodes.map(n -> n.getBeanFactory().getBean(RegisterClient.class));
   }
 
   @Test

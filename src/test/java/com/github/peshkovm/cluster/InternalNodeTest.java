@@ -3,9 +3,7 @@ package com.github.peshkovm.cluster;
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.transport.TransportServer;
-import com.google.common.collect.Lists;
-import java.util.Collections;
-import java.util.stream.Collectors;
+import io.vavr.collection.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +21,7 @@ public class InternalNodeTest extends BaseClusterTest {
     Assertions.assertTrue(followerNode.isStopped());
     followerNode.close();
     Assertions.assertTrue(followerNode.isClosed());
-    nodes = Lists.newArrayList();
+    nodes = Vector.empty();
   }
 
   @Test
@@ -34,7 +32,7 @@ public class InternalNodeTest extends BaseClusterTest {
     createAndStartInternalNode();
 
     Assertions.assertEquals(
-        nodes.stream()
+        nodes
             .map(
                 internalNode ->
                     internalNode
@@ -42,9 +40,8 @@ public class InternalNodeTest extends BaseClusterTest {
                         .getBean(TransportServer.class)
                         .localNode()
                         .getHost())
-            .distinct()
-            .collect(Collectors.toList()),
-        Collections.singletonList("127.0.0.1"));
+            .distinct(),
+        Vector.of("127.0.0.1"));
   }
 
   @Test
@@ -55,10 +52,10 @@ public class InternalNodeTest extends BaseClusterTest {
     createAndStartInternalNode();
 
     Assertions.assertEquals(
-        nodes.stream()
+        nodes
             .map(node -> node.getBeanFactory().getBean(TransportServer.class).localNode())
             .distinct()
-            .count(),
+            .size(),
         3);
   }
 }

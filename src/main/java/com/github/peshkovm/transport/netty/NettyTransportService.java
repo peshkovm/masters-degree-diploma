@@ -19,8 +19,8 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LoggingHandler;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
-  private volatile Map<DiscoveryNode, Channel> connectedNodes = new ConcurrentHashMap<>();
+  private volatile Map<DiscoveryNode, Channel> connectedNodes = HashMap.empty();
   private final ReentrantLock connectionLock = new ReentrantLock();
   private final TransportController transportController;
 
@@ -89,18 +89,18 @@ public class NettyTransportService extends NettyClient implements TransportServi
     if (isStarted()) {
       Preconditions.checkNotNull(discoveryNode);
 
-      if (connectedNodes.get(discoveryNode) != null) { // already connected to node
+      if (connectedNodes.getOrElse(discoveryNode, null) != null) { // already connected to node
         return;
       }
       connectionLock.lock();
       try {
-        if (connectedNodes.get(discoveryNode) != null) { // already connected to node
+        if (connectedNodes.getOrElse(discoveryNode, null) != null) { // already connected to node
           return;
         }
 
         final Channel channel =
             bootstrap.connect(discoveryNode.getHost(), discoveryNode.getPort()).sync().channel();
-        connectedNodes.put(discoveryNode, channel);
+        connectedNodes = connectedNodes.put(discoveryNode, channel);
 
         logger.debug("Connected to {}", () -> discoveryNode);
       } catch (InterruptedException e) {
@@ -118,12 +118,12 @@ public class NettyTransportService extends NettyClient implements TransportServi
     Preconditions.checkNotNull(discoveryNode);
     connectionLock.lock();
     try {
-      final Channel channel = connectedNodes.getOrDefault(discoveryNode, null);
+      final Channel channel = connectedNodes.getOrElse(discoveryNode, null);
       if (channel == null) { // Not connected
         return;
       }
       channel.close().sync();
-      connectedNodes.remove(discoveryNode);
+      connectedNodes = connectedNodes.remove(discoveryNode);
     } catch (InterruptedException e) {
       logger.error("Error disconnecting from {}", discoveryNode, e);
       Thread.currentThread().interrupt();
@@ -148,7 +148,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
 
   private Channel getChannel(DiscoveryNode node) {
     Preconditions.checkNotNull(node);
-    final Channel channel = connectedNodes.getOrDefault(node, null);
+    final Channel channel = connectedNodes.getOrElse(node, null);
     if (channel == null) {
       throw new IllegalArgumentException("Not connected to node: " + node);
     }
