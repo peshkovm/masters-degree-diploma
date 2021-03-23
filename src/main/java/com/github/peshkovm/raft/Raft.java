@@ -80,7 +80,7 @@ public class Raft extends AbstractLifecycleComponent {
     long finalSession = session;
     final ClientMessage clientMessage = new ClientMessage(command, session);
 
-    logger.info("Create client command: {}", () -> clientMessage);
+    logger.info("Created client command: {}", () -> clientMessage);
 
     apply(clientMessage);
 
@@ -133,7 +133,7 @@ public class Raft extends AbstractLifecycleComponent {
 
     private void sendMessageToAllReplicas(ClientMessage message) {
       logger.info(
-          "Source node send client command to replicas: {}",
+          "Source node sending client command to replicas: {}",
           () -> getMeta().getDiscoveryNodesWithout(clusterDiscovery.getSelf()));
 
       getMeta()

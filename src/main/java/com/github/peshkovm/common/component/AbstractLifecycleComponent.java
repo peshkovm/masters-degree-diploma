@@ -24,11 +24,13 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
       }
 
       doStart();
+
       if (this instanceof InternalNode) {
         logger.info("Started");
       } else {
         logger.debug("Started");
       }
+
     } else {
       logger.warn("Can't move to started from " + lifecycle.getState() + " state");
     }
@@ -47,9 +49,20 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
     if (lifecycle.canMoveToStopped()) {
       lifecycle.moveToStopped();
 
-      logger.debug("Stopping");
+      if (this instanceof InternalNode) {
+        logger.info("Stopping");
+      } else {
+        logger.debug("Stopping");
+      }
+
       doStop();
-      logger.debug("Stopped");
+
+      if (this instanceof InternalNode) {
+        logger.info("Stopped");
+      } else {
+        logger.debug("Stopped");
+      }
+
     } else {
       logger.warn("Can't move to stopped from " + lifecycle.getState() + " state");
     }
@@ -68,9 +81,19 @@ public abstract class AbstractLifecycleComponent implements LifecycleComponent {
     if (lifecycle.canMoveToClosed()) {
       lifecycle.moveToClosed();
 
-      logger.debug("Closing");
+      if (this instanceof InternalNode) {
+        logger.info("Closing");
+      } else {
+        logger.debug("Closing");
+      }
+
       doClose();
-      logger.debug("Closed");
+
+      if (this instanceof InternalNode) {
+        logger.info("Closed");
+      } else {
+        logger.debug("Closed");
+      }
     } else {
       logger.warn("Can't move to closed from " + lifecycle.getState() + " state");
     }

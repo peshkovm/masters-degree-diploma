@@ -27,11 +27,11 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
    * @param discoveryNode node's bind adress
    */
   protected NettyServer(DiscoveryNode discoveryNode, NettyProvider provider) {
-    logger.info("Initializing...");
+    logger.debug("Initializing...");
     this.discoveryNode = discoveryNode;
     this.provider = provider;
     this.executor = new DefaultEventExecutorGroup(1);
-    logger.info("Initialized");
+    logger.debug("Initialized");
   }
 
   /** Binds server to host and port, assigned in constructor */

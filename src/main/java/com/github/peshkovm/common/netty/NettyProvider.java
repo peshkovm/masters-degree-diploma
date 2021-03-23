@@ -47,7 +47,7 @@ public class NettyProvider extends AbstractLifecycleComponent {
   @Autowired
   public NettyProvider(
       @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") Config config) {
-    logger.info("Initializing...");
+    logger.debug("Initializing...");
     final int numOfParentThreads = config.getInt("netty.threads.parent");
     final int numOfChildThreads = config.getInt("netty.threads.child");
 
@@ -70,7 +70,7 @@ public class NettyProvider extends AbstractLifecycleComponent {
       parentEventLoopGroup = new NioEventLoopGroup(numOfParentThreads);
       childEventLoopGroup = new NioEventLoopGroup(numOfChildThreads);
     }
-    logger.info("Initialized");
+    logger.debug("Initialized");
   }
 
   /**

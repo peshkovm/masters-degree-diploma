@@ -18,6 +18,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
+import io.netty.handler.logging.LoggingHandler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,6 +57,9 @@ public class NettyTransportService extends NettyClient implements TransportServi
     @Override
     protected void initChannel(Channel ch) throws Exception {
       final ChannelPipeline pipeline = ch.pipeline();
+      pipeline.addLast(
+          new LoggingHandler(
+              LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
       pipeline.addLast(executor, new TransportClientHandler());
@@ -98,7 +102,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
             bootstrap.connect(discoveryNode.getHost(), discoveryNode.getPort()).sync().channel();
         connectedNodes.put(discoveryNode, channel);
 
-        logger.info("Connected to {}", () -> discoveryNode);
+        logger.debug("Connected to {}", () -> discoveryNode);
       } catch (InterruptedException e) {
         logger.error("Error connecting to {}", discoveryNode, e);
         Thread.currentThread().interrupt();
