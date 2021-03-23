@@ -13,22 +13,8 @@ import org.junit.jupiter.api.Test;
 public class InternalNodeTest extends BaseClusterTest {
 
   @Test
-  @DisplayName("Should start then stop and close leader node")
-  void shouldStartThenStopAndCloseLeaderNode() {
-    createAndStartInternalNode();
-    final InternalNode leaderNode = nodes.get(0);
-
-    Assertions.assertTrue(leaderNode.isStarted());
-    leaderNode.stop();
-    Assertions.assertTrue(leaderNode.isStopped());
-    leaderNode.close();
-    Assertions.assertTrue(leaderNode.isClosed());
-    nodes = Lists.newArrayList();
-  }
-
-  @Test
-  @DisplayName("Should start then stop and close follower node")
-  void shouldStartThenStopAndCloseFollowerNode() {
+  @DisplayName("Should start then stop and close node")
+  void shouldStartThenStopAndCloseNode() {
     createAndStartInternalNode();
     final InternalNode followerNode = nodes.get(0);
 

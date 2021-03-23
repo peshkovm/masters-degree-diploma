@@ -72,7 +72,9 @@ public class ClientServerEchoTest extends BaseIntegrationTest {
     countDownLatch = new CountDownLatch(exchangeCount);
     executeConcurrently(
         (threadNum, numOfCores) -> {
-          for (int exchangeNum = 0; exchangeNum < exchangeCount; exchangeNum++) {
+          for (int exchangeNum = threadNum;
+              exchangeNum < exchangeCount;
+              exchangeNum += numOfCores) {
             msg = new IntegerMessage(exchangeNum);
             clientTransportService.send(serverDiscoveryNode, msg);
           }
