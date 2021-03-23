@@ -60,7 +60,7 @@ public class LoggingTest {
     final Logger logger = LogManager.getLogger(name);
 
     addAppender(out, name);
-    logger.info("debug message");
+    logger.debug("debug message");
     final String actual = out.toString();
 
     Assertions.assertTrue(actual.contains("debug message"));

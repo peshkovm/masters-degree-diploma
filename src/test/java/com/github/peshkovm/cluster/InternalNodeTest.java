@@ -46,7 +46,6 @@ public class InternalNodeTest extends BaseClusterTest {
     createAndStartInternalNode();
     createAndStartInternalNode();
     createAndStartInternalNode();
-    createAndStartInternalNode();
 
     Assertions.assertEquals(
         nodes.stream()
@@ -68,13 +67,12 @@ public class InternalNodeTest extends BaseClusterTest {
     createAndStartInternalNode();
     createAndStartInternalNode();
     createAndStartInternalNode();
-    createAndStartInternalNode();
 
     Assertions.assertEquals(
         nodes.stream()
             .map(node -> node.getBeanFactory().getBean(TransportServer.class).localNode())
             .distinct()
             .count(),
-        4);
+        3);
   }
 }

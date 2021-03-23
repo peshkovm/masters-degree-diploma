@@ -29,12 +29,4 @@ public class BaseClusterTest extends BaseTest {
     nodes = Lists.newArrayList();
     InternalClusterFactory.reset();
   }
-
-  protected int getLeaderIndex() {
-    return nodes.indexOf(
-        nodes.stream()
-            .filter(node -> node.getConfig().getBoolean("transport.is_leader"))
-            .findFirst()
-            .get());
-  }
 }

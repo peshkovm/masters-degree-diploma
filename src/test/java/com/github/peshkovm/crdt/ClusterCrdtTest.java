@@ -12,15 +12,12 @@ import org.junit.jupiter.api.Test;
 public class ClusterCrdtTest extends BaseClusterTest {
 
   private List<CrdtService> crdtServices;
-  private int leaderIndex;
 
   @BeforeEach
   void setUpNodes() {
     createAndStartInternalNode();
     createAndStartInternalNode();
     createAndStartInternalNode();
-
-    leaderIndex = getLeaderIndex();
 
     crdtServices =
         nodes.stream()
@@ -36,7 +33,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
   }
 
   private void createResource(int crdt, ResourceType crdtType) throws InterruptedException {
-    final CrdtService leaderCrdtService = crdtServices.get(leaderIndex);
+    final CrdtService leaderCrdtService = crdtServices.get(0);
 
     leaderCrdtService.addResource(crdt, crdtType).sync();
   }

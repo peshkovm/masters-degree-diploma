@@ -23,7 +23,7 @@ public class ConfigBuilderTest {
               final String key = field.getKey();
               final ConfigValue value = field.getValue();
 
-              Assertions.assertEquals(configToTest.getString(key), value.unwrapped().toString());
+              Assertions.assertEquals(configToTest.getAnyRef(key), value.unwrapped());
             });
   }
 
@@ -41,7 +41,7 @@ public class ConfigBuilderTest {
               final String key = field.getKey();
               final ConfigValue value = field.getValue();
 
-              Assertions.assertEquals(configToTest.getString(key), value.unwrapped().toString());
+              Assertions.assertEquals(configToTest.getAnyRef(key), value.unwrapped());
             });
 
     Assertions.assertEquals(configToTest.getString("test.key1"), "value1");
@@ -68,7 +68,7 @@ public class ConfigBuilderTest {
               final String key = field.getKey();
               final ConfigValue value = field.getValue();
 
-              Assertions.assertEquals(configToTest.getString(key), value.unwrapped().toString());
+              Assertions.assertEquals(configToTest.getAnyRef(key), value.unwrapped());
             });
 
     Assertions.assertEquals(configToTest.getString("transport.host"), "127.0.0.123");

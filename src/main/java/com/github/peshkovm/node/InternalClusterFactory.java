@@ -13,8 +13,7 @@ public final class InternalClusterFactory {
 
   private static final Set<Integer> ports = Sets.newHashSet(); // List of cluster nodes ports
 
-  private InternalClusterFactory() {
-  }
+  private InternalClusterFactory() {}
 
   private static int port() {
     //    for (; ; ) {
@@ -37,8 +36,7 @@ public final class InternalClusterFactory {
     }
     throw new IllegalStateException(
         "Trying to create "
-            + ports.size()
-            + 1
+            + (ports.size() + 1)
             + " nodes but only has "
             + ports.size()
             + " ports in application.conf");
