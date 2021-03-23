@@ -40,7 +40,7 @@ public final class Match {
       Function<T, MapType> mapper =
           (Function<T, MapType>) cases.getOrDefault(value.getClass(), null);
       if (mapper == null) {
-        throw new IllegalArgumentException("Cannon find mapper for: " + value.getClass());
+        throw new IllegalArgumentException("Can't find mapper for: " + value.getClass());
       }
       return mapper.apply(value);
     }

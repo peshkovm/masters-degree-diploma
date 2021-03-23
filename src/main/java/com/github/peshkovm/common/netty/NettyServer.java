@@ -7,6 +7,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
  * Abstract server bootstrapping class.
@@ -15,8 +17,8 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
 
   protected DiscoveryNode discoveryNode;
   protected ServerBootstrap bootstrap;
-
   protected NettyProvider provider;
+  protected final EventExecutorGroup executor;
 
   /**
    * Constructs a new instance.
@@ -28,6 +30,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
     logger.info("Initializing...");
     this.discoveryNode = discoveryNode;
     this.provider = provider;
+    this.executor = new DefaultEventExecutorGroup(1);
     logger.info("Initialized");
   }
 
@@ -41,7 +44,9 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
           .channel(provider.getServerSocketChannel())
           .handler(
               new LoggingHandler(
-                  LoggingHandler.class.getName() + "." + this.getClass().getSimpleName()
+                  LoggingHandler.class.getName()
+                      + "."
+                      + this.getClass().getSimpleName()
                       + ".ServerChannel"))
           .childHandler(channelInitializer());
 
@@ -65,9 +70,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
     return discoveryNode;
   }
 
-  /**
-   * Does nothing
-   */
+  /** Does nothing */
   @Override
   protected void doStop() {}
 
