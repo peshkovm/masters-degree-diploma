@@ -4,6 +4,7 @@ import com.github.peshkovm.common.Match;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.component.AbstractLifecycleComponent;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
+import com.github.peshkovm.raft.protocol.AppendFailure;
 import com.github.peshkovm.raft.protocol.AppendMessage;
 import com.github.peshkovm.raft.protocol.AppendSuccessful;
 import com.github.peshkovm.raft.protocol.ClientMessage;
@@ -43,6 +44,7 @@ public class Raft extends AbstractLifecycleComponent {
           .when(ClientMessage.class, message -> sourceState.handle(message))
           .when(AppendMessage.class, message -> replicaState.handle(message))
           .when(AppendSuccessful.class, message -> sourceState.handle(message))
+          .when(AppendFailure.class, message -> sourceState.handle(message))
           .build();
 
   @Autowired
@@ -58,10 +60,6 @@ public class Raft extends AbstractLifecycleComponent {
     this.sessionCommands = new ConcurrentHashMap<>();
     this.sessionReceives = new ConcurrentHashMap<>();
     this.registry = registry;
-
-    //    final RaftMetadata meta = new RaftMetadata(clusterDiscovery);
-    //    this.sourceState = new SourceState(meta);
-    //    this.replicaState = new ReplicaState(meta);
   }
 
   public Future<Message> command(Message command) {
@@ -77,7 +75,6 @@ public class Raft extends AbstractLifecycleComponent {
     sessionReceives.putIfAbsent(
         session, new AtomicInteger(clusterDiscovery.getDiscoveryNodes().size() - 1));
 
-    long finalSession = session;
     final ClientMessage clientMessage = new ClientMessage(command, session);
 
     logger.info("Created client command: {}", () -> clientMessage);
@@ -129,6 +126,12 @@ public class Raft extends AbstractLifecycleComponent {
       logger.info("Source node received {}", message);
 
       return maybeCommitMessage(message);
+    }
+
+    public State handle(AppendFailure message) {
+      logger.error("Source node received {}", message);
+
+      return this;
     }
 
     private void sendMessageToAllReplicas(ClientMessage message) {
@@ -187,8 +190,17 @@ public class Raft extends AbstractLifecycleComponent {
     }
 
     private State appendMessage(AppendMessage message) {
-      logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
-      final AppendSuccessful response = new AppendSuccessful(clusterDiscovery.getSelf(), message);
+      final Message result = registry.apply(message.getMessage().getCommand());
+      final Message response;
+
+      if (result != null) {
+        response = new AppendSuccessful(clusterDiscovery.getSelf(), message);
+        logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
+      } else {
+        response = new AppendFailure(clusterDiscovery.getSelf(), message);
+        logger.error("Replica {} send AppendFailure", clusterDiscovery::getSelf);
+      }
+
       send(message.getDiscoveryNode(), response);
 
       return this;

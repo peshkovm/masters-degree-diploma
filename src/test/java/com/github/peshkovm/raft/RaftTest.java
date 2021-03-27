@@ -2,6 +2,7 @@ package com.github.peshkovm.raft;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.raft.resource.ResourceFSM;
 import com.github.peshkovm.raft.resource.ResourceRegistry;
 import io.vavr.collection.Vector;
 import io.vavr.concurrent.Future;
@@ -39,7 +40,7 @@ public class RaftTest extends BaseClusterTest {
   }
 
   @Component
-  public static class RegisterResource {
+  public static class RegisterResource implements ResourceFSM {
 
     private final Logger logger = LogManager.getLogger();
     private volatile String value = "";
@@ -50,6 +51,7 @@ public class RaftTest extends BaseClusterTest {
     }
 
     public Message handle(RegisterValue registerValue) {
+      logger.info("Applying RegisterValue");
       return new RegisterValue(registerValue.getValue());
     }
   }

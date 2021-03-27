@@ -2,7 +2,9 @@ package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.crdt.routing.ResourceType;
+import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
 import io.vavr.collection.Vector;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -24,13 +26,14 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @Disabled
   @Test
   @DisplayName("Should replicate crdt to all replicas")
-  void shouldReplicateCrdtToAllReplicas() throws InterruptedException {
-    createResource(0, ResourceType.GCounter);
+  void shouldReplicateCrdtToAllReplicas() throws Exception {
+    createResource("countOfLikes", ResourceType.GCounter);
   }
 
-  private void createResource(int crdt, ResourceType crdtType) throws InterruptedException {
-    final CrdtService leaderCrdtService = crdtServices.get(0);
+  private void createResource(String crdt, ResourceType crdtType) throws Exception {
+    final AddResourceResponse response = crdtServices.head().addResource(crdt, crdtType).get();
 
-    leaderCrdtService.addResource(crdt, crdtType).sync();
+    Assertions.assertEquals(response.getResourceId(), "countOfLikes");
+    Assertions.assertEquals(response.getResourceType(), ResourceType.GCounter);
   }
 }

@@ -1,5 +1,5 @@
 package com.github.peshkovm.raft.resource;
 
-public class ResourceFSM {
+public interface ResourceFSM {
 
 }

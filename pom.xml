@@ -21,6 +21,8 @@
     <config.version>1.4.1</config.version>
     <log4j.version>2.14.0</log4j.version>
     <spring.version>5.3.4</spring.version>
+    <vavr.version>0.10.1</vavr.version>
+    <reactor.version>3.4.3</reactor.version>
   </properties>
 
   <dependencies>
@@ -91,13 +93,18 @@
       <version>RELEASE</version>
       <scope>compile</scope>
     </dependency>
+    <!-- Javaslang -->
     <dependency>
       <groupId>io.vavr</groupId>
       <artifactId>vavr</artifactId>
-      <version>0.10.1</version>
+      <version>${vavr.version}</version>
     </dependency>
-    <!-- Javaslang -->
-
+    <!-- Reactive -->
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>${reactor.version}</version>
+    </dependency>
 
   </dependencies>
 
