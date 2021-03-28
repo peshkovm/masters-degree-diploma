@@ -117,21 +117,18 @@ public class Raft extends AbstractLifecycleComponent {
       super(meta);
     }
 
-    public State handle(ClientMessage message) {
+    public void handle(ClientMessage message) {
       sendMessageToAllReplicas(message);
-      return this;
     }
 
-    public State handle(AppendSuccessful message) {
+    public void handle(AppendSuccessful message) {
       logger.info("Source node received {}", message);
 
-      return maybeCommitMessage(message);
+      maybeCommitMessage(message);
     }
 
-    public State handle(AppendFailure message) {
+    public void handle(AppendFailure message) {
       logger.error("Source node received {}", message);
-
-      return this;
     }
 
     private void sendMessageToAllReplicas(ClientMessage message) {
@@ -149,7 +146,7 @@ public class Raft extends AbstractLifecycleComponent {
       send(replica, append);
     }
 
-    private State maybeCommitMessage(AppendSuccessful message) {
+    private void maybeCommitMessage(AppendSuccessful message) {
       final long session = message.getMessage().getMessage().getSession();
       final Message command = message.getMessage().getMessage().getCommand();
 
@@ -174,8 +171,6 @@ public class Raft extends AbstractLifecycleComponent {
       } else {
         logger.error("Unknown session. Source node can't commit message: " + message);
       }
-
-      return this;
     }
   }
 
@@ -185,11 +180,11 @@ public class Raft extends AbstractLifecycleComponent {
       super(meta);
     }
 
-    public State handle(AppendMessage message) {
-      return appendMessage(message);
+    public void handle(AppendMessage message) {
+      appendMessage(message);
     }
 
-    private State appendMessage(AppendMessage message) {
+    private void appendMessage(AppendMessage message) {
       final Message result = registry.apply(message.getMessage().getCommand());
       final Message response;
 
@@ -202,8 +197,6 @@ public class Raft extends AbstractLifecycleComponent {
       }
 
       send(message.getDiscoveryNode(), response);
-
-      return this;
     }
   }
 
