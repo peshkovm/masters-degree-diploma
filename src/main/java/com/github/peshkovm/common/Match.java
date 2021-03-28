@@ -2,6 +2,7 @@ package com.github.peshkovm.common;
 
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -14,33 +15,31 @@ public final class Match {
    * Returns {@link MapperBuilder mapper} to register handlers.
    *
    * @param <SuperType> type to handle
-   * @param <MapType> handler's type
    * @return new mapper
    */
-  public static <SuperType, MapType> MapperBuilder<SuperType, MapType> map() {
+  public static <SuperType> MapperBuilder<SuperType> map() {
     return new MapperBuilder<>();
   }
 
   /**
    * Mapper for clazz and corresponding handler.
    */
-  public static final class Mapper<SuperType, MapType> {
+  public static final class Mapper<SuperType> {
 
-    private final Map<Class, Function<? extends SuperType, MapType>> cases;
+    private final Map<Class, Consumer<? extends SuperType>> cases;
 
-    private Mapper(Map<Class, Function<? extends SuperType, MapType>> cases) {
+    private Mapper(Map<Class, Consumer<? extends SuperType>> cases) {
       this.cases = cases;
     }
 
     /** Maps clazz to corresponding handler's function return type */
     @SuppressWarnings({"SuspiciousMethodCalls", "unchecked"})
-    public <T extends SuperType> MapType apply(T value) {
-      Function<T, MapType> mapper =
-          (Function<T, MapType>) cases.getOrElse(value.getClass(), null);
+    public <T extends SuperType> void apply(T value) {
+      Consumer<T> mapper = (Consumer<T>) cases.getOrElse(value.getClass(), null);
       if (mapper == null) {
         throw new IllegalArgumentException("Can't find mapper for: " + value.getClass());
       }
-      return mapper.apply(value);
+      mapper.accept(value);
     }
   }
 
@@ -48,11 +47,10 @@ public final class Match {
    * Builder for clazz-handler pairs
    *
    * @param <SuperType> type to map
-   * @param <MapType> handler's function return type
    */
-  public static final class MapperBuilder<SuperType, MapType> {
+  public static final class MapperBuilder<SuperType> {
 
-    private Map<Class, Function<? extends SuperType, MapType>> map = HashMap.empty();
+    private Map<Class, Consumer<? extends SuperType>> map = HashMap.empty();
 
     /**
      * Registers handler for specified type
@@ -62,8 +60,8 @@ public final class Match {
      * @param <Type> type to handle
      * @return new MapperBuilder
      */
-    public <Type extends SuperType> MapperBuilder<SuperType, MapType> when(
-        Class<Type> type, Function<Type, MapType> handler) {
+    public <Type extends SuperType> MapperBuilder<SuperType> when(
+        Class<Type> type, Consumer<Type> handler) {
       map = map.put(type, handler);
       return this;
     }
@@ -73,7 +71,7 @@ public final class Match {
      *
      * @return new Mapper
      */
-    public Mapper<SuperType, MapType> build() {
+    public Mapper<SuperType> build() {
       return new Mapper<>(map);
     }
   }

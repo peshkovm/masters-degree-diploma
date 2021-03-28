@@ -39,8 +39,8 @@ public class Raft extends AbstractLifecycleComponent {
   private ReplicaState replicaState;
   private final ResourceRegistry registry;
 
-  private final Match.Mapper<Message, State> mapper =
-      Match.<Message, State>map()
+  private final Match.Mapper<Message> mapper =
+      Match.<Message>map()
           .when(ClientMessage.class, message -> sourceState.handle(message))
           .when(AppendMessage.class, message -> replicaState.handle(message))
           .when(AppendSuccessful.class, message -> sourceState.handle(message))
