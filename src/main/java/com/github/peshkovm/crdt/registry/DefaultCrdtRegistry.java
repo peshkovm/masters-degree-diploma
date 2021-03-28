@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class DefaultCrdtRegistry implements CrdtRegistry {
 
   private final Replicator replicator;
-  private final Map<String, Crdt> crdtMap = HashMap.empty();
+  private Map<String, Crdt> crdtMap = HashMap.empty();
   private final ReentrantLock lock;
 
   @Autowired
@@ -29,7 +29,7 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
       if (crdtMap.containsKey(resourceId)) {
         return false;
       }
-      crdtMap.put(resourceId, new GCounter(resourceId, replicator));
+      crdtMap = crdtMap.put(resourceId, new GCounter(resourceId, replicator));
       return true;
     } finally {
       lock.unlock();
