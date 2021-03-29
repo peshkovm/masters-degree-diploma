@@ -26,15 +26,15 @@ public class DefaultCrdtService implements CrdtService {
   @Autowired
   public DefaultCrdtService(Raft raft, Sinks.Many<Resource> eventBus, CrdtRegistry registry) {
     this.raft = raft;
-    eventBus.asFlux().subscribe(this::handle);
+    eventBus.asFlux().subscribe(this::handle, eventBus::tryEmitError);
     this.registry = registry;
   }
 
   @Override
-  public Future<AddResourceResponse> addResource(String resourceId, ResourceType resourceType) {
+  public Future<Boolean> addResource(String resourceId, ResourceType resourceType) {
     return raft.command(new AddResource(resourceId, resourceType))
         .filter(m -> m instanceof AddResourceResponse)
-        .map(m -> ((AddResourceResponse) m));
+        .map(m -> ((AddResourceResponse) m).isCreated());
   }
 
   private void processReplica(Resource resource) {

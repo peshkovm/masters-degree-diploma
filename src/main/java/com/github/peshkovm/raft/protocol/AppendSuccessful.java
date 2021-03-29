@@ -8,10 +8,10 @@ import lombok.Data;
 public class AppendSuccessful implements Message {
 
   private final DiscoveryNode discoveryNode;
-  private final AppendMessage message;
+  private final ClientMessage clientMessage;
 
-  public AppendSuccessful(DiscoveryNode discoveryNode, AppendMessage message) {
+  public AppendSuccessful(DiscoveryNode discoveryNode, ClientMessage clientMessage) {
     this.discoveryNode = discoveryNode;
-    this.message = message;
+    this.clientMessage = clientMessage;
   }
 }

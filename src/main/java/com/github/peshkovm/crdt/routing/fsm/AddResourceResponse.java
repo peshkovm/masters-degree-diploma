@@ -9,9 +9,11 @@ public class AddResourceResponse implements Message {
 
   private final ResourceType resourceType;
   private final String resourceId;
+  private final boolean isCreated;
 
-  public AddResourceResponse(String resourceId, ResourceType resourceType) {
+  public AddResourceResponse(String resourceId, ResourceType resourceType, boolean isCreated) {
     this.resourceId = resourceId;
     this.resourceType = resourceType;
+    this.isCreated = isCreated;
   }
 }

@@ -1,5 +1,6 @@
 package com.github.peshkovm.raft;
 
+import com.github.peshkovm.raft.protocol.AppendFailure;
 import com.github.peshkovm.raft.protocol.AppendMessage;
 import com.github.peshkovm.raft.protocol.AppendSuccessful;
 import com.github.peshkovm.raft.protocol.ClientMessage;
@@ -15,5 +16,6 @@ public class RaftHandler {
     transportController.registerMessageHandler(ClientMessage.class, raft::apply);
     transportController.registerMessageHandler(AppendMessage.class, raft::apply);
     transportController.registerMessageHandler(AppendSuccessful.class, raft::apply);
+    transportController.registerMessageHandler(AppendFailure.class, raft::apply);
   }
 }

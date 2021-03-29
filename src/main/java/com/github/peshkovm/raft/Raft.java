@@ -3,6 +3,7 @@ package com.github.peshkovm.raft;
 import com.github.peshkovm.common.Match;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.component.AbstractLifecycleComponent;
+import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.raft.protocol.AppendFailure;
 import com.github.peshkovm.raft.protocol.AppendMessage;
@@ -128,7 +129,30 @@ public class Raft extends AbstractLifecycleComponent {
     }
 
     public void handle(AppendFailure message) {
-      logger.error("Source node received {}", message);
+      final long session = message.getClientMessage().getSession();
+      final Message command = message.getClientMessage().getCommand();
+      final Message result = message.getResourceResponse();
+
+      final Promise<Message> promise = sessionCommands.get(session);
+      int countOfSessionsToReceive = sessionReceives.get(session).getAndSet(0);
+
+      if (countOfSessionsToReceive != 0) {
+        if (promise != null) {
+          sessionCommands.remove(session);
+
+          if (result != null) {
+            promise.success(result);
+          } else {
+            logger.error("Resource registry returned null for {}", () -> command);
+            promise.failure(
+                new IllegalStateException("Resource registry returned null for " + command));
+          }
+        } else {
+          logger.error("Unknown session. Source node can't commit message: " + message);
+        }
+      } else {
+        logger.info("Source already received AppendFailure. Ignore this message");
+      }
     }
 
     private void sendMessageToAllReplicas(ClientMessage message) {
@@ -147,14 +171,14 @@ public class Raft extends AbstractLifecycleComponent {
     }
 
     private void maybeCommitMessage(AppendSuccessful message) {
-      final long session = message.getMessage().getMessage().getSession();
-      final Message command = message.getMessage().getMessage().getCommand();
+      final long session = message.getClientMessage().getSession();
+      final Message command = message.getClientMessage().getCommand();
 
       final Promise<Message> promise = sessionCommands.get(session);
 
       if (promise != null) {
-        final int countOfSessionReceived = sessionReceives.get(session).decrementAndGet();
-        if (countOfSessionReceived == 0) {
+        final int countOfSessionsToReceive = sessionReceives.get(session).decrementAndGet();
+        if (countOfSessionsToReceive == 0) {
           logger.info(() -> "Source node received AppendSuccessful from all replicas");
           sessionCommands.remove(session);
           sessionReceives.remove(session);
@@ -163,7 +187,7 @@ public class Raft extends AbstractLifecycleComponent {
           if (result != null) {
             promise.success(result);
           } else {
-            logger.error("Resource registry not found for {}", () -> command);
+            logger.error("Resource registry returned null for {}", () -> command);
             promise.failure(
                 new IllegalStateException("Resource registry not found for " + command));
           }
@@ -187,13 +211,26 @@ public class Raft extends AbstractLifecycleComponent {
     private void appendMessage(AppendMessage message) {
       final Message result = registry.apply(message.getMessage().getCommand());
       final Message response;
+      final ClientMessage clientMessage = message.getMessage();
 
-      if (result != null) {
-        response = new AppendSuccessful(clusterDiscovery.getSelf(), message);
-        logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
+      if (result instanceof AddResourceResponse) {
+        AddResourceResponse resourceResponse = (AddResourceResponse) result;
+
+        if (resourceResponse.isCreated()) {
+          response = new AppendSuccessful(clusterDiscovery.getSelf(), clientMessage);
+          logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
+        } else {
+          response = new AppendFailure(clusterDiscovery.getSelf(), clientMessage, resourceResponse);
+          logger.error("Replica {} send AppendFailure", clusterDiscovery::getSelf);
+        }
       } else {
-        response = new AppendFailure(clusterDiscovery.getSelf(), message);
-        logger.error("Replica {} send AppendFailure", clusterDiscovery::getSelf);
+        if (result != null) {
+          response = new AppendSuccessful(clusterDiscovery.getSelf(), clientMessage);
+          logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
+        } else {
+          response = new AppendFailure(clusterDiscovery.getSelf(), clientMessage, null);
+          logger.error("Replica {} send AppendFailure", clusterDiscovery::getSelf);
+        }
       }
 
       send(message.getDiscoveryNode(), response);
