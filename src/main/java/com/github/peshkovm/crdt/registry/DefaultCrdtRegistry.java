@@ -1,7 +1,7 @@
 package com.github.peshkovm.crdt.registry;
 
 import com.github.peshkovm.crdt.Crdt;
-import com.github.peshkovm.crdt.commutative.GCounter;
+import com.github.peshkovm.crdt.commutative.GCounterCmRDT;
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
@@ -29,10 +29,38 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
       if (crdtMap.containsKey(resourceId)) {
         return false;
       }
-      crdtMap = crdtMap.put(resourceId, new GCounter(resourceId, replicator));
+      crdtMap = crdtMap.put(resourceId, new GCounterCmRDT(resourceId, replicator));
       return true;
     } finally {
       lock.unlock();
+    }
+  }
+
+  private Crdt crdt(String crdtId) {
+    Crdt crdt =
+        crdtMap
+            .get(crdtId)
+            .getOrElseThrow(
+                () -> new IllegalArgumentException("CRDT " + crdtId + " not registered"));
+    return crdt;
+  }
+
+  @Override
+  public <T extends Crdt> T crdt(String crdtId, Class<T> crdtType) {
+    final Crdt crdt = crdt(crdtId);
+
+    if (crdtType.isInstance(crdt)) {
+      return (T) crdt;
+    } else {
+      throw new IllegalArgumentException(
+          "Was requested "
+              + crdtType.getSimpleName()
+              + " "
+              + crdtId
+              + ", but actual is "
+              + crdt
+              + " "
+              + crdtId);
     }
   }
 }

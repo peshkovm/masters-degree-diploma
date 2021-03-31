@@ -1,6 +1,7 @@
 package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.common.BaseClusterTest;
+import com.github.peshkovm.crdt.commutative.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import io.vavr.collection.Vector;
 import org.junit.jupiter.api.Assertions;
@@ -27,6 +28,29 @@ public class ClusterCrdtTest extends BaseClusterTest {
     final boolean isCreated = createResource("countOfLikes", ResourceType.GCounter);
 
     Assertions.assertTrue(isCreated);
+  }
+
+  @Test
+  @DisplayName("Should converge crdt on all replicas")
+  void shouldConvergeCrdtOnAllReplicas() throws Exception {
+    final String crdtId = "countOfLikes";
+    final int timeToIncrement = 5;
+    final boolean isCreated = createResource(crdtId, ResourceType.GCounter);
+
+    if (!isCreated) {
+      logger.error("Crdt was not created");
+      return;
+    }
+
+    final Vector<GCounterCmRDT> gCounters =
+        crdtServices
+            .map(CrdtService::crdtRegistry)
+            .map(crdtRegistry -> crdtRegistry.crdt(crdtId, GCounterCmRDT.class));
+
+    for (int incrementNum = 0; incrementNum < timeToIncrement; incrementNum++) {
+      final GCounterCmRDT sourceGCounter = gCounters.get(0);
+      sourceGCounter.increment();
+    }
   }
 
   private boolean createResource(String crdt, ResourceType crdtType) throws Exception {

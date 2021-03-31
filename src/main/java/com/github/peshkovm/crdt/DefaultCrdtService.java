@@ -21,13 +21,13 @@ public class DefaultCrdtService implements CrdtService {
 
   private final Logger logger = LogManager.getLogger();
   private final Raft raft;
-  private final CrdtRegistry registry;
+  private final CrdtRegistry crdtRegistry;
 
   @Autowired
-  public DefaultCrdtService(Raft raft, Sinks.Many<Resource> eventBus, CrdtRegistry registry) {
+  public DefaultCrdtService(Raft raft, Sinks.Many<Resource> eventBus, CrdtRegistry crdtRegistry) {
     this.raft = raft;
     eventBus.asFlux().subscribe(this::handle, eventBus::tryEmitError);
-    this.registry = registry;
+    this.crdtRegistry = crdtRegistry;
   }
 
   @Override
@@ -40,7 +40,7 @@ public class DefaultCrdtService implements CrdtService {
   private void processReplica(Resource resource) {
     switch (resource.getResourceType()) {
       case GCounter:
-        final boolean result = registry.createGCounter(resource.getResourceId());
+        final boolean result = crdtRegistry.createGCounter(resource.getResourceId());
         if (result) {
           logger.info("Successfully created GCounter");
         } else {
@@ -50,6 +50,11 @@ public class DefaultCrdtService implements CrdtService {
       default:
         logger.warn("Unexpected crdt type: {}", resource.getResourceType());
     }
+  }
+
+  @Override
+  public CrdtRegistry crdtRegistry() {
+    return crdtRegistry;
   }
 
   private void handle(Resource resource) {
