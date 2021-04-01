@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -67,7 +68,7 @@ public class LifecycleServiceTest {
     @Getter private final List<Object> lifecycleQueue = new ArrayList<>();
 
     @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName)
+    public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName)
         throws BeansException {
       lifecycleQueue.add(bean);
       return bean;

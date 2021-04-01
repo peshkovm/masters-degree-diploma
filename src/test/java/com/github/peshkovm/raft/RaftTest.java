@@ -43,7 +43,7 @@ public class RaftTest extends BaseClusterTest {
   public static class RegisterResource implements ResourceFSM {
 
     private final Logger logger = LogManager.getLogger();
-    private volatile String value = "";
+    private final String value = "";
 
     @Autowired
     public RegisterResource(ResourceRegistry registry) {

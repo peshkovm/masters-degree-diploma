@@ -24,7 +24,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
    * Constructs a new instance.
    *
    * @param provider provides ServerSocketChannel, SocketChannel and EventLoopGroups
-   * @param discoveryNode node's bind adress
+   * @param discoveryNode node's bind address
    */
   protected NettyServer(DiscoveryNode discoveryNode, NettyProvider provider) {
     logger.debug("Initializing...");

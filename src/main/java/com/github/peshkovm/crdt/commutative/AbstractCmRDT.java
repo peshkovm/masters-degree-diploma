@@ -19,7 +19,7 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
   protected static final Logger logger = LogManager.getLogger();
   protected final String identity; // object's identity
   private final Replicator replicator; // allows to asynchronously transmit update to all replicas
-  private Class<AbstractCmRDT<T, R>> type = (Class<AbstractCmRDT<T, R>>) this.getClass();
+  private final Class<AbstractCmRDT<T, R>> type = (Class<AbstractCmRDT<T, R>>) this.getClass();
 
   public AbstractCmRDT(String identity, Replicator replicator) {
     this.identity = identity;
@@ -106,7 +106,7 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
     if (downstreamPrecondition(argument)) {
       downstream(atSourceResult, argument); // immediately at the source
       replicator.append(
-          new DownstreamUpdate<T, R>(
+          new DownstreamUpdate<>(
               this.identity,
               atSourceResult,
               type,

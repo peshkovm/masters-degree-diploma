@@ -33,7 +33,7 @@ public final class Match {
     }
 
     /** Maps clazz to corresponding handler's function return type */
-    @SuppressWarnings({"SuspiciousMethodCalls", "unchecked"})
+    @SuppressWarnings({"unchecked"})
     public <T extends SuperType> void apply(T value) {
       Consumer<T> mapper = (Consumer<T>) cases.getOrElse(value.getClass(), null);
       if (mapper == null) {

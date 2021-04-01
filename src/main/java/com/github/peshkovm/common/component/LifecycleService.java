@@ -2,6 +2,7 @@ package com.github.peshkovm.common.component;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -15,7 +16,8 @@ public class LifecycleService extends AbstractLifecycleComponent implements Bean
   private final List<LifecycleComponent> lifecycleQueue = new ArrayList<>();
 
   @Override
-  public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+  public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName)
+      throws BeansException {
     if (bean instanceof LifecycleComponent) {
       LifecycleComponent lifecycleComponent = (LifecycleComponent) bean;
       lifecycleQueue.add(lifecycleComponent);
@@ -25,10 +27,7 @@ public class LifecycleService extends AbstractLifecycleComponent implements Bean
 
   @Override
   protected void doStart() {
-    lifecycleQueue.forEach(
-        component -> {
-          component.start();
-        });
+    lifecycleQueue.forEach(LifecycleComponent::start);
   }
 
   @Override
