@@ -2,8 +2,9 @@ package com.github.peshkovm.crdt.commutative;
 
 import com.github.peshkovm.crdt.Crdt;
 import io.vavr.control.Option;
+import java.io.Serializable;
 
-public interface CmRDT<T, R> extends Crdt<T, R> {
+public interface CmRDT<T extends Serializable, R extends Serializable> extends Crdt<T, R> {
 
   /**
    * Updates CRDT payload on all replicas.
@@ -23,14 +24,14 @@ public interface CmRDT<T, R> extends Crdt<T, R> {
   Option<R> update(T argument);
 
   /**
-   * Locally updates source replica. The first phase of {@link CmRDT#update(Object)} update}
+   * Locally updates source replica. The first phase of {@link CmRDT#update(Serializable)} update}
    * operation.
    *
    * <p>
    *
    * <ul>
-   *   <li>Enabled only if its (optional) {@link AbstractCmRDT#atSourcePrecondition(T)} () source
-   *       pre-condition}, is true in the source state
+   *   <li>Enabled only if its (optional) {@link AbstractCmRDT#atSourcePrecondition(Serializable)}
+   *       () source pre-condition}, is true in the source state
    *   <li>Executes atomically
    *   <li>Takes its arguments from the operation invocation
    *   <li>Is not allowed to make side effects
@@ -60,5 +61,5 @@ public interface CmRDT<T, R> extends Crdt<T, R> {
    *
    * @param argument operation's argument
    */
-  void downstream(Option<R> sourceResult, T argument);
+  void downstream(Option<R> atSourceResult, T argument);
 }

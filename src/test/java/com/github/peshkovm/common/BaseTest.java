@@ -35,6 +35,6 @@ public class BaseTest {
 
   protected interface ThreadTask {
 
-    void execute(int thread, int concurrency) throws Exception;
+    void execute(int threadNum, int numOfCores) throws Exception;
   }
 }

@@ -1,11 +1,12 @@
 package com.github.peshkovm.crdt;
 
 import io.vavr.control.Option;
+import java.io.Serializable;
 
 /**
  * Interface that defines basic CRDT operations.
  */
-public interface Crdt<T, R> {
+public interface Crdt<T extends Serializable, R extends Serializable> {
 
   /**
    * Returns CDRT payload.

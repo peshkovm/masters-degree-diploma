@@ -8,10 +8,8 @@ import io.vavr.control.Option;
  */
 public class GCounterCmRDT extends CounterCmRDT {
 
-  private final String identity;
-
   public GCounterCmRDT(String resourceId, Replicator replicator) {
-    this.identity = resourceId;
+    super(resourceId, replicator);
   }
 
   @Override
@@ -19,16 +17,14 @@ public class GCounterCmRDT extends CounterCmRDT {
     super.increment();
   }
 
-  /**
-   * Unsupported, because GCounter is increment-only counter.
-   */
+  /** Unsupported, because GCounter is increment-only counter. */
   @Override
   public void decrement() {
     throw new UnsupportedOperationException("GCounter is increment-only counter");
   }
 
   @Override
-  public void downstream(Option<Long> sourceResult, Long numToAdd) {
+  public void downstream(Option<Long> atSourceResult, Long numToAdd) {
     this.i += numToAdd;
   }
 }

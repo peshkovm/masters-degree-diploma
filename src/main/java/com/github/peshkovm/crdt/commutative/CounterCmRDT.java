@@ -1,5 +1,6 @@
 package com.github.peshkovm.crdt.commutative;
 
+import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
 
 /**
@@ -11,7 +12,8 @@ public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements 
 
   protected Long i; // Immutable payload
 
-  public CounterCmRDT() {
+  public CounterCmRDT(String resourceId, Replicator replicator) {
+    super(resourceId, replicator);
     this.i = 0L; // initial payload state
   }
 

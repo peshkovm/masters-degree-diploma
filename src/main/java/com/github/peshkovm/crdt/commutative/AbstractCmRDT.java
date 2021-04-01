@@ -1,12 +1,24 @@
 package com.github.peshkovm.crdt.commutative;
 
+import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
+import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
+import java.io.Serializable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class AbstractCmRDT<T, R> implements CmRDT<T, R> {
+public abstract class AbstractCmRDT<T extends Serializable, R extends Serializable>
+    implements CmRDT<T, R> {
 
   protected static final Logger logger = LogManager.getLogger();
+  protected final String identity; // object's identity
+  private final Replicator replicator; // allows to asynchronously transmit update to all replicas
+  private Class<AbstractCmRDT<T, R>> type = (Class<AbstractCmRDT<T, R>>) this.getClass();
+
+  public AbstractCmRDT(String identity, Replicator replicator) {
+    this.identity = identity;
+    this.replicator = replicator;
+  }
 
   public R query() {
     if (queryPrecondition()) {
@@ -18,10 +30,10 @@ public abstract class AbstractCmRDT<T, R> implements CmRDT<T, R> {
 
   @Override
   public Option<R> update(T argument) {
-    final Option<R> sourceResult = atSource0(argument);
-    downstream0(sourceResult, argument);
+    final Option<R> atSourceResult = atSource0(argument);
+    downstream0(atSourceResult, argument);
 
-    return sourceResult;
+    return atSourceResult;
   }
 
   /**
@@ -81,15 +93,18 @@ public abstract class AbstractCmRDT<T, R> implements CmRDT<T, R> {
    *   <li>Executes atomically
    * </ul>
    *
-   * @param sourceResult result of atSource operation
+   * @param atSourceResult result of atSource operation
    * @param argument {@link CmRDT#update(T) update operation} argument
    */
-  private synchronized void downstream0(Option<R> sourceResult, T argument) {
+  private synchronized void downstream0(Option<R> atSourceResult, T argument) {
     if (downstreamPrecondition(argument)) {
-      downstream(sourceResult, argument); // immediately at the source
-      //      replicator.append(
-      //          new DownstreamAssign(sourceResult, argument)); // asynchronously, at all other
-      // replicas
+      downstream(atSourceResult, argument); // immediately at the source
+      replicator.append(
+          new DownstreamUpdate<T, R>(
+              this.identity,
+              atSourceResult,
+              type,
+              argument)); // asynchronously, at all other replicas
     } else {
       throw new IllegalStateException("Downstream precondition is false");
     }

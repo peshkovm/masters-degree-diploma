@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class DefaultCrdtRegistry implements CrdtRegistry {
 
   private final Replicator replicator;
-  private Map<String, Crdt> crdtMap = HashMap.empty();
+  private Map<String, Crdt<?, ?>> crdtMap = HashMap.empty();
   private final ReentrantLock lock;
 
   @Autowired
@@ -36,8 +36,8 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
     }
   }
 
-  private Crdt crdt(String crdtId) {
-    Crdt crdt =
+  public Crdt<?, ?> crdt(String crdtId) {
+    var crdt =
         crdtMap
             .get(crdtId)
             .getOrElseThrow(
@@ -46,19 +46,19 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
   }
 
   @Override
-  public <T extends Crdt> T crdt(String crdtId, Class<T> crdtType) {
-    final Crdt crdt = crdt(crdtId);
+  public <T extends Crdt<?, ?>> T crdt(String crdtId, Class<T> crdtType) {
+    final var crdt = crdt(crdtId);
 
     if (crdtType.isInstance(crdt)) {
       return (T) crdt;
     } else {
       throw new IllegalArgumentException(
           "Was requested "
-              + crdtType.getSimpleName()
+              + crdtType
               + " "
               + crdtId
               + ", but actual is "
-              + crdt
+              + crdt.getClass().getTypeName()
               + " "
               + crdtId);
     }
