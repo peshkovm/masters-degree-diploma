@@ -4,6 +4,12 @@ import com.github.peshkovm.crdt.Crdt;
 import io.vavr.control.Option;
 import java.io.Serializable;
 
+/**
+ * Defines CmRDT operations.
+ *
+ * @param <T> type of crdt update operation argument
+ * @param <R> type of crdt update method (optional) return value
+ */
 public interface CmRDT<T extends Serializable, R extends Serializable> extends Crdt<T, R> {
 
   /**

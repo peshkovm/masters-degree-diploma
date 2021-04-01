@@ -4,7 +4,14 @@ import io.vavr.control.Option;
 import java.io.Serializable;
 
 /**
- * Interface that defines basic CRDT operations.
+ * Defines CRDT operations.
+ *
+ * <p>
+ *
+ * @param <T> type of crdt update operation argument
+ * @param <R> type of crdt update method (optional) return value
+ * @see <a href="https://hal.inria.fr/inria-00555588/document">A comprehensive study of Convergent
+ * and Commutative Replicated Data Types</a>
  */
 public interface Crdt<T extends Serializable, R extends Serializable> {
 

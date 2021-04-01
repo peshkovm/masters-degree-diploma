@@ -8,6 +8,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Default implementation of {@link Replicator}.
+ */
 @Component
 public class DefaultReplicator extends AbstractLifecycleComponent implements Replicator {
 
@@ -41,14 +44,11 @@ public class DefaultReplicator extends AbstractLifecycleComponent implements Rep
   }
 
   @Override
-  protected void doStart() {
-  }
+  protected void doStart() {}
 
   @Override
-  protected void doStop() {
-  }
+  protected void doStop() {}
 
   @Override
-  protected void doClose() {
-  }
+  protected void doClose() {}
 }

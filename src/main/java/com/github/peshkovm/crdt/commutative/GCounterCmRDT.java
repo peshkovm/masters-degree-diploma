@@ -25,6 +25,7 @@ public class GCounterCmRDT extends CounterCmRDT {
 
   @Override
   public void downstream(Option<Long> atSourceResult, Long numToAdd) {
+    logger.debug("downstream phase received {}, {}", () -> atSourceResult, () -> numToAdd);
     this.i += numToAdd;
   }
 }

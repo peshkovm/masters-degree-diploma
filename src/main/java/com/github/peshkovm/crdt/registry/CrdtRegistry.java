@@ -2,6 +2,9 @@ package com.github.peshkovm.crdt.registry;
 
 import com.github.peshkovm.crdt.Crdt;
 
+/**
+ * Defines methods for creating and receiving replicated crdt objects.
+ */
 public interface CrdtRegistry {
 
   boolean createGCounter(String resourceId);

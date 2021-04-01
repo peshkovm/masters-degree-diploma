@@ -9,6 +9,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Default implementation io {@link CrdtRegistry}.
+ */
 @Component
 public class DefaultCrdtRegistry implements CrdtRegistry {
 

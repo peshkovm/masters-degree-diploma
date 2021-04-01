@@ -34,6 +34,9 @@ public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements 
 
   @Override
   public Option<Long> atSource(Long argument) {
-    return Option.none();
+    final Option<Long> result = Option.none();
+
+    logger.debug("atSource phase received {} and returned {}", () -> argument, () -> result);
+    return result;
   }
 }

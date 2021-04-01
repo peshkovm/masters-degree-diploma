@@ -18,7 +18,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
-
+/**
+ * Default implementation of {@link CrdtService}.
+ */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class DefaultCrdtService implements CrdtService {
