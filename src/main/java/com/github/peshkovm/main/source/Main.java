@@ -14,7 +14,7 @@ public class Main {
   protected static final Logger logger = LogManager.getLogger();
   private static CrdtService crdtService;
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     InternalNode internalNode = null;
     try {
       final String crdtId = "countOfLikes";
