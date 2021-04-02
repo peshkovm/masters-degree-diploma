@@ -4,9 +4,7 @@ import com.github.peshkovm.crdt.CrdtService;
 import com.github.peshkovm.crdt.commutative.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.node.ExternalClusterFactory;
-import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
-import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,7 +17,7 @@ public class Main {
     InternalNode internalNode = null;
     try {
       final String crdtId = "countOfLikes";
-      internalNode = ExternalClusterFactory.getInternalNode();
+      internalNode = ExternalClusterFactory.getInternalNode("127.0.0.1", 8801);
       crdtService = internalNode.getBeanFactory().getBean(CrdtService.class);
 
       internalNode.start();
@@ -37,10 +35,11 @@ public class Main {
           crdtService.crdtRegistry().crdt(crdtId, GCounterCmRDT.class);
 
     } catch (Exception e) {
-      Objects.requireNonNull(internalNode);
 
-      internalNode.stop();
-      internalNode.close();
+      if (internalNode != null) {
+        internalNode.stop();
+        internalNode.close();
+      }
 
       e.printStackTrace();
     }

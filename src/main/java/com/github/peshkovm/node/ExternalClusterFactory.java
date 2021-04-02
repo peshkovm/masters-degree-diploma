@@ -3,6 +3,9 @@ package com.github.peshkovm.node;
 import com.github.peshkovm.common.config.ConfigBuilder;
 import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ExternalClusterFactory {
 
@@ -11,24 +14,19 @@ public class ExternalClusterFactory {
   private ExternalClusterFactory() {
   }
 
-  private static String host() {
+  private static void verifyHostAndPort(String host, int port) {
     final Config config = new ConfigBuilder().build();
 
-    final String sourceNodeAddress = config.getStringList("raft.discovery.external_nodes").get(0);
-    final HostAndPort hostAndPort = HostAndPort.fromString(sourceNodeAddress);
-    final String host = hostAndPort.getHost();
+    final Set<HostAndPort> hostAndPorts =
+        new HashSet<>(
+            config.getStringList("raft.discovery.external_nodes").stream()
+                .map(HostAndPort::fromString)
+                .collect(Collectors.toList()));
 
-    return host;
-  }
-
-  private static int port() {
-    final Config config = new ConfigBuilder().build();
-
-    final String sourceNodeAddress = config.getStringList("raft.discovery.external_nodes").get(0);
-    final HostAndPort hostAndPort = HostAndPort.fromString(sourceNodeAddress);
-    final int port = hostAndPort.getPort();
-
-    return port;
+    if (!hostAndPorts.contains(HostAndPort.fromParts(host, port))) {
+      throw new IllegalArgumentException(
+          "application.conf does mot contain address: " + host + ":" + port);
+    }
   }
 
   /**
@@ -36,14 +34,13 @@ public class ExternalClusterFactory {
    *
    * @return newly created InternalNode instance
    */
-  public static InternalNode getInternalNode() {
+  public static InternalNode getInternalNode(String host, int port) {
     if (internalNode != null) {
       return internalNode;
     }
     synchronized (ExternalClusterFactory.class) {
       if (internalNode == null) {
-        final String host = host();
-        final int port = port();
+        verifyHostAndPort(host, port);
         final Config config =
             new ConfigBuilder().with("transport.host", host).with("transport.port", port).build();
 

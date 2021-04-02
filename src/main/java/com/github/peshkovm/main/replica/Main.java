@@ -14,7 +14,7 @@ public class Main {
   public static void main(String[] args) {
     InternalNode internalNode = null;
     try {
-      internalNode = ExternalClusterFactory.getInternalNode();
+      internalNode = ExternalClusterFactory.getInternalNode("127.0.0.1", 8801);
 
       internalNode.start();
 

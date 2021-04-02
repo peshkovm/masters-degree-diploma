@@ -20,7 +20,9 @@ public class DefaultReplicator extends AbstractLifecycleComponent implements Rep
 
   @Autowired
   public DefaultReplicator(
-      ClusterDiscovery clusterDiscovery, NettyTransportService transportService) {
+      @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+          ClusterDiscovery clusterDiscovery,
+      NettyTransportService transportService) {
     this.lock = new ReentrantLock();
     this.clusterDiscovery = clusterDiscovery;
     this.transportService = transportService;
