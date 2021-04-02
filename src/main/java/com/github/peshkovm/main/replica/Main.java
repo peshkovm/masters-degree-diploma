@@ -23,6 +23,7 @@ public class Main {
           .addShutdownHook(
               new Thread(
                   () -> {
+                    finalInternalNode.stop();
                     finalInternalNode.close();
                     countDownLatch.countDown();
                   }));

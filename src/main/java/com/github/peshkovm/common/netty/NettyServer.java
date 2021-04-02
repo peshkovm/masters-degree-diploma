@@ -81,6 +81,7 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
   /** Shutdowns Netty's components. */
   @Override
   protected void doClose() {
+    executor.shutdownGracefully().syncUninterruptibly();
     bootstrap = null;
   }
 }

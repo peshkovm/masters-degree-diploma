@@ -54,6 +54,7 @@ public abstract class NettyClient extends AbstractLifecycleComponent {
   /** Shutdowns Netty's components. */
   @Override
   protected void doClose() {
+    executor.shutdownGracefully().syncUninterruptibly();
     bootstrap = null;
   }
 }
