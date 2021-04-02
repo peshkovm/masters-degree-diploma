@@ -16,6 +16,8 @@ import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -34,6 +36,7 @@ public class NettyProvider extends AbstractLifecycleComponent {
   private final Class<? extends SocketChannel> clientSocketChannel;
   private final EventLoopGroup parentEventLoopGroup;
   private final EventLoopGroup childEventLoopGroup;
+  private final EventExecutorGroup executor;
 
   /**
    * Creates {@link ServerSocketChannel}, {@link SocketChannel} and parent (acceptor) and child
@@ -70,6 +73,7 @@ public class NettyProvider extends AbstractLifecycleComponent {
       parentEventLoopGroup = new NioEventLoopGroup(numOfParentThreads);
       childEventLoopGroup = new NioEventLoopGroup(numOfChildThreads);
     }
+    executor = new DefaultEventExecutorGroup(2);
     logger.debug("Initialized");
   }
 
@@ -87,14 +91,13 @@ public class NettyProvider extends AbstractLifecycleComponent {
   protected void doStop() {
   }
 
-  /**
-   * Shutdowns Netty's components.
-   */
+  /** Shutdowns Netty's components. */
   @Override
   protected void doClose() {
     try {
       childEventLoopGroup.shutdownGracefully().sync();
       parentEventLoopGroup.shutdownGracefully().sync();
+      executor.shutdownGracefully().sync();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       e.printStackTrace();

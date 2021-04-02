@@ -63,7 +63,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(executor, new TransportServerHandler());
+      pipeline.addLast(provider.getExecutor(), new TransportServerHandler());
     }
   }
 

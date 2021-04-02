@@ -14,7 +14,6 @@ public abstract class NettyClient extends AbstractLifecycleComponent {
 
   protected volatile Bootstrap bootstrap;
   protected final NettyProvider provider;
-  protected final EventExecutorGroup executor;
 
   /**
    * Constructs a new instance using provider for bootstrapping.
@@ -24,7 +23,6 @@ public abstract class NettyClient extends AbstractLifecycleComponent {
   protected NettyClient(NettyProvider provider) {
     logger.debug("Initializing...");
     this.provider = provider;
-    this.executor = new DefaultEventExecutorGroup(1);
     logger.debug("Initialized");
   }
 
@@ -54,7 +52,6 @@ public abstract class NettyClient extends AbstractLifecycleComponent {
   /** Shutdowns Netty's components. */
   @Override
   protected void doClose() {
-    executor.shutdownGracefully().syncUninterruptibly();
     bootstrap = null;
   }
 }

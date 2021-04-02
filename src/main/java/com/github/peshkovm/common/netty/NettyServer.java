@@ -7,8 +7,6 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
  * Abstract server bootstrapping class.
@@ -18,8 +16,6 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
   protected DiscoveryNode discoveryNode;
   protected ServerBootstrap bootstrap;
   protected NettyProvider provider;
-  protected final EventExecutorGroup executor;
-
   /**
    * Constructs a new instance.
    *
@@ -30,7 +26,6 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
     logger.debug("Initializing...");
     this.discoveryNode = discoveryNode;
     this.provider = provider;
-    this.executor = new DefaultEventExecutorGroup(1);
     logger.debug("Initialized");
   }
 
@@ -81,7 +76,6 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
   /** Shutdowns Netty's components. */
   @Override
   protected void doClose() {
-    executor.shutdownGracefully().syncUninterruptibly();
     bootstrap = null;
   }
 }

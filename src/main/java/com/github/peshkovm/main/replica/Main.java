@@ -19,14 +19,7 @@ public class Main {
 
       final CountDownLatch countDownLatch = new CountDownLatch(1);
       InternalNode finalInternalNode = internalNode;
-      Runtime.getRuntime()
-          .addShutdownHook(
-              new Thread(
-                  () -> {
-                    finalInternalNode.stop();
-                    finalInternalNode.close();
-                    countDownLatch.countDown();
-                  }));
+      Runtime.getRuntime().addShutdownHook(new Thread(countDownLatch::countDown));
       countDownLatch.await();
 
     } catch (Exception e) {
