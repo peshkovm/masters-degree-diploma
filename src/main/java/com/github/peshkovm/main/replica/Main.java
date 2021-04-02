@@ -30,10 +30,10 @@ public class Main {
       countDownLatch.await();
 
     } catch (Exception e) {
-      Objects.requireNonNull(internalNode);
-
-      internalNode.stop();
-      internalNode.close();
+      if (internalNode != null) {
+        internalNode.stop();
+        internalNode.close();
+      }
 
       e.printStackTrace();
     }

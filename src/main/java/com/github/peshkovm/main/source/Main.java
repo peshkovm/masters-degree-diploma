@@ -35,7 +35,6 @@ public class Main {
           crdtService.crdtRegistry().crdt(crdtId, GCounterCmRDT.class);
 
     } catch (Exception e) {
-
       if (internalNode != null) {
         internalNode.stop();
         internalNode.close();
