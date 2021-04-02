@@ -17,7 +17,7 @@ public class Main {
     InternalNode internalNode = null;
     try {
       final String crdtId = "countOfLikes";
-      internalNode = ExternalClusterFactory.getInternalNode("127.0.0.1", 8801);
+      internalNode = ExternalClusterFactory.getInternalNode("192.168.0.106", 8801);
       crdtService = internalNode.getBeanFactory().getBean(CrdtService.class);
 
       internalNode.start();
@@ -35,12 +35,12 @@ public class Main {
           crdtService.crdtRegistry().crdt(crdtId, GCounterCmRDT.class);
 
     } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
       if (internalNode != null) {
         internalNode.stop();
         internalNode.close();
       }
-
-      e.printStackTrace();
     }
   }
 
@@ -48,7 +48,8 @@ public class Main {
    * Tries to create crdt of specified type and id on all nodes.
    *
    * <p>It's the blocking method. It will wait until crdt object is created on all nodes. If crdt
-   * is failed to create on one of nodes, method returns immediately with false.
+   * is
+   * failed to create on one of nodes, method returns immediately with false.
    *
    * @param crdt identity of crdt object
    * @param crdtType type of crdt object

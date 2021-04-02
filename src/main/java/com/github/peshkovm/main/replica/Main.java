@@ -2,7 +2,6 @@ package com.github.peshkovm.main.replica;
 
 import com.github.peshkovm.node.ExternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,12 +29,12 @@ public class Main {
       countDownLatch.await();
 
     } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
       if (internalNode != null) {
         internalNode.stop();
         internalNode.close();
       }
-
-      e.printStackTrace();
     }
   }
 }
