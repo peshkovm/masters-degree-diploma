@@ -56,7 +56,7 @@ public class RaftTest extends BaseClusterTest {
     }
   }
 
-  @Component()
+  @Component
   public static class RegisterClient {
 
     private final Raft raft;

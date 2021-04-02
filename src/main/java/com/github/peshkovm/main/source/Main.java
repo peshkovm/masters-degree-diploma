@@ -3,6 +3,7 @@ package com.github.peshkovm.main.source;
 import com.github.peshkovm.crdt.CrdtService;
 import com.github.peshkovm.crdt.commutative.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
+import com.github.peshkovm.node.ExternalClusterFactory;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
 import java.util.Objects;
@@ -18,7 +19,7 @@ public class Main {
     InternalNode internalNode = null;
     try {
       final String crdtId = "countOfLikes";
-      internalNode = InternalClusterFactory.createInternalNode();
+      internalNode = ExternalClusterFactory.getInternalNode();
       crdtService = internalNode.getBeanFactory().getBean(CrdtService.class);
 
       internalNode.start();

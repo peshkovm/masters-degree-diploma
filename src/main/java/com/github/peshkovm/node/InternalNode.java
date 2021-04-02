@@ -5,16 +5,20 @@ import com.github.peshkovm.common.component.BeanFactoryBuilder;
 import com.github.peshkovm.common.component.ComponentConfiguration;
 import com.github.peshkovm.common.component.LifecycleService;
 import com.github.peshkovm.common.config.ConfigBuilder;
+import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportServer;
+import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;
+import io.vavr.collection.HashSet;
+import io.vavr.collection.Set;
 import java.util.Objects;
 import lombok.Getter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 /**
- * Default implementation of {@link Node} interface.
+ * {@link Node} implementation to use only on same machine. Used for testing.
  */
 public class InternalNode extends AbstractLifecycleComponent implements Node {
 
@@ -37,14 +41,43 @@ public class InternalNode extends AbstractLifecycleComponent implements Node {
    */
   public InternalNode(Config config) {
     this.config = config;
+
     logger.info("Initializing...");
+    ClusterDiscovery clusterDiscovery = createClusterDiscovery(config);
     final BeanFactoryBuilder beanFactoryBuilder = new BeanFactoryBuilder();
 
     beanFactoryBuilder.addBean(config, bd -> bd.setScope(ConfigurableBeanFactory.SCOPE_SINGLETON));
+    beanFactoryBuilder.addBean(
+        clusterDiscovery, bd -> bd.setScope(ConfigurableBeanFactory.SCOPE_SINGLETON));
     beanFactoryBuilder.add(ComponentConfiguration.class);
 
     beanFactory = beanFactoryBuilder.createBeanFactory();
     logger.info("Initialized");
+  }
+
+  protected ClusterDiscovery createClusterDiscovery(Config config) {
+    Set<DiscoveryNode> replicas = HashSet.empty();
+    final DiscoveryNode self =
+        new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port"));
+
+    for (String s : config.getStringList("raft.discovery.internal_nodes")) {
+      HostAndPort hostAndPort = HostAndPort.fromString(s);
+      final String host = hostAndPort.getHost();
+      final int port = hostAndPort.getPort();
+
+      final DiscoveryNode replica = new DiscoveryNode(host, port);
+
+      if (!replica.equals(self)) {
+        replicas = replicas.add(new DiscoveryNode(host, port));
+      }
+    }
+
+    return new ClusterDiscovery(self, replicas);
+  }
+
+  @Override
+  public BeanFactory getBeanFactory() {
+    return beanFactory;
   }
 
   @Override
@@ -87,10 +120,5 @@ public class InternalNode extends AbstractLifecycleComponent implements Node {
         this.getBeanFactory().getBean(TransportServer.class).localNode();
 
     return thisDiscoveryNode != null ? thisDiscoveryNode.hashCode() : 0;
-  }
-
-  @Override
-  public BeanFactory getBeanFactory() {
-    return beanFactory;
   }
 }

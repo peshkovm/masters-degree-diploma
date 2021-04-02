@@ -51,6 +51,10 @@ public abstract class NettyServer extends AbstractLifecycleComponent implements 
           .childHandler(channelInitializer());
 
       bootstrap.bind(discoveryNode.getHost(), discoveryNode.getPort()).sync();
+      logger.info(
+          "Server listening on {}:{}",
+          () -> discoveryNode.getHost(),
+          () -> discoveryNode.getPort());
     } catch (InterruptedException e) {
       logger.error("Error bind to {}", discoveryNode, e);
       Thread.currentThread().interrupt();

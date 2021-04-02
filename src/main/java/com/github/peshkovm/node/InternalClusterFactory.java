@@ -17,7 +17,7 @@ public final class InternalClusterFactory {
 
   private static int port() {
     final Config config = new ConfigBuilder().build();
-    for (String nodeAddress : config.getStringList("raft.discovery.nodes")) {
+    for (String nodeAddress : config.getStringList("raft.discovery.internal_nodes")) {
       final HostAndPort hostAndPort = HostAndPort.fromString(nodeAddress);
       final int port = hostAndPort.getPort();
 
@@ -35,21 +35,19 @@ public final class InternalClusterFactory {
   }
 
   /**
-   * Creates internal node on same JVM with random port.
+   * Creates internal node on same JVM with localhost and port form application.conf.
    *
    * @return newly created InternalNode instance
    */
   public static InternalNode createInternalNode() {
+    final String host = "127.0.0.1";
     final int port = port();
     final Config config =
-        new ConfigBuilder()
-            .with("transport.port", port)
-            // .with("raft.discovery.nodes.0", "127.0.0.1:" + port)
-            .build();
+        new ConfigBuilder().with("transport.host", host).with("transport.port", port).build();
 
-    final InternalNode node = new InternalNode(config);
+    final InternalNode internalNode = new InternalNode(config);
 
-    return node;
+    return internalNode;
   }
 
   /** Resets cluster state to build new cluster from ground up */

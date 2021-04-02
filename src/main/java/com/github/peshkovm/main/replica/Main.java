@@ -1,6 +1,6 @@
 package com.github.peshkovm.main.replica;
 
-import com.github.peshkovm.node.InternalClusterFactory;
+import com.github.peshkovm.node.ExternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -14,7 +14,7 @@ public class Main {
   public static void main(String[] args) {
     InternalNode internalNode = null;
     try {
-      internalNode = InternalClusterFactory.createInternalNode();
+      internalNode = ExternalClusterFactory.getInternalNode();
 
       internalNode.start();
 
