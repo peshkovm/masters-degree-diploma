@@ -1,5 +1,6 @@
 package com.github.peshkovm.crdt.commutative;
 
+import com.github.peshkovm.crdt.Crdt;
 import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
@@ -21,98 +22,56 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
   private final Replicator replicator; // allows to asynchronously transmit update to all replicas
   private final Class<AbstractCmRDT<T, R>> type = (Class<AbstractCmRDT<T, R>>) this.getClass();
 
+  /**
+   * Instantiates new {@link CmRDT} object instance.
+   *
+   * @param identity crdt object identity, for example "countOfLikes"
+   * @param replicator {@link Replicator} instance
+   */
   public AbstractCmRDT(String identity, Replicator replicator) {
     this.identity = identity;
     this.replicator = replicator;
   }
 
+  @Override
   public R query() {
     if (queryPrecondition()) {
-      return value();
+      return queryImpl();
     } else {
-      throw new IllegalStateException("Query precondition is false");
+      logger.warn("Query precondition is false");
+      return null;
     }
   }
 
   @Override
   public Option<R> update(T argument) {
-    final Option<R> atSourceResult = atSource0(argument);
-    downstream0(atSourceResult, argument);
+    final Option<R> atSourceResult = atSource(argument);
+    downstream(atSourceResult, argument); // immediately at the source
+    replicateDownstream(atSourceResult, argument); // asynchronously, at all other replicas
 
     return atSourceResult;
   }
 
-  /**
-   * Updates CRDT payload on all replicas.
-   *
-   * <p>Has two phases:
-   *
-   * <ul>
-   *   <li>First, the client calls the operation at the source, which may perform some initial
-   *       processing.
-   *   <li>Then, the update is transmitted asynchronously to all replicas; this is the downstream
-   *       part
-   * </ul>
-   *
-   * @return result of operation
-   */
-  protected abstract R value();
+  private void replicateDownstream(Option<R> atSourceResult, T argument) {
+    replicator.append(new DownstreamUpdate<>(this.identity, atSourceResult, type, argument));
+  }
 
-  /**
-   * Locally updates source replica. The first phase of {@link CmRDT#update(T)} update} operation.
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>Enabled only if its (optional) {@link AbstractCmRDT#atSourcePrecondition(T)} () source
-   *       pre-condition}, is true in the source state
-   *   <li>Executes atomically
-   *   <li>Takes its arguments from the operation invocation
-   *   <li>Is not allowed to make side effects
-   *   <li>May compute results, returned to the caller, and/or prepare arguments for the second
-   *       phase
-   * </ul>
-   *
-   * @param argument {@link CmRDT#update(T) update operation} argument
-   * @return computed result
-   */
-  private synchronized Option<R> atSource0(T argument) {
+  @Override
+  public synchronized Option<R> atSource(T argument) {
     if (atSourcePrecondition(argument)) {
-      return atSource(argument);
+      return atSourceImpl(argument);
     } else {
-      throw new IllegalStateException("At source precondition is false");
+      logger.warn("At source precondition is false");
+      return Option.none();
     }
   }
 
-  /**
-   * Executes after the source-local phase; immediately at the source, and asynchronously, at all
-   * other replicas.
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>Executes only if its {@link AbstractCmRDT#downstreamPrecondition(T)} () downstream
-   *       precondition} is true
-   *   <li>Can not return results
-   *   <li>Updates the downstream state
-   *   <li>Arguments are those prepared by the source-local phase
-   *   <li>Executes atomically
-   * </ul>
-   *
-   * @param atSourceResult result of atSource operation
-   * @param argument {@link CmRDT#update(T) update operation} argument
-   */
-  private synchronized void downstream0(Option<R> atSourceResult, T argument) {
-    if (downstreamPrecondition(argument)) {
-      downstream(atSourceResult, argument); // immediately at the source
-      replicator.append(
-          new DownstreamUpdate<>(
-              this.identity,
-              atSourceResult,
-              type,
-              argument)); // asynchronously, at all other replicas
+  @Override
+  public synchronized void downstream(Option<R> atSourceResult, T argument) {
+    if (downstreamPrecondition(atSourceResult, argument)) {
+      downstreamImpl(atSourceResult, argument);
     } else {
-      throw new IllegalStateException("Downstream precondition is false");
+      logger.warn("Downstream precondition is false");
     }
   }
 
@@ -130,7 +89,7 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
    * The {@link AbstractCmRDT#atSource(T) atSource operation} will be enabled only if this
    * pre-condition returns true.
    *
-   * @param argument atSource operation argument
+   * @param argument {@link CmRDT#atSource atSource operation} argument
    * @return Is atSource pre-condition holds in the source’s current state
    */
   protected boolean atSourcePrecondition(T argument) {
@@ -141,10 +100,40 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
    * The {@link AbstractCmRDT#downstream(Option, T) downstream operation} will be enabled only if
    * this pre-condition returns true.
    *
+   * @param atSourceResult downstream operation argument
    * @param argument downstream operation argument
    * @return Is downstream pre-condition holds in the source’s current state
    */
-  protected boolean downstreamPrecondition(T argument) {
+  protected boolean downstreamPrecondition(Option<R> atSourceResult, T argument) {
     return true;
   }
+
+  /**
+   * {@link Crdt#query() query operation}'s logic.
+   *
+   * <p>Execute at source, synchronously, no side effects
+   *
+   * @return object's payload
+   */
+  protected abstract R queryImpl();
+
+  /**
+   * {@link CmRDT#atSource(Serializable) atSource operation}'s logic.
+   *
+   * <p>Synchronous, at source, no side effects
+   *
+   * @param argument {@link CmRDT#update(T) update operation} argument
+   * @return computed result
+   */
+  protected abstract Option<R> atSourceImpl(T argument);
+
+  /**
+   * {@link CmRDT#downstream(Option, Serializable) downstream operation}'s logic.
+   *
+   * <p>Asynchronous, side-effects to downstream state
+   *
+   * @param atSourceResult result of {@link CmRDT#atSource(Serializable) atSource} operation
+   * @param argument {@link CmRDT#update(T) update operation} argument
+   */
+  protected abstract void downstreamImpl(Option<R> atSourceResult, T argument);
 }

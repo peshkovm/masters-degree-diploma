@@ -30,14 +30,14 @@ public interface CmRDT<T extends Serializable, R extends Serializable> extends C
   Option<R> update(T argument);
 
   /**
-   * Locally updates source replica. The first phase of {@link CmRDT#update(Serializable)} update}
-   * operation.
+   * Locally updates source replica. The first phase of {@link CmRDT#update(Serializable) update
+   * operation}.
    *
    * <p>
    *
    * <ul>
-   *   <li>Enabled only if its (optional) {@link AbstractCmRDT#atSourcePrecondition(Serializable)}
-   *       () source pre-condition}, is true in the source state
+   *   <li>Enabled only if its (optional) {@link AbstractCmRDT#atSourcePrecondition(Serializable)
+   *       source pre-condition}, is true in the source state
    *   <li>Executes atomically
    *   <li>Takes its arguments from the operation invocation
    *   <li>Is not allowed to make side effects
@@ -45,7 +45,7 @@ public interface CmRDT<T extends Serializable, R extends Serializable> extends C
    *       phase
    * </ul>
    *
-   * @param argument operation's argument
+   * @param argument {@link CmRDT#update(T) update operation} argument
    * @return computed result
    */
   Option<R> atSource(T argument);
@@ -57,15 +57,16 @@ public interface CmRDT<T extends Serializable, R extends Serializable> extends C
    * <p>
    *
    * <ul>
-   *   <li>Executes only if its {@link AbstractCmRDT#downstreamPrecondition(T)} () downstream
-   *       precondition} is true
+   *   <li>Executes only if its {@link AbstractCmRDT#downstreamPrecondition(Option, Serializable)
+   *       downstream precondition} is true
    *   <li>Can not return results
    *   <li>Updates the downstream state
    *   <li>Arguments are those prepared by the source-local phase
    *   <li>Executes atomically
    * </ul>
    *
-   * @param argument operation's argument
+   * @param atSourceResult result of {@link CmRDT#atSource(Serializable) atSource operation}
+   * @param argument {@link CmRDT#update(T) update operation} argument
    */
   void downstream(Option<R> atSourceResult, T argument);
 }

@@ -8,8 +8,14 @@ import io.vavr.control.Option;
  */
 public class GCounterCmRDT extends CounterCmRDT {
 
-  public GCounterCmRDT(String resourceId, Replicator replicator) {
-    super(resourceId, replicator);
+  /**
+   * Instantiates new CmRDT increment-only counter instance.
+   *
+   * @param identity crdt object identity, for example "countOfLikes"
+   * @param replicator {@link Replicator} instance
+   */
+  public GCounterCmRDT(String identity, Replicator replicator) {
+    super(identity, replicator);
   }
 
   @Override
@@ -17,15 +23,22 @@ public class GCounterCmRDT extends CounterCmRDT {
     super.increment();
   }
 
-  /** Unsupported, because GCounter is increment-only counter. */
+  /**
+   * Unsupported, because GCounter is increment-only counter.
+   */
   @Override
   public void decrement() {
     throw new UnsupportedOperationException("GCounter is increment-only counter");
   }
 
   @Override
-  public void downstream(Option<Long> atSourceResult, Long numToAdd) {
+  protected void downstreamImpl(Option<Long> atSourceResult, Long numToAdd) {
     logger.debug("downstream phase received {}, {}", () -> atSourceResult, () -> numToAdd);
     this.i += numToAdd;
+  }
+
+  @Override
+  protected boolean downstreamPrecondition(Option<Long> atSourceResult, Long argument) {
+    return argument >= 0;
   }
 }

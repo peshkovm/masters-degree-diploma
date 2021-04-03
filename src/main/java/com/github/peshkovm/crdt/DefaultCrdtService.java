@@ -73,13 +73,13 @@ public class DefaultCrdtService implements CrdtService {
     processReplica(resource);
   }
 
-  private <T extends Serializable, R extends Serializable> void handle(
+  private synchronized <T extends Serializable, R extends Serializable> void handle(
       DownstreamUpdate<T, R> downstreamUpdate) {
     final String crdtId = downstreamUpdate.getCrdtId();
     final var crdtType = downstreamUpdate.getCrdtType();
 
-    final var crdt = crdtRegistry().crdt(crdtId, crdtType);
+    final var cmRDT = crdtRegistry().crdt(crdtId, crdtType);
 
-    crdt.downstream(downstreamUpdate.getAtSourceResult(), downstreamUpdate.getArgument());
+    cmRDT.downstream(downstreamUpdate.getAtSourceResult(), downstreamUpdate.getArgument());
   }
 }

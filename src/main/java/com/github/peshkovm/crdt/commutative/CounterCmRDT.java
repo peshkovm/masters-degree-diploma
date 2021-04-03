@@ -10,11 +10,17 @@ import io.vavr.control.Option;
  */
 public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements CounterCRDT {
 
-  protected Long i; // Immutable payload
+  protected Long i = 0L; // Immutable payload
 
-  public CounterCmRDT(String resourceId, Replicator replicator) {
-    super(resourceId, replicator);
-    this.i = 0L; // initial payload state
+  /**
+   * Instantiates new CmRDT counter instance.
+   *
+   * @param identity crdt object identity, for example "countOfLikes"
+   * @param replicator {@link Replicator} instance
+   */
+  public CounterCmRDT(String identity, Replicator replicator) {
+    super(identity, replicator);
+    this.i = 0L; // initial payload value
   }
 
   @Override
@@ -28,15 +34,31 @@ public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements 
   }
 
   @Override
-  protected Long value() {
+  protected Long queryImpl() {
     return i;
   }
 
+  /**
+   * Empty.
+   */
   @Override
-  public Option<Long> atSource(Long argument) {
-    final Option<Long> result = Option.none();
+  public synchronized Option<Long> atSource(Long argument) {
+    return Option.none();
+  }
 
-    logger.debug("atSource phase received {} and returned {}", () -> argument, () -> result);
-    return result;
+  /**
+   * Always true
+   */
+  @Override
+  protected boolean atSourcePrecondition(Long argument) {
+    return true;
+  }
+
+  /**
+   * Empty
+   */
+  @Override
+  protected Option<Long> atSourceImpl(Long argument) {
+    return Option.none();
   }
 }
