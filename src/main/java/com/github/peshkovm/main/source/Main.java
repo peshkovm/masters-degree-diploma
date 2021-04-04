@@ -22,6 +22,8 @@ public class Main {
 
       internalNode.start();
 
+      createResource(crdtId, ResourceType.GCounter);
+
       final GCounterCmRDT sourceGCounter =
           crdtService.crdtRegistry().crdt(crdtId, GCounterCmRDT.class);
 
