@@ -47,6 +47,15 @@ public class Main {
         }
       }
 
+      if (crdtService
+          .queryAllNodes(crdtId, GCounterCmRDT.class)
+          .get()
+          .forAll(payload -> payload == timesToIncrement)) {
+        logger.info("Crdts correctly replicated on all nodes");
+      } else {
+        throw new IllegalStateException("Crdts did not replicated on all nodes");
+      }
+
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
