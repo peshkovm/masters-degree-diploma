@@ -18,7 +18,7 @@ public class Main {
     InternalNode internalNode = null;
     try {
       final String crdtId = "countOfLikes";
-      final long timesToIncrement = 100_000;
+      final long timesToIncrement = 100;
       final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
       internalNode = ExternalClusterFactory.getInternalNode("192.168.0.106", 8801);
@@ -66,7 +66,6 @@ public class Main {
    *
    * @param crdt identity of crdt object
    * @param crdtType type of crdt object
-   * @return true if success, false otherwise
    */
   private static void createResource(String crdt, ResourceType crdtType) {
     crdtService.addResource(crdt, crdtType).get();

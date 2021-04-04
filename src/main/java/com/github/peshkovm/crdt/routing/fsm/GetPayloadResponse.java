@@ -1,11 +1,12 @@
 package com.github.peshkovm.crdt.routing.fsm;
 
+import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.crdt.Crdt;
 import java.io.Serializable;
 import lombok.Data;
 
 @Data
-public class GetPayloadResponse<T extends Serializable, R extends Serializable> {
+public class GetPayloadResponse<T extends Serializable, R extends Serializable> implements Message {
 
   private final String crdtId;
   private final Class<? extends Crdt<T, R>> crdtType;

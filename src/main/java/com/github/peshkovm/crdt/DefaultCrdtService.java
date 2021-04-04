@@ -42,6 +42,7 @@ public class DefaultCrdtService implements CrdtService {
     this.crdtRegistry = crdtRegistry;
 
     registry.registerHandler(AddResource.class, this::handle);
+    registry.registerHandler(GetPayload.class, this::handle);
     transportController.registerMessageHandler(DownstreamUpdate.class, this::handle);
   }
 
@@ -64,10 +65,9 @@ public class DefaultCrdtService implements CrdtService {
         .map(Vector::ofAll)
         .map(commandResults -> commandResults.map(CommandResult::getResult))
         .filter(
-            commandResults ->
-                commandResults.forAll(result -> result instanceof AddResourceResponse))
-        .map(commandResults -> commandResults.map(result -> (GetPayloadResponse) result))
-        .map(getPayloadResponses -> getPayloadResponses.map(response -> (R) response.getPayload()));
+            commandResults -> commandResults.forAll(result -> result instanceof GetPayloadResponse))
+        .map(commandResults -> commandResults.map(result -> (GetPayloadResponse<T, R>) result))
+        .map(getPayloadResponses -> getPayloadResponses.map(GetPayloadResponse::getPayload));
   }
 
   @Override
@@ -112,5 +112,18 @@ public class DefaultCrdtService implements CrdtService {
     final var cmRDT = crdtRegistry().crdt(crdtId, crdtType);
 
     cmRDT.downstream(downstreamUpdate.getAtSourceResult(), downstreamUpdate.getArgument());
+  }
+
+  private <T extends Serializable, R extends Serializable> CommandResult handle(
+      GetPayload<T, R> request) {
+    final String crdtId = request.getCrdtId();
+    final var crdtType = request.getCrdtType();
+
+    final var crdt = crdtRegistry.crdt(crdtId, crdtType);
+
+    final R payload = crdt.query();
+    final GetPayloadResponse<T, R> response = new GetPayloadResponse<>(crdtId, crdtType, payload);
+
+    return new CommandResult(response, true);
   }
 }
