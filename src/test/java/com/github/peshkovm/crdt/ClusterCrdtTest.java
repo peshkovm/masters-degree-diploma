@@ -26,9 +26,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @Test
   @DisplayName("Should replicate crdt to all replicas")
   void shouldReplicateCrdtToAllReplicas() {
-    final boolean isCreated = createResource("countOfLikes", ResourceType.GCounter);
-
-    Assertions.assertTrue(isCreated);
+    createResource("countOfLikes", ResourceType.GCounter);
   }
 
   @Test
@@ -36,14 +34,9 @@ public class ClusterCrdtTest extends BaseClusterTest {
   void shouldConvergeCrdtOnAllReplicas() throws Exception {
     final String crdtId = "countOfLikes";
     final int timesToIncrement = 100_000;
-    final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
+    final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
-    final boolean isCreated = createResource(crdtId, ResourceType.GCounter);
-
-    if (!isCreated) {
-      logger.error("Crdt was not created");
-      return;
-    }
+    createResource(crdtId, ResourceType.GCounter);
 
     final Vector<GCounterCmRDT> gCounters =
         crdtServices
@@ -65,6 +58,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
           }
         });
 
+    logger.info("Waiting for query");
     for (int i = 0; i < numOfSecondsToWait / 100; i++) {
       if (!gCounters.forAll(counter -> counter.query() == timesToIncrement)) {
         TimeUnit.MILLISECONDS.sleep(100);
@@ -83,11 +77,8 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @Test
   @DisplayName("Should create multiple crdt with different id")
   void shouldCreateMultipleCrdtWithDifferentId() {
-    final boolean isCreated = createResource("countOfLikes", ResourceType.GCounter);
-    Assertions.assertTrue(isCreated);
-
-    final boolean isCreated2 = createResource("countOfViews", ResourceType.GCounter);
-    Assertions.assertTrue(isCreated2);
+    createResource("countOfLikes", ResourceType.GCounter);
+    createResource("countOfViews", ResourceType.GCounter);
   }
 
   @Test
@@ -99,13 +90,8 @@ public class ClusterCrdtTest extends BaseClusterTest {
     final int timesToIncrement2 = 500;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
 
-    final boolean isCreated1 = createResource(crdtId1, ResourceType.GCounter);
-    final boolean isCreated2 = createResource(crdtId2, ResourceType.GCounter);
-
-    if (!isCreated1 || !isCreated2) {
-      logger.error("Crdts was not created");
-      return;
-    }
+    createResource(crdtId1, ResourceType.GCounter);
+    createResource(crdtId2, ResourceType.GCounter);
 
     final Vector<GCounterCmRDT> gCounters1 =
         crdtServices
@@ -173,12 +159,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
     final int numOfNodes = crdtServices.size();
 
-    final boolean isCreated = createResource(crdtId, ResourceType.GCounter);
-
-    if (!isCreated) {
-      logger.error("Crdt was not created");
-      return;
-    }
+    createResource(crdtId, ResourceType.GCounter);
 
     final Vector<GCounterCmRDT> gCounters =
         crdtServices
@@ -226,9 +207,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
    * @param crdtType type of crdt object
    * @return true if success, false otherwise
    */
-  private boolean createResource(String crdt, ResourceType crdtType) {
-    final boolean response = crdtServices.head().addResource(crdt, crdtType).get();
-
-    return response;
+  private void createResource(String crdt, ResourceType crdtType) {
+    crdtServices.head().addResource(crdt, crdtType).get();
   }
 }

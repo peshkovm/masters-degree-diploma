@@ -2,18 +2,19 @@ package com.github.peshkovm.crdt.routing.fsm;
 
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.crdt.routing.ResourceType;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-@Data
+@Getter
+@ToString
+@EqualsAndHashCode
 public class AddResourceResponse implements Message {
-
   private final ResourceType resourceType;
   private final String resourceId;
-  private final boolean isCreated;
 
-  public AddResourceResponse(String resourceId, ResourceType resourceType, boolean isCreated) {
+  public AddResourceResponse(String resourceId, ResourceType resourceType) {
     this.resourceId = resourceId;
     this.resourceType = resourceType;
-    this.isCreated = isCreated;
   }
 }

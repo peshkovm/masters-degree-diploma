@@ -5,8 +5,9 @@ import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
-import com.github.peshkovm.crdt.routing.fsm.Resource;
 import com.github.peshkovm.raft.Raft;
+import com.github.peshkovm.raft.protocol.CommandResult;
+import com.github.peshkovm.raft.resource.ResourceRegistry;
 import com.github.peshkovm.transport.TransportController;
 import io.vavr.concurrent.Future;
 import java.io.Serializable;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Sinks;
 
 /**
  * Default implementation of {@link CrdtService}.
@@ -32,36 +32,22 @@ public class DefaultCrdtService implements CrdtService {
   @Autowired
   public DefaultCrdtService(
       Raft raft,
-      Sinks.Many<Resource> eventBus,
+      ResourceRegistry registry,
       CrdtRegistry crdtRegistry,
       TransportController transportController) {
     this.raft = raft;
-    eventBus.asFlux().subscribe(this::handle, eventBus::tryEmitError);
     this.crdtRegistry = crdtRegistry;
 
+    registry.registerHandler(AddResource.class, this::handle);
     transportController.registerMessageHandler(DownstreamUpdate.class, this::handle);
   }
 
   @Override
-  public Future<Boolean> addResource(String resourceId, ResourceType resourceType) {
+  public Future<AddResourceResponse> addResource(String resourceId, ResourceType resourceType) {
     return raft.command(new AddResource(resourceId, resourceType))
-        .filter(m -> m instanceof AddResourceResponse)
-        .map(m -> ((AddResourceResponse) m).isCreated());
-  }
-
-  private void processReplica(Resource resource) {
-    switch (resource.getResourceType()) {
-      case GCounter:
-        final boolean result = crdtRegistry.createGCounter(resource.getResourceId());
-        if (result) {
-          logger.info("Successfully created GCounter");
-        } else {
-          logger.error("GCounter with id: {} already exists", resource::getResourceId);
-        }
-        break;
-      default:
-        logger.warn("Unexpected crdt type: {}", resource.getResourceType());
-    }
+        .map(CommandResult::getResult)
+        .filter(result -> result instanceof AddResourceResponse)
+        .map(result -> ((AddResourceResponse) result));
   }
 
   @Override
@@ -69,8 +55,33 @@ public class DefaultCrdtService implements CrdtService {
     return crdtRegistry;
   }
 
-  private void handle(Resource resource) {
-    processReplica(resource);
+  private boolean createCrdt(String resourceId, ResourceType resourceType) {
+    boolean isCreated = false;
+
+    switch (resourceType) {
+      case GCounter:
+        isCreated = crdtRegistry.createGCounter(resourceId);
+        break;
+      default:
+        logger.warn("Unexpected crdt type: {}", () -> resourceType);
+    }
+
+    if (isCreated) {
+      logger.info("Successfully created GCounter");
+    } else {
+      logger.error("GCounter with id: {} already exists", () -> resourceId);
+    }
+
+    return isCreated;
+  }
+
+  private CommandResult handle(AddResource resource) {
+    final boolean isCreated = createCrdt(resource.getResourceId(), resource.getResourceType());
+
+    final AddResourceResponse addResourceResponse =
+        new AddResourceResponse(resource.getResourceId(), resource.getResourceType());
+
+    return new CommandResult(addResourceResponse, isCreated);
   }
 
   private synchronized <T extends Serializable, R extends Serializable> void handle(

@@ -3,12 +3,12 @@ package com.github.peshkovm.raft;
 import com.github.peshkovm.common.Match;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.component.AbstractLifecycleComponent;
-import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
-import com.github.peshkovm.raft.protocol.AppendFailure;
-import com.github.peshkovm.raft.protocol.AppendMessage;
-import com.github.peshkovm.raft.protocol.AppendSuccessful;
+import com.github.peshkovm.raft.protocol.ClientCommand;
 import com.github.peshkovm.raft.protocol.ClientMessage;
+import com.github.peshkovm.raft.protocol.ClientMessageFailure;
+import com.github.peshkovm.raft.protocol.ClientMessageSuccessful;
+import com.github.peshkovm.raft.protocol.CommandResult;
 import com.github.peshkovm.raft.resource.ResourceRegistry;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
@@ -34,7 +34,7 @@ public class Raft extends AbstractLifecycleComponent {
   private final TransportController transportController;
   private final ReentrantLock lock;
   private final ClusterDiscovery clusterDiscovery;
-  private final Map<Long, Promise<Message>> sessionCommands;
+  private final Map<Long, Promise<CommandResult>> sessionCommands;
   private final Map<Long, AtomicInteger> sessionReceives;
   private SourceState sourceState;
   private ReplicaState replicaState;
@@ -42,10 +42,10 @@ public class Raft extends AbstractLifecycleComponent {
 
   private final Match.Mapper<Message> mapper =
       Match.<Message>map()
-          .when(ClientMessage.class, message -> sourceState.handle(message))
-          .when(AppendMessage.class, message -> replicaState.handle(message))
-          .when(AppendSuccessful.class, message -> sourceState.handle(message))
-          .when(AppendFailure.class, message -> sourceState.handle(message))
+          .when(ClientCommand.class, message -> sourceState.handle(message))
+          .when(ClientMessage.class, message -> replicaState.handle(message))
+          .when(ClientMessageSuccessful.class, message -> sourceState.handle(message))
+          .when(ClientMessageFailure.class, message -> sourceState.handle(message))
           .build();
 
   @Autowired
@@ -63,9 +63,9 @@ public class Raft extends AbstractLifecycleComponent {
     this.registry = registry;
   }
 
-  public Future<Message> command(Message command) {
-    final Promise<Message> promise = Promise.make();
-    Promise<Message> prev;
+  public Future<CommandResult> command(Message command) {
+    final Promise<CommandResult> promise = Promise.make();
+    Promise<CommandResult> prev;
     long session;
 
     do {
@@ -76,7 +76,7 @@ public class Raft extends AbstractLifecycleComponent {
     sessionReceives.putIfAbsent(
         session, new AtomicInteger(clusterDiscovery.getDiscoveryNodes().size() - 1));
 
-    final ClientMessage clientMessage = new ClientMessage(command, session);
+    final ClientCommand clientMessage = new ClientCommand(command, session);
 
     logger.info("Created client command: {}", () -> clientMessage);
 
@@ -118,44 +118,37 @@ public class Raft extends AbstractLifecycleComponent {
       super(meta);
     }
 
-    public void handle(ClientMessage message) {
+    public void handle(ClientCommand message) {
       sendMessageToAllReplicas(message);
     }
 
-    public void handle(AppendSuccessful message) {
+    public void handle(ClientMessageSuccessful message) {
       logger.info("Source node received {}", message);
 
       maybeCommitMessage(message);
     }
 
-    public void handle(AppendFailure message) {
-      final long session = message.getClientMessage().getSession();
-      final Message command = message.getClientMessage().getCommand();
-      final Message result = message.getResourceResponse();
+    public void handle(ClientMessageFailure message) {
+      final long session = message.getClientCommand().getSession();
+      final Message command = message.getClientCommand().getCommand();
+      final CommandResult commandResult = message.getCommandResult();
 
-      final Promise<Message> promise = sessionCommands.get(session);
+      final Promise<CommandResult> promise = sessionCommands.get(session);
       int countOfSessionsToReceive = sessionReceives.get(session).getAndSet(0);
 
       if (countOfSessionsToReceive != 0) {
         if (promise != null) {
           sessionCommands.remove(session);
-
-          if (result != null) {
-            promise.success(result);
-          } else {
-            logger.error("Resource registry returned null for {}", () -> command);
-            promise.failure(
-                new IllegalStateException("Resource registry returned null for " + command));
-          }
+          promise.failure(new IllegalStateException("Command result is failure for " + command));
         } else {
           logger.error("Unknown session. Source node can't commit message: " + message);
         }
       } else {
-        logger.info("Source already received AppendFailure. Ignore this message");
+        logger.info("Source already received ClientMessageFailure. Ignoring this message");
       }
     }
 
-    private void sendMessageToAllReplicas(ClientMessage message) {
+    private void sendMessageToAllReplicas(ClientCommand message) {
       logger.info(
           "Source node sending client command to replicas: {}",
           () -> getMeta().getDiscoveryNodesWithout(clusterDiscovery.getSelf()));
@@ -165,16 +158,16 @@ public class Raft extends AbstractLifecycleComponent {
           .forEach(replica -> sendMessage(replica, message));
     }
 
-    private void sendMessage(DiscoveryNode replica, ClientMessage message) {
-      AppendMessage append = new AppendMessage(clusterDiscovery.getSelf(), message);
+    private void sendMessage(DiscoveryNode replica, ClientCommand message) {
+      ClientMessage append = new ClientMessage(clusterDiscovery.getSelf(), message);
       send(replica, append);
     }
 
-    private void maybeCommitMessage(AppendSuccessful message) {
-      final long session = message.getClientMessage().getSession();
-      final Message command = message.getClientMessage().getCommand();
+    private void maybeCommitMessage(ClientMessageSuccessful message) {
+      final long session = message.getClientCommand().getSession();
+      final Message command = message.getClientCommand().getCommand();
 
-      final Promise<Message> promise = sessionCommands.get(session);
+      final Promise<CommandResult> promise = sessionCommands.get(session);
 
       if (promise != null) {
         final int countOfSessionsToReceive = sessionReceives.get(session).decrementAndGet();
@@ -183,13 +176,12 @@ public class Raft extends AbstractLifecycleComponent {
           sessionCommands.remove(session);
           sessionReceives.remove(session);
 
-          final Message result = registry.apply(command);
-          if (result != null) {
-            promise.success(result);
+          final CommandResult commandResult = registry.apply(command);
+          if (commandResult.isSuccessful()) {
+            promise.success(commandResult);
           } else {
-            logger.error("Resource registry returned null for {}", () -> command);
-            promise.failure(
-                new IllegalStateException("Resource registry not found for " + command));
+            logger.error("Command result is failure for {}", () -> command);
+            promise.failure(new IllegalStateException("Command result is failure for " + command));
           }
         }
       } else {
@@ -204,36 +196,22 @@ public class Raft extends AbstractLifecycleComponent {
       super(meta);
     }
 
-    public void handle(AppendMessage message) {
-      appendMessage(message);
-    }
-
-    private void appendMessage(AppendMessage message) {
-      final Message result = registry.apply(message.getMessage().getCommand());
+    private void handle(ClientMessage clientMessage) {
+      final CommandResult commandResult;
+      final ClientCommand clientCommand = clientMessage.getMessage();
       final Message response;
-      final ClientMessage clientMessage = message.getMessage();
 
-      if (result instanceof AddResourceResponse) {
-        AddResourceResponse resourceResponse = (AddResourceResponse) result;
+      commandResult = registry.apply(clientMessage.getMessage().getCommand());
 
-        if (resourceResponse.isCreated()) {
-          response = new AppendSuccessful(clusterDiscovery.getSelf(), clientMessage);
-          logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
-        } else {
-          response = new AppendFailure(clusterDiscovery.getSelf(), clientMessage, resourceResponse);
-          logger.error("Replica {} send AppendFailure", clusterDiscovery::getSelf);
-        }
+      if (commandResult.isSuccessful()) {
+        response =
+            new ClientMessageSuccessful(clusterDiscovery.getSelf(), clientCommand, commandResult);
       } else {
-        if (result != null) {
-          response = new AppendSuccessful(clusterDiscovery.getSelf(), clientMessage);
-          logger.info("Replica {} send AppendSuccessful", clusterDiscovery::getSelf);
-        } else {
-          response = new AppendFailure(clusterDiscovery.getSelf(), clientMessage, null);
-          logger.error("Replica {} send AppendFailure", clusterDiscovery::getSelf);
-        }
+        response =
+            new ClientMessageFailure(clusterDiscovery.getSelf(), clientCommand, commandResult);
       }
 
-      send(message.getDiscoveryNode(), response);
+      send(clientMessage.getDiscoveryNode(), response);
     }
   }
 

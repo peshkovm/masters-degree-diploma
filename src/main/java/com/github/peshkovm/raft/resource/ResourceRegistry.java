@@ -1,6 +1,7 @@
 package com.github.peshkovm.raft.resource;
 
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.raft.protocol.CommandResult;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import org.apache.logging.log4j.LogManager;
@@ -19,7 +20,7 @@ public class ResourceRegistry {
   }
 
   @SuppressWarnings("unchecked")
-  public Message apply(Message message) {
+  public CommandResult apply(Message message) {
     ResourceHandler handler = handlers.getOrElse(message.getClass(), null);
     if (handler != null) {
       return handler.apply(message);
@@ -32,6 +33,6 @@ public class ResourceRegistry {
   @FunctionalInterface
   public interface ResourceHandler<T extends Message> {
 
-    Message apply(T event);
+    CommandResult apply(T event);
   }
 }

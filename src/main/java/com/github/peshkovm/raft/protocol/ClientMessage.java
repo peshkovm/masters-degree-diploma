@@ -1,16 +1,17 @@
 package com.github.peshkovm.raft.protocol;
 
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.transport.DiscoveryNode;
 import lombok.Data;
 
 @Data
 public class ClientMessage implements Message {
 
-  private final Message command;
-  private final long session;
+  private final DiscoveryNode discoveryNode;
+  private final ClientCommand message;
 
-  public ClientMessage(Message command, long session) {
-    this.command = command;
-    this.session = session;
+  public ClientMessage(DiscoveryNode discoveryNode, ClientCommand message) {
+    this.discoveryNode = discoveryNode;
+    this.message = message;
   }
 }

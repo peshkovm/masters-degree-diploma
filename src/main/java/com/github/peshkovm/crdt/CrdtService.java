@@ -2,6 +2,7 @@ package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
+import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
 import io.vavr.concurrent.Future;
 
 /**
@@ -9,7 +10,7 @@ import io.vavr.concurrent.Future;
  */
 public interface CrdtService {
 
-  Future<Boolean> addResource(String resourceId, ResourceType resourceType);
+  Future<AddResourceResponse> addResource(String resourceId, ResourceType resourceType);
 
   CrdtRegistry crdtRegistry();
 }

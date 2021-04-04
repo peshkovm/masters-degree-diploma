@@ -2,6 +2,7 @@ package com.github.peshkovm.raft;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.raft.protocol.CommandResult;
 import com.github.peshkovm.raft.resource.ResourceFSM;
 import com.github.peshkovm.raft.resource.ResourceRegistry;
 import io.vavr.collection.Vector;
@@ -50,9 +51,11 @@ public class RaftTest extends BaseClusterTest {
       registry.registerHandler(RegisterValue.class, this::handle);
     }
 
-    public Message handle(RegisterValue registerValue) {
+    public CommandResult handle(RegisterValue registerValue) {
       logger.info("Applying RegisterValue");
-      return new RegisterValue(registerValue.getValue());
+      final RegisterValue result = new RegisterValue(registerValue.getValue());
+
+      return new CommandResult(result, true);
     }
   }
 
@@ -68,12 +71,14 @@ public class RaftTest extends BaseClusterTest {
 
     public Future<String> setValue(String value) {
       return raft.command(new RegisterValue(value))
+          .map(CommandResult::getResult)
           .filter(m -> m instanceof RegisterValue)
           .map(m -> ((RegisterValue) m).value);
     }
 
     public Future<String> getValue() {
       return raft.command(new RegisterValue(""))
+          .map(CommandResult::getResult)
           .filter(msg -> msg instanceof RegisterValue)
           .map(msg -> ((RegisterValue) msg).getValue());
     }

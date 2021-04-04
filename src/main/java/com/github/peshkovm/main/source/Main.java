@@ -22,15 +22,6 @@ public class Main {
 
       internalNode.start();
 
-      final boolean isCreated = createResource(crdtId, ResourceType.GCounter);
-
-      if (isCreated) {
-        logger.info("Crdt was created on all nodes");
-      } else {
-        logger.info("Crdt was not created on one of the nodes");
-        System.exit(1);
-      }
-
       final GCounterCmRDT sourceGCounter =
           crdtService.crdtRegistry().crdt(crdtId, GCounterCmRDT.class);
 
@@ -55,9 +46,7 @@ public class Main {
    * @param crdtType type of crdt object
    * @return true if success, false otherwise
    */
-  private static boolean createResource(String crdt, ResourceType crdtType) {
-    final boolean response = crdtService.addResource(crdt, crdtType).get();
-
-    return response;
+  private static void createResource(String crdt, ResourceType crdtType) {
+    crdtService.addResource(crdt, crdtType).get();
   }
 }
