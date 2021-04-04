@@ -5,10 +5,13 @@ import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
+import com.github.peshkovm.crdt.routing.fsm.GetPayload;
+import com.github.peshkovm.crdt.routing.fsm.GetPayloadResponse;
 import com.github.peshkovm.raft.Raft;
 import com.github.peshkovm.raft.protocol.CommandResult;
 import com.github.peshkovm.raft.resource.ResourceRegistry;
 import com.github.peshkovm.transport.TransportController;
+import io.vavr.collection.Vector;
 import io.vavr.concurrent.Future;
 import java.io.Serializable;
 import org.apache.logging.log4j.LogManager;
@@ -43,11 +46,28 @@ public class DefaultCrdtService implements CrdtService {
   }
 
   @Override
-  public Future<AddResourceResponse> addResource(String resourceId, ResourceType resourceType) {
+  public Future<Vector<AddResourceResponse>> addResource(
+      String resourceId, ResourceType resourceType) {
     return raft.command(new AddResource(resourceId, resourceType))
-        .map(CommandResult::getResult)
-        .filter(result -> result instanceof AddResourceResponse)
-        .map(result -> ((AddResourceResponse) result));
+        .map(Vector::ofAll)
+        .map(commandResults -> commandResults.map(CommandResult::getResult))
+        .filter(
+            commandResults ->
+                commandResults.forAll(result -> result instanceof AddResourceResponse))
+        .map(commandResults -> commandResults.map(result -> (AddResourceResponse) result));
+  }
+
+  @Override
+  public <T extends Serializable, R extends Serializable, M extends Crdt<T, R>>
+  Future<Vector<R>> queryAllNodes(String crdtId, Class<M> crdtType) {
+    return raft.command(new GetPayload<>(crdtId, crdtType))
+        .map(Vector::ofAll)
+        .map(commandResults -> commandResults.map(CommandResult::getResult))
+        .filter(
+            commandResults ->
+                commandResults.forAll(result -> result instanceof AddResourceResponse))
+        .map(commandResults -> commandResults.map(result -> (GetPayloadResponse) result))
+        .map(getPayloadResponses -> getPayloadResponses.map(response -> (R) response.getPayload()));
   }
 
   @Override

@@ -10,6 +10,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class AddResourceResponse implements Message {
+
   private final ResourceType resourceType;
   private final String resourceId;
 

@@ -7,8 +7,8 @@ import lombok.Data;
 @Data
 public class AddResource implements Message {
 
-  private final String resourceId;
   private final ResourceType resourceType;
+  private final String resourceId;
 
   public AddResource(String resourceId, ResourceType resourceType) {
     this.resourceId = resourceId;

@@ -17,6 +17,7 @@ import io.vavr.concurrent.Future;
 import io.vavr.concurrent.Promise;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -34,8 +35,9 @@ public class Raft extends AbstractLifecycleComponent {
   private final TransportController transportController;
   private final ReentrantLock lock;
   private final ClusterDiscovery clusterDiscovery;
-  private final Map<Long, Promise<CommandResult>> sessionCommands;
+  private final Map<Long, Promise<ConcurrentLinkedDeque<CommandResult>>> sessionCommands;
   private final Map<Long, AtomicInteger> sessionReceives;
+  private final Map<Long, ConcurrentLinkedDeque<CommandResult>> sessionResults;
   private SourceState sourceState;
   private ReplicaState replicaState;
   private final ResourceRegistry registry;
@@ -60,12 +62,13 @@ public class Raft extends AbstractLifecycleComponent {
     this.lock = new ReentrantLock();
     this.sessionCommands = new ConcurrentHashMap<>();
     this.sessionReceives = new ConcurrentHashMap<>();
+    this.sessionResults = new ConcurrentHashMap<>();
     this.registry = registry;
   }
 
-  public Future<CommandResult> command(Message command) {
-    final Promise<CommandResult> promise = Promise.make();
-    Promise<CommandResult> prev;
+  public Future<ConcurrentLinkedDeque<CommandResult>> command(Message command) {
+    final Promise<ConcurrentLinkedDeque<CommandResult>> promise = Promise.make();
+    Promise<ConcurrentLinkedDeque<CommandResult>> prev;
     long session;
 
     do {
@@ -75,6 +78,7 @@ public class Raft extends AbstractLifecycleComponent {
 
     sessionReceives.putIfAbsent(
         session, new AtomicInteger(clusterDiscovery.getDiscoveryNodes().size() - 1));
+    sessionResults.put(session, new ConcurrentLinkedDeque<>());
 
     final ClientCommand clientMessage = new ClientCommand(command, session);
 
@@ -133,7 +137,7 @@ public class Raft extends AbstractLifecycleComponent {
       final Message command = message.getClientCommand().getCommand();
       final CommandResult commandResult = message.getCommandResult();
 
-      final Promise<CommandResult> promise = sessionCommands.get(session);
+      final Promise<ConcurrentLinkedDeque<CommandResult>> promise = sessionCommands.get(session);
       int countOfSessionsToReceive = sessionReceives.get(session).getAndSet(0);
 
       if (countOfSessionsToReceive != 0) {
@@ -166,19 +170,23 @@ public class Raft extends AbstractLifecycleComponent {
     private void maybeCommitMessage(ClientMessageSuccessful message) {
       final long session = message.getClientCommand().getSession();
       final Message command = message.getClientCommand().getCommand();
+      final CommandResult replicaCommandResult = message.getCommandResult();
 
-      final Promise<CommandResult> promise = sessionCommands.get(session);
+      final Promise<ConcurrentLinkedDeque<CommandResult>> promise = sessionCommands.get(session);
 
       if (promise != null) {
+        sessionResults.get(session).add(replicaCommandResult);
         final int countOfSessionsToReceive = sessionReceives.get(session).decrementAndGet();
+
         if (countOfSessionsToReceive == 0) {
           logger.info(() -> "Source node received AppendSuccessful from all replicas");
           sessionCommands.remove(session);
           sessionReceives.remove(session);
 
-          final CommandResult commandResult = registry.apply(command);
-          if (commandResult.isSuccessful()) {
-            promise.success(commandResult);
+          final CommandResult sourceCommandResult = registry.apply(command);
+          sessionResults.get(session).add(sourceCommandResult);
+          if (sourceCommandResult.isSuccessful()) {
+            promise.success(sessionResults.get(session));
           } else {
             logger.error("Command result is failure for {}", () -> command);
             promise.failure(new IllegalStateException("Command result is failure for " + command));
