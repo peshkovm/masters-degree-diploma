@@ -27,6 +27,8 @@ public class RaftTest extends BaseClusterTest {
     createAndStartInternalNode();
     createAndStartInternalNode();
 
+    connectAllNodes();
+
     clients = nodes.map(n -> n.getBeanFactory().getBean(RegisterClient.class));
   }
 

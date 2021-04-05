@@ -21,7 +21,10 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LoggingHandler;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
+import io.vavr.concurrent.Future;
+import io.vavr.concurrent.Promise;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -134,15 +137,19 @@ public class NettyTransportService extends NettyClient implements TransportServi
   }
 
   @Override
-  public void send(DiscoveryNode discoveryNode, Message message) {
+  public MyChannelFuture<Void> send(DiscoveryNode discoveryNode, Message message) {
+    Promise<DiscoveryNode> sendPromise = Promise.make();
+
     try {
-      connectToNode(discoveryNode);
       logger.debug("Sending {} to node {}...", message, discoveryNode);
       final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(message);
       future.addListener(
           FIRE_EXCEPTION_ON_FAILURE); // Let object serialisation exceptions propagate.
+
+      return new MyChannelFuture<>(discoveryNode, sendPromise.success(null).future());
     } catch (Exception e) {
       logger.error("Error send message", e);
+      return new MyChannelFuture<>(discoveryNode, sendPromise.failure(e).future());
     }
   }
 
@@ -153,6 +160,18 @@ public class NettyTransportService extends NettyClient implements TransportServi
       throw new IllegalArgumentException("Not connected to node: " + node);
     }
     return channel;
+  }
+
+  @Data
+  public static class MyChannelFuture<Void> {
+
+    private final DiscoveryNode discoveryNode;
+    private final Future future;
+
+    public MyChannelFuture(DiscoveryNode discoveryNode, Future future) {
+      this.discoveryNode = discoveryNode;
+      this.future = future;
+    }
   }
 
   @Override

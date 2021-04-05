@@ -4,8 +4,10 @@ import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
+import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.TransportServer;
 import com.github.peshkovm.transport.TransportService;
+import com.github.peshkovm.transport.netty.NettyTransportService;
 import io.vavr.collection.List;
 import lombok.Data;
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +26,30 @@ public class BaseIntegrationTest extends BaseTest {
   void setUpNodes() {
     createAndStartNode(); // Server
     createAndStartNode(); // Client
+
+    connectAllNodes();
+  }
+
+  protected void connectAllNodes() {
+    for (int i = 0; i < nodes.size(); i++) {
+      final InternalNode sourceNode = nodes.get(i);
+
+      final NettyTransportService transportService =
+          sourceNode.getBeanFactory().getBean(NettyTransportService.class);
+
+      transportService.connectToNode(
+          nodes
+              .get((i + 1) % nodes.size())
+              .getBeanFactory()
+              .getBean(ClusterDiscovery.class)
+              .getSelf());
+      transportService.connectToNode(
+          nodes
+              .get((i + 2) % nodes.size())
+              .getBeanFactory()
+              .getBean(ClusterDiscovery.class)
+              .getSelf());
+    }
   }
 
   /**

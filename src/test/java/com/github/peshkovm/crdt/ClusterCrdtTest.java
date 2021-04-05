@@ -20,6 +20,8 @@ public class ClusterCrdtTest extends BaseClusterTest {
     createAndStartInternalNode();
     createAndStartInternalNode();
 
+    connectAllNodes();
+
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
   }
 
@@ -33,7 +35,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @DisplayName("Should converge crdt on all replicas")
   void shouldConvergeCrdtOnAllReplicas() throws Exception {
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 100_000;
+    final int timesToIncrement = 10_000;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
     createResource(crdtId, ResourceType.GCounter);
@@ -155,7 +157,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @DisplayName("Should converge crdt updating by multiple clients")
   void shouldConvergeCrdtUpdatingByMultipleClients() throws Exception {
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 100_000;
+    final int timesToIncrement = 10_000;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
     final int numOfNodes = crdtServices.size();
 
@@ -200,7 +202,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @DisplayName("Should get payloads from all nodes")
   void shouldGetPayloadsFromAllNodes() throws Exception {
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 100_000;
+    final int timesToIncrement = 10_000;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
     createResource(crdtId, ResourceType.GCounter);
