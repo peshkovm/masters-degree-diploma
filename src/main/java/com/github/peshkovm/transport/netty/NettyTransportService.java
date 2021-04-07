@@ -3,8 +3,13 @@ package com.github.peshkovm.transport.netty;
 import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
 
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.common.diagram.DiagramBuilderSingleton;
+import com.github.peshkovm.common.diagram.MxCellPojo;
 import com.github.peshkovm.common.netty.NettyClient;
 import com.github.peshkovm.common.netty.NettyProvider;
+import com.github.peshkovm.crdt.routing.fsm.AddResource;
+import com.github.peshkovm.raft.discovery.ClusterDiscovery;
+import com.github.peshkovm.raft.protocol.ClientMessage;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
@@ -23,6 +28,7 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import io.vavr.concurrent.Future;
 import io.vavr.concurrent.Promise;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +40,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
+  private final DiscoveryNode self;
   private volatile Map<DiscoveryNode, Channel> connectedNodes = HashMap.empty();
   private final ReentrantLock connectionLock = new ReentrantLock();
   private final TransportController transportController;
+  private final DiagramBuilderSingleton diagramBuilder;
+
+  private final java.util.Map<Message, MxCellPojo> messageArrowMap;
 
   /**
    * Constructs a new instance using provider for bootstrapping.
@@ -45,9 +55,16 @@ public class NettyTransportService extends NettyClient implements TransportServi
    * @param transportController transport controller to dispatch messages
    */
   @Autowired
-  public NettyTransportService(NettyProvider provider, TransportController transportController) {
+  public NettyTransportService(
+      NettyProvider provider,
+      TransportController transportController,
+      DiagramBuilderSingleton diagramBuilder,
+      ClusterDiscovery discovery) {
     super(provider);
     this.transportController = transportController;
+    this.messageArrowMap = new ConcurrentHashMap<>();
+    this.diagramBuilder = diagramBuilder;
+    self = discovery.getSelf();
   }
 
   @Override
@@ -142,6 +159,25 @@ public class NettyTransportService extends NettyClient implements TransportServi
 
     try {
       logger.debug("Sending {} to node {}...", message, discoveryNode);
+
+      if (message instanceof ClientMessage) {
+        if (((ClientMessage) message).getMessage().getCommand() instanceof AddResource) {
+          final long l = System.currentTimeMillis();
+
+          final int sourceNodeNum = self.getPort() % 10;
+          final int targetNodeNum = discoveryNode.getPort() % 10;
+
+          diagramBuilder.addArrow(
+              discoveryNode,
+              message,
+              "create crdt",
+              "Node" + sourceNodeNum,
+              "Node" + targetNodeNum,
+              l,
+              0);
+        }
+      }
+
       final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(message);
       future.addListener(
           FIRE_EXCEPTION_ON_FAILURE); // Let object serialisation exceptions propagate.

@@ -1,6 +1,8 @@
 package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.common.BaseClusterTest;
+import com.github.peshkovm.common.diagram.DiagramBuilderSingleton;
+import com.github.peshkovm.common.diagram.DrawIOColor;
 import com.github.peshkovm.crdt.commutative.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import io.vavr.collection.Vector;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 public class ClusterCrdtTest extends BaseClusterTest {
 
   private Vector<CrdtService> crdtServices;
+  private DiagramBuilderSingleton diagramBuilder;
 
   @BeforeEach
   void setUpNodes() {
@@ -23,12 +26,21 @@ public class ClusterCrdtTest extends BaseClusterTest {
     connectAllNodes();
 
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
+    diagramBuilder = nodes.head().getBeanFactory().getBean(DiagramBuilderSingleton.class);
+
+    for (int i = 0; i < nodes.size(); i++) {
+      diagramBuilder.addNode("Node" + (i + 1), DrawIOColor.values()[i]);
+    }
   }
 
   @Test
   @DisplayName("Should replicate crdt to all replicas")
-  void shouldReplicateCrdtToAllReplicas() {
+  void shouldReplicateCrdtToAllReplicas() throws Exception {
+    diagramBuilder.setDiagramName("Should replicate crdt to all replicas");
+    diagramBuilder.setOutputFileName("shouldReplicateCrdtToAllReplicas.xml");
     createResource("countOfLikes", ResourceType.GCounter);
+
+    diagramBuilder.build();
   }
 
   @Test

@@ -1,6 +1,9 @@
 package com.github.peshkovm.transport.netty;
 
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.common.diagram.DiagramBuilderSingleton;
+import com.github.peshkovm.common.diagram.MxCellPojo;
+import com.github.peshkovm.common.diagram.NodeMessagePair;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.common.netty.NettyServer;
 import com.github.peshkovm.transport.DiscoveryNode;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Component;
 public class TCPNettyServer extends NettyServer implements TransportServer {
 
   private final TransportController transportController;
+  private final DiagramBuilderSingleton diagramBuilder;
 
   /**
    * Constructs a new instance.
@@ -41,11 +45,13 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
   public TCPNettyServer(
       @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") Config config,
       NettyProvider provider,
-      TransportController transportController) {
+      TransportController transportController,
+      DiagramBuilderSingleton diagramBuilder) {
     super(
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
         provider);
     this.transportController = transportController;
+    this.diagramBuilder = diagramBuilder;
   }
 
   @Override
@@ -75,6 +81,12 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
+      final MxCellPojo arrow =
+          diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(discoveryNode, message));
+      if (arrow != null) {
+        final long l = System.currentTimeMillis();
+        arrow.getMxGeometry().getMxPoints().get(1).setY(l);
+      }
       transportController.dispatch(message);
     }
 

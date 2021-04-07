@@ -15,9 +15,7 @@ public class BaseClusterTest extends BaseTest {
 
   protected Vector<InternalNode> nodes = Vector.empty();
 
-  /**
-   * Creates and starts follower node on sme JVM with random port.
-   */
+  /** Creates and starts follower node on sme JVM with random port. */
   protected final void createAndStartInternalNode() {
     final InternalNode node = InternalClusterFactory.createInternalNode();
     nodes = nodes.append(node);
@@ -32,18 +30,14 @@ public class BaseClusterTest extends BaseTest {
       final NettyTransportService transportService =
           sourceNode.getBeanFactory().getBean(NettyTransportService.class);
 
-      transportService.connectToNode(
-          nodes
-              .get((i + 1) % nodes.size())
-              .getBeanFactory()
-              .getBean(ClusterDiscovery.class)
-              .getSelf());
-      transportService.connectToNode(
-          nodes
-              .get((i + 2) % nodes.size())
-              .getBeanFactory()
-              .getBean(ClusterDiscovery.class)
-              .getSelf());
+      for (int j = 0; j < nodes.size() - 1; j++) {
+        transportService.connectToNode(
+            nodes
+                .get((i + 1 + j) % nodes.size())
+                .getBeanFactory()
+                .getBean(ClusterDiscovery.class)
+                .getSelf());
+      }
     }
   }
 
