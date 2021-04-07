@@ -16,13 +16,16 @@ public class DownstreamUpdate<T extends Serializable, R extends Serializable> im
   private final Option<R> atSourceResult;
   private final Class<? extends CmRDT<T, R>> crdtType;
   private final T argument;
+  private final long creationTime; // for drawing diagram
 
   public DownstreamUpdate(
-      String crdtId, Option<R> atSourceResult, Class<? extends CmRDT<T, R>> crdtType, T argument) {
+      String crdtId, Option<R> atSourceResult, Class<? extends CmRDT<T, R>> crdtType, T argument,
+      long creationTime) {
 
     this.crdtId = crdtId;
     this.atSourceResult = atSourceResult;
     this.crdtType = crdtType;
     this.argument = argument;
+    this.creationTime = creationTime;
   }
 }

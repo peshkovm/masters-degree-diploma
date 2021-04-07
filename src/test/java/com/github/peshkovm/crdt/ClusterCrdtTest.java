@@ -38,6 +38,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
   void shouldReplicateCrdtToAllReplicas() throws Exception {
     diagramBuilder.setDiagramName("Should replicate crdt to all replicas");
     diagramBuilder.setOutputFileName("shouldReplicateCrdtToAllReplicas.xml");
+
     createResource("countOfLikes", ResourceType.GCounter);
 
     diagramBuilder.build();
@@ -46,8 +47,11 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @Test
   @DisplayName("Should converge crdt on all replicas")
   void shouldConvergeCrdtOnAllReplicas() throws Exception {
+    diagramBuilder.setDiagramName("Should converge crdt on all replicas");
+    diagramBuilder.setOutputFileName("shouldConvergeCrdtOnAllReplicas.xml");
+
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 10_000;
+    final int timesToIncrement = 3;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
     createResource(crdtId, ResourceType.GCounter);
@@ -86,6 +90,8 @@ public class ClusterCrdtTest extends BaseClusterTest {
     } catch (Exception e) {
       e.printStackTrace();
     }
+
+    diagramBuilder.build();
   }
 
   @Test

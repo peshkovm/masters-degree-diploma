@@ -6,6 +6,7 @@ import com.github.peshkovm.common.diagram.MxCellPojo;
 import com.github.peshkovm.common.diagram.NodeMessagePair;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.common.netty.NettyServer;
+import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportServer;
@@ -33,6 +34,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
 
   private final TransportController transportController;
   private final DiagramBuilderSingleton diagramBuilder;
+  private final DiscoveryNode self;
 
   /**
    * Constructs a new instance.
@@ -46,12 +48,14 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
       @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") Config config,
       NettyProvider provider,
       TransportController transportController,
-      DiagramBuilderSingleton diagramBuilder) {
+      DiagramBuilderSingleton diagramBuilder,
+      ClusterDiscovery clusterDiscovery) {
     super(
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
         provider);
     this.transportController = transportController;
     this.diagramBuilder = diagramBuilder;
+    self = clusterDiscovery.getSelf();
   }
 
   @Override
@@ -81,12 +85,15 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
+      final long l;
       final MxCellPojo arrow =
-          diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(discoveryNode, message));
+          diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
       if (arrow != null) {
-        final long l = System.currentTimeMillis();
+        l = System.nanoTime();
         arrow.getMxGeometry().getMxPoints().get(1).setY(l);
+        logger.warn("Node{} received {}", () -> self.getPort() % 10, () -> l);
       }
+
       transportController.dispatch(message);
     }
 

@@ -4,12 +4,15 @@ import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
 
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.diagram.DiagramBuilderSingleton;
+import com.github.peshkovm.common.diagram.DrawIOColor;
 import com.github.peshkovm.common.diagram.MxCellPojo;
 import com.github.peshkovm.common.netty.NettyClient;
 import com.github.peshkovm.common.netty.NettyProvider;
+import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.raft.protocol.ClientMessage;
+import com.github.peshkovm.raft.protocol.ClientMessageSuccessful;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
@@ -160,23 +163,48 @@ public class NettyTransportService extends NettyClient implements TransportServi
     try {
       logger.debug("Sending {} to node {}...", message, discoveryNode);
 
+      String arrowName = "";
+
+      String arrowNameColor = DrawIOColor.WHITE.fillColor;
+
       if (message instanceof ClientMessage) {
         if (((ClientMessage) message).getMessage().getCommand() instanceof AddResource) {
-          final long l = System.currentTimeMillis();
-
-          final int sourceNodeNum = self.getPort() % 10;
-          final int targetNodeNum = discoveryNode.getPort() % 10;
-
-          diagramBuilder.addArrow(
-              discoveryNode,
-              message,
-              "create crdt",
-              "Node" + sourceNodeNum,
-              "Node" + targetNodeNum,
-              l,
-              0);
+          arrowName = ((ClientMessage) message).getMessage().getCommand().toString();
         }
+      } else if (message instanceof ClientMessageSuccessful) {
+        if (((ClientMessageSuccessful) message).getCommandResult().isSuccessful()) {
+          arrowNameColor = DrawIOColor.GREEN.strokeColor;
+        } else {
+          arrowNameColor = DrawIOColor.RED.strokeColor;
+        }
+
+        arrowName = ((ClientMessageSuccessful) message).getCommandResult().getResult().toString();
+      } else if (message instanceof DownstreamUpdate) {
+        final String simpleName = ((DownstreamUpdate<?, ?>) message).getCrdtType().getSimpleName();
+        final String crdtId = ((DownstreamUpdate<?, ?>) message).getCrdtId();
+        final String argument = ((DownstreamUpdate<?, ?>) message).getArgument().toString();
+        final String messageType = message.getClass().getSimpleName();
+        arrowName = messageType + "(" + simpleName + "," + crdtId + "," + argument + ")";
+      } else {
+        arrowName = message.toString();
       }
+
+      final long l = System.nanoTime();
+
+      final int sourceNodeNum = self.getPort() % 10;
+      final int targetNodeNum = discoveryNode.getPort() % 10;
+
+      diagramBuilder.addArrow(
+          discoveryNode,
+          message,
+          arrowName,
+          arrowNameColor,
+          "Node" + sourceNodeNum,
+          "Node" + targetNodeNum,
+          l,
+          0);
+
+      logger.warn("Node{} sent {}", () -> self.getPort() % 10, () -> l);
 
       final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(message);
       future.addListener(

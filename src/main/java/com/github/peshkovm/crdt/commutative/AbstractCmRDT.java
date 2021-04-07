@@ -53,7 +53,8 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
   }
 
   private void replicateDownstream(Option<R> atSourceResult, T argument) {
-    replicator.append(new DownstreamUpdate<>(this.identity, atSourceResult, type, argument));
+    replicator.append(
+        new DownstreamUpdate<>(this.identity, atSourceResult, type, argument, System.nanoTime()));
   }
 
   @Override

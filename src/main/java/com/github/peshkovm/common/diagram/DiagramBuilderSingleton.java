@@ -4,7 +4,7 @@ import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.transport.DiscoveryNode;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -110,6 +110,7 @@ public class DiagramBuilderSingleton {
       DiscoveryNode discoveryNode,
       Message message,
       String arrowName,
+      String arrowNameColor,
       String sourceNodeName,
       String targetNodeName,
       long sourceY,
@@ -126,6 +127,9 @@ public class DiagramBuilderSingleton {
             + "startArrow=oval;"
             + "startFill=1;"
             + "gradientColor=#b3b3b3;"
+            + "labelBackgroundColor="
+            + arrowNameColor
+            + ";"
             + "fillColor=#f5f5f5;"
             + "strokeColor=#666666;";
 
@@ -176,9 +180,9 @@ public class DiagramBuilderSingleton {
     final List<MxCellPojo> arrows =
         root.getMxCells().stream()
             .filter(mxCell -> mxCell.getType().equals("arrow"))
-            .sorted(
-                Comparator.comparingLong(
-                    arrow -> arrow.getMxGeometry().getMxPoints().get(0).getY()))
+            //            .sorted(
+            //                Comparator.comparingLong(
+            //                    arrow -> arrow.getMxGeometry().getMxPoints().get(0).getY()))
             .collect(Collectors.toList());
 
     //    long offset = 0;
@@ -198,25 +202,18 @@ public class DiagramBuilderSingleton {
     //      arrow.getMxGeometry().getMxPoints().get(1).setY(arrowTargetY);
     //    }
 
-    long minArrowSourceY = arrows.get(0).getMxGeometry().getMxPoints().get(0).getY();
-    long maxArrowSourceY =
-        arrows.get(arrows.size() - 1).getMxGeometry().getMxPoints().get(0).getY();
+    final List<Long> sourceYs =
+        arrows.stream()
+            .map(arrow -> arrow.getMxGeometry().getMxPoints().get(0).getY())
+            .collect(Collectors.toList());
 
-    long minArrowTargetY = Long.MAX_VALUE;
-    long maxArrowTargetY = Long.MIN_VALUE;
+    final List<Long> targetYs =
+        arrows.stream()
+            .map(arrow -> arrow.getMxGeometry().getMxPoints().get(1).getY())
+            .collect(Collectors.toList());
 
-    for (int i = 0; i < arrows.size(); i++) {
-      final MxCellPojo arrow = arrows.get(i);
-
-      long arrowTargetY = arrow.getMxGeometry().getMxPoints().get(1).getY();
-
-      if (arrowTargetY > maxArrowSourceY) {
-        maxArrowTargetY = arrowTargetY;
-      }
-      if (arrowTargetY < minArrowTargetY) {
-        minArrowTargetY = arrowTargetY;
-      }
-    }
+    long minArrowSourceY = Collections.min(sourceYs);
+    long maxArrowTargetY = Collections.max(targetYs);
 
     for (int i = 0; i < arrows.size(); i++) {
       final MxCellPojo arrow = arrows.get(i);
