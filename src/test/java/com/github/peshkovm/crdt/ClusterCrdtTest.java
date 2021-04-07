@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 public class ClusterCrdtTest extends BaseClusterTest {
 
   private Vector<CrdtService> crdtServices;
-  private DiagramBuilderSingleton diagramBuilder;
 
   @BeforeEach
   void setUpNodes() {
@@ -26,32 +25,19 @@ public class ClusterCrdtTest extends BaseClusterTest {
     connectAllNodes();
 
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
-    diagramBuilder = nodes.head().getBeanFactory().getBean(DiagramBuilderSingleton.class);
-
-    for (int i = 0; i < nodes.size(); i++) {
-      diagramBuilder.addNode("Node" + (i + 1), DrawIOColor.values()[i]);
-    }
   }
 
   @Test
   @DisplayName("Should replicate crdt to all replicas")
   void shouldReplicateCrdtToAllReplicas() throws Exception {
-    diagramBuilder.setDiagramName("Should replicate crdt to all replicas");
-    diagramBuilder.setOutputFileName("shouldReplicateCrdtToAllReplicas.xml");
-
     createResource("countOfLikes", ResourceType.GCounter);
-
-    diagramBuilder.build();
   }
 
   @Test
   @DisplayName("Should converge crdt on all replicas")
   void shouldConvergeCrdtOnAllReplicas() throws Exception {
-    diagramBuilder.setDiagramName("Should converge crdt on all replicas");
-    diagramBuilder.setOutputFileName("shouldConvergeCrdtOnAllReplicas.xml");
-
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 3;
+    final int timesToIncrement = 10_000;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
     createResource(crdtId, ResourceType.GCounter);
@@ -90,8 +76,6 @@ public class ClusterCrdtTest extends BaseClusterTest {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
-    diagramBuilder.build();
   }
 
   @Test

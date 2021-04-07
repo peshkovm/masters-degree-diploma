@@ -85,13 +85,16 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
-      final long l;
-      final MxCellPojo arrow =
-          diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
-      if (arrow != null) {
-        l = System.nanoTime();
-        arrow.getMxGeometry().getMxPoints().get(1).setY(l);
-        //        logger.debug("Node{} received {}", () -> self.getPort() % 10, () -> l);
+
+      if (diagramBuilder.isActive()) {
+        final long l;
+        final MxCellPojo arrow =
+            diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
+        if (arrow != null) {
+          l = System.nanoTime();
+          arrow.getMxGeometry().getMxPoints().get(1).setY(l);
+          //        logger.debug("Node{} received {}", () -> self.getPort() % 10, () -> l);
+        }
       }
 
       transportController.dispatch(message);

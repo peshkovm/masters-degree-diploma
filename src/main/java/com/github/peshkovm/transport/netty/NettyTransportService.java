@@ -163,48 +163,51 @@ public class NettyTransportService extends NettyClient implements TransportServi
     try {
       logger.debug("Sending {} to node {}...", message, discoveryNode);
 
-      String arrowName = "";
+      if (diagramBuilder.isActive()) {
+        String arrowName = "";
 
-      String arrowNameColor = DrawIOColor.WHITE.fillColor;
+        String arrowNameColor = DrawIOColor.WHITE.fillColor;
 
-      if (message instanceof ClientMessage) {
-        if (((ClientMessage) message).getMessage().getCommand() instanceof AddResource) {
-          arrowName = ((ClientMessage) message).getMessage().getCommand().toString();
-        }
-      } else if (message instanceof ClientMessageSuccessful) {
-        if (((ClientMessageSuccessful) message).getCommandResult().isSuccessful()) {
-          arrowNameColor = DrawIOColor.GREEN.strokeColor;
+        if (message instanceof ClientMessage) {
+          if (((ClientMessage) message).getMessage().getCommand() instanceof AddResource) {
+            arrowName = ((ClientMessage) message).getMessage().getCommand().toString();
+          }
+        } else if (message instanceof ClientMessageSuccessful) {
+          if (((ClientMessageSuccessful) message).getCommandResult().isSuccessful()) {
+            arrowNameColor = DrawIOColor.GREEN.strokeColor;
+          } else {
+            arrowNameColor = DrawIOColor.RED.strokeColor;
+          }
+
+          arrowName = ((ClientMessageSuccessful) message).getCommandResult().getResult().toString();
+        } else if (message instanceof DownstreamUpdate) {
+          final String simpleName =
+              ((DownstreamUpdate<?, ?>) message).getCrdtType().getSimpleName();
+          final String crdtId = ((DownstreamUpdate<?, ?>) message).getCrdtId();
+          final String argument = ((DownstreamUpdate<?, ?>) message).getArgument().toString();
+          final String messageType = message.getClass().getSimpleName();
+          arrowName = messageType + "(" + simpleName + "," + crdtId + "," + argument + ")";
         } else {
-          arrowNameColor = DrawIOColor.RED.strokeColor;
+          arrowName = message.toString();
         }
 
-        arrowName = ((ClientMessageSuccessful) message).getCommandResult().getResult().toString();
-      } else if (message instanceof DownstreamUpdate) {
-        final String simpleName = ((DownstreamUpdate<?, ?>) message).getCrdtType().getSimpleName();
-        final String crdtId = ((DownstreamUpdate<?, ?>) message).getCrdtId();
-        final String argument = ((DownstreamUpdate<?, ?>) message).getArgument().toString();
-        final String messageType = message.getClass().getSimpleName();
-        arrowName = messageType + "(" + simpleName + "," + crdtId + "," + argument + ")";
-      } else {
-        arrowName = message.toString();
+        final long l = System.nanoTime();
+
+        final int sourceNodeNum = self.getPort() % 10;
+        final int targetNodeNum = discoveryNode.getPort() % 10;
+
+        diagramBuilder.addArrow(
+            discoveryNode,
+            message,
+            arrowName,
+            arrowNameColor,
+            "Node" + sourceNodeNum,
+            "Node" + targetNodeNum,
+            l,
+            0);
+
+        //      logger.debug("Node{} sent {}", () -> self.getPort() % 10, () -> l);
       }
-
-      final long l = System.nanoTime();
-
-      final int sourceNodeNum = self.getPort() % 10;
-      final int targetNodeNum = discoveryNode.getPort() % 10;
-
-      diagramBuilder.addArrow(
-          discoveryNode,
-          message,
-          arrowName,
-          arrowNameColor,
-          "Node" + sourceNodeNum,
-          "Node" + targetNodeNum,
-          l,
-          0);
-
-      //      logger.debug("Node{} sent {}", () -> self.getPort() % 10, () -> l);
 
       final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(message);
       future.addListener(

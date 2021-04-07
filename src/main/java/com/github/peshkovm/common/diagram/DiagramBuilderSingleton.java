@@ -27,6 +27,7 @@ public class DiagramBuilderSingleton {
   private final RootPojo root;
   private final Serializer serializer;
   private Map<NodeMessagePair, MxCellPojo> messageArrowMap;
+  private boolean isActive;
 
   private DiagramBuilderSingleton(String diagramName, String outputFilePath, String outputFileName)
       throws Exception {
@@ -57,52 +58,55 @@ public class DiagramBuilderSingleton {
   }
 
   public synchronized DiagramBuilderSingleton addNode(String nodeName, DrawIOColor color) {
-    MxCellPojo node;
+    if (isActive) {
+      MxCellPojo node;
 
-    final String style =
-        "shape=umlLifeline;"
-            + "perimeter=lifelinePerimeter;"
-            + "fillColor="
-            + color.fillColor
-            + ";"
-            + "strokeColor="
-            + color.strokeColor
-            + ";strokeWidth=1";
+      final String style =
+          "shape=umlLifeline;"
+              + "perimeter=lifelinePerimeter;"
+              + "fillColor="
+              + color.fillColor
+              + ";"
+              + "strokeColor="
+              + color.strokeColor
+              + ";strokeWidth=1";
 
-    if (root.getMxCells().isEmpty()) {
-      node =
-          new MxCellPojo(
-              "node",
-              2,
-              1,
-              nodeName,
-              style,
-              1,
-              0,
-              new MxGeometryPojo(40, 40, 80, 1080, "geometry", new ArrayList<>()));
-    } else {
-      final int previousId = root.getMxCells().get(root.getMxCells().size() - 1).getId();
-      int previousNodeX =
-          root.getMxCells().stream()
-              .filter(mxCell -> mxCell.getType().equals("node"))
-              .reduce((first, second) -> second)
-              .orElseThrow()
-              .getMxGeometry()
-              .getX();
-      node =
-          new MxCellPojo(
-              "node",
-              previousId + 1,
-              1,
-              nodeName,
-              style,
-              1,
-              0,
-              new MxGeometryPojo(previousNodeX + 160, 40, 80, 1080, "geometry", new ArrayList<>()));
+      if (root.getMxCells().isEmpty()) {
+        node =
+            new MxCellPojo(
+                "node",
+                2,
+                1,
+                nodeName,
+                style,
+                1,
+                0,
+                new MxGeometryPojo(40, 40, 80, 1080, "geometry", new ArrayList<>()));
+      } else {
+        final int previousId = root.getMxCells().get(root.getMxCells().size() - 1).getId();
+        int previousNodeX =
+            root.getMxCells().stream()
+                .filter(mxCell -> mxCell.getType().equals("node"))
+                .reduce((first, second) -> second)
+                .orElseThrow()
+                .getMxGeometry()
+                .getX();
+        node =
+            new MxCellPojo(
+                "node",
+                previousId + 1,
+                1,
+                nodeName,
+                style,
+                1,
+                0,
+                new MxGeometryPojo(previousNodeX + 160, 40, 80, 1080, "geometry",
+                    new ArrayList<>()));
+      }
+
+      root.getMxCells().add(node);
+
     }
-
-    root.getMxCells().add(node);
-
     return instance;
   }
 
@@ -116,61 +120,63 @@ public class DiagramBuilderSingleton {
       long sourceY,
       long targetY) {
 
-    if (root.getMxCells().isEmpty()) {
-      throw new IllegalStateException("Should create at least 2 nodes first");
+    if (isActive) {
+      if (root.getMxCells().isEmpty()) {
+        throw new IllegalStateException("Should create at least 2 nodes first");
+      }
+
+      final int previousId = root.getMxCells().get(root.getMxCells().size() - 1).getId();
+      final String style =
+          "endArrow=classic;"
+              + "strokeWidth=1;"
+              + "startArrow=oval;"
+              + "startFill=1;"
+              + "gradientColor=#b3b3b3;"
+              + "labelBackgroundColor="
+              + arrowNameColor
+              + ";"
+              + "fillColor=#f5f5f5;"
+              + "strokeColor=#666666;";
+
+      final MxCellPojo sourceNode =
+          root.getMxCells().stream()
+              .filter(mxCell -> mxCell.getType().equals("node"))
+              .filter(node -> node.getValue().equals(sourceNodeName))
+              .findAny()
+              .orElseThrow();
+      final MxCellPojo targetNode =
+          root.getMxCells().stream()
+              .filter(mxCell -> mxCell.getType().equals("node"))
+              .filter(node -> node.getValue().equals(targetNodeName))
+              .findAny()
+              .orElseThrow();
+
+      final int sourceX = sourceNode.getMxGeometry().getX();
+      final int targetX = targetNode.getMxGeometry().getX();
+
+      final MxCellPojo arrow =
+          new MxCellPojo(
+              "arrow",
+              previousId + 1,
+              1,
+              arrowName,
+              style,
+              0,
+              1,
+              new MxGeometryPojo(
+                  0,
+                  0,
+                  0,
+                  0,
+                  "geometry",
+                  List.of(
+                      new MxPoint(sourceX + 40, sourceY, "sourcePoint"),
+                      new MxPoint(targetX + 40, targetY, "targetPoint"))));
+
+      root.getMxCells().add(arrow);
+
+      messageArrowMap.put(new NodeMessagePair(discoveryNode, message), arrow);
     }
-
-    final int previousId = root.getMxCells().get(root.getMxCells().size() - 1).getId();
-    final String style =
-        "endArrow=classic;"
-            + "strokeWidth=1;"
-            + "startArrow=oval;"
-            + "startFill=1;"
-            + "gradientColor=#b3b3b3;"
-            + "labelBackgroundColor="
-            + arrowNameColor
-            + ";"
-            + "fillColor=#f5f5f5;"
-            + "strokeColor=#666666;";
-
-    final MxCellPojo sourceNode =
-        root.getMxCells().stream()
-            .filter(mxCell -> mxCell.getType().equals("node"))
-            .filter(node -> node.getValue().equals(sourceNodeName))
-            .findAny()
-            .orElseThrow();
-    final MxCellPojo targetNode =
-        root.getMxCells().stream()
-            .filter(mxCell -> mxCell.getType().equals("node"))
-            .filter(node -> node.getValue().equals(targetNodeName))
-            .findAny()
-            .orElseThrow();
-
-    final int sourceX = sourceNode.getMxGeometry().getX();
-    final int targetX = targetNode.getMxGeometry().getX();
-
-    final MxCellPojo arrow =
-        new MxCellPojo(
-            "arrow",
-            previousId + 1,
-            1,
-            arrowName,
-            style,
-            0,
-            1,
-            new MxGeometryPojo(
-                0,
-                0,
-                0,
-                0,
-                "geometry",
-                List.of(
-                    new MxPoint(sourceX + 40, sourceY, "sourcePoint"),
-                    new MxPoint(targetX + 40, targetY, "targetPoint"))));
-
-    root.getMxCells().add(arrow);
-
-    messageArrowMap.put(new NodeMessagePair(discoveryNode, message), arrow);
 
     return instance;
   }
@@ -254,5 +260,9 @@ public class DiagramBuilderSingleton {
     final int a = 160;
 
     return ((b - a) * (x - min)) / (max - min) + a;
+  }
+
+  public void setActive(boolean isActive) {
+    this.isActive = isActive;
   }
 }
