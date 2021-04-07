@@ -204,7 +204,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
           l,
           0);
 
-      logger.warn("Node{} sent {}", () -> self.getPort() % 10, () -> l);
+      //      logger.debug("Node{} sent {}", () -> self.getPort() % 10, () -> l);
 
       final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(message);
       future.addListener(
