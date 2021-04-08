@@ -25,9 +25,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-/**
- * Default implementation of {@link NettyServer}.
- */
+/** Default implementation of {@link NettyServer}. */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class TCPNettyServer extends NettyServer implements TransportServer {
@@ -84,20 +82,23 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
-
-      if (diagramBuilder.isActive()) {
-        final long l;
-        final MxCellPojo arrow =
-            diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
-        if (arrow != null) {
-          l = System.nanoTime();
-          arrow.getMxGeometry().getMxPoints().get(1).setY(l);
-          //        logger.debug("Node{} received {}", () -> self.getPort() % 10, () -> l);
+    protected void channelRead0(ChannelHandlerContext ctx, Message message) {
+      try {
+        if (diagramBuilder.isActive()) {
+          final long l;
+          final MxCellPojo arrow =
+              diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
+          if (arrow != null) {
+            l = System.nanoTime();
+            arrow.getMxGeometry().getMxPoints().get(1).setY(l);
+            //        logger.debug("Node{} received {}", () -> self.getPort() % 10, () -> l);
+          }
         }
-      }
 
-      transportController.dispatch(message);
+        transportController.dispatch(message);
+      } catch (Exception e) {
+        diagramBuilder.getMessageArrowMap().remove(new NodeMessagePair(discoveryNode, message));
+      }
     }
 
     @Override

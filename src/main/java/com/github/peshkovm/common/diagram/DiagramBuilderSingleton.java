@@ -100,12 +100,11 @@ public class DiagramBuilderSingleton {
                 style,
                 1,
                 0,
-                new MxGeometryPojo(previousNodeX + 160, 40, 80, 1080, "geometry",
-                    new ArrayList<>()));
+                new MxGeometryPojo(
+                    previousNodeX + 160, 40, 80, 1080, "geometry", new ArrayList<>()));
       }
 
       root.getMxCells().add(node);
-
     }
     return instance;
   }
@@ -264,5 +263,11 @@ public class DiagramBuilderSingleton {
 
   public void setActive(boolean isActive) {
     this.isActive = isActive;
+  }
+
+  public void removeArror(NodeMessagePair nodeMessagePair) {
+    final MxCellPojo arror = messageArrowMap.remove(nodeMessagePair);
+
+    root.getMxCells().remove(arror);
   }
 }

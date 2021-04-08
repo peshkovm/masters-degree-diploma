@@ -6,9 +6,7 @@ import io.vavr.control.Option;
 import java.io.Serializable;
 import lombok.Data;
 
-/**
- * Downstream update that will be transmitted asynchronously to all replicas.
- */
+/** Downstream update that will be transmitted asynchronously to all replicas. */
 @Data
 public class DownstreamUpdate<T extends Serializable, R extends Serializable> implements Message {
 
@@ -19,7 +17,10 @@ public class DownstreamUpdate<T extends Serializable, R extends Serializable> im
   private final long creationTime; // for drawing diagram
 
   public DownstreamUpdate(
-      String crdtId, Option<R> atSourceResult, Class<? extends CmRDT<T, R>> crdtType, T argument,
+      String crdtId,
+      Option<R> atSourceResult,
+      Class<? extends CmRDT<T, R>> crdtType,
+      T argument,
       long creationTime) {
 
     this.crdtId = crdtId;

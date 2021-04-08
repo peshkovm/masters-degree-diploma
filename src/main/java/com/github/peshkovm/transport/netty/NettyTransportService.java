@@ -6,13 +6,11 @@ import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.diagram.DiagramBuilderSingleton;
 import com.github.peshkovm.common.diagram.DrawIOColor;
 import com.github.peshkovm.common.diagram.MxCellPojo;
+import com.github.peshkovm.common.diagram.NodeMessagePair;
 import com.github.peshkovm.common.netty.NettyClient;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
-import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
-import com.github.peshkovm.raft.protocol.ClientMessage;
-import com.github.peshkovm.raft.protocol.ClientMessageSuccessful;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
@@ -37,9 +35,7 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Netty {@link TransportService} implementation.
- */
+/** Netty {@link TransportService} implementation. */
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
@@ -168,43 +164,56 @@ public class NettyTransportService extends NettyClient implements TransportServi
 
         String arrowNameColor = DrawIOColor.WHITE.fillColor;
 
-        if (message instanceof ClientMessage) {
-          if (((ClientMessage) message).getMessage().getCommand() instanceof AddResource) {
-            arrowName = ((ClientMessage) message).getMessage().getCommand().toString();
-          }
-        } else if (message instanceof ClientMessageSuccessful) {
-          if (((ClientMessageSuccessful) message).getCommandResult().isSuccessful()) {
-            arrowNameColor = DrawIOColor.GREEN.strokeColor;
-          } else {
-            arrowNameColor = DrawIOColor.RED.strokeColor;
-          }
+        //        if (message instanceof ClientMessage) {
+        //          if (((ClientMessage) message).getMessage().getCommand() instanceof AddResource)
+        // {
+        //            arrowName = ((ClientMessage) message).getMessage().getCommand().toString();
+        //          }
+        //        } else if (message instanceof ClientMessageSuccessful) {
+        //          if (((ClientMessageSuccessful) message).getCommandResult().isSuccessful()) {
+        //            arrowNameColor = DrawIOColor.GREEN.strokeColor;
+        //          } else {
+        //            arrowNameColor = DrawIOColor.RED.strokeColor;
+        //          }
+        //
+        //          arrowName = ((ClientMessageSuccessful)
+        // message).getCommandResult().getResult().toString();
+        //        } else if (message instanceof DownstreamUpdate) {
+        //          final String simpleName =
+        //              ((DownstreamUpdate<?, ?>) message).getCrdtType().getSimpleName();
+        //          final String crdtId = ((DownstreamUpdate<?, ?>) message).getCrdtId();
+        //          final String argument = ((DownstreamUpdate<?, ?>)
+        // message).getArgument().toString();
+        //          final String messageType = message.getClass().getSimpleName();
+        //          arrowName = messageType + "(" + simpleName + "," + crdtId + "," + argument +
+        // ")";
+        //        } else {
+        //          arrowName = message.toString();
+        //        }
 
-          arrowName = ((ClientMessageSuccessful) message).getCommandResult().getResult().toString();
-        } else if (message instanceof DownstreamUpdate) {
+        if (message instanceof DownstreamUpdate) {
           final String simpleName =
               ((DownstreamUpdate<?, ?>) message).getCrdtType().getSimpleName();
           final String crdtId = ((DownstreamUpdate<?, ?>) message).getCrdtId();
           final String argument = ((DownstreamUpdate<?, ?>) message).getArgument().toString();
           final String messageType = message.getClass().getSimpleName();
           arrowName = messageType + "(" + simpleName + "," + crdtId + "," + argument + ")";
-        } else {
-          arrowName = message.toString();
+
+          final long l = System.nanoTime();
+
+          final int sourceNodeNum = self.getPort() % 10;
+          final int targetNodeNum = discoveryNode.getPort() % 10;
+
+          diagramBuilder.addArrow(
+              discoveryNode,
+              message,
+              arrowName,
+              arrowNameColor,
+              "Node" + sourceNodeNum,
+              "Node" + targetNodeNum,
+              l,
+              0);
         }
-
-        final long l = System.nanoTime();
-
-        final int sourceNodeNum = self.getPort() % 10;
-        final int targetNodeNum = discoveryNode.getPort() % 10;
-
-        diagramBuilder.addArrow(
-            discoveryNode,
-            message,
-            arrowName,
-            arrowNameColor,
-            "Node" + sourceNodeNum,
-            "Node" + targetNodeNum,
-            l,
-            0);
 
         //      logger.debug("Node{} sent {}", () -> self.getPort() % 10, () -> l);
       }
@@ -216,6 +225,8 @@ public class NettyTransportService extends NettyClient implements TransportServi
       return new MyChannelFuture<>(discoveryNode, sendPromise.success(null).future());
     } catch (Exception e) {
       logger.error("Error send message", e);
+      diagramBuilder.removeArror(new NodeMessagePair(discoveryNode, message));
+
       return new MyChannelFuture<>(discoveryNode, sendPromise.failure(e).future());
     }
   }

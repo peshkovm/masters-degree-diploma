@@ -6,16 +6,14 @@ import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.netty.NettyTransportService;
 import com.github.peshkovm.transport.netty.NettyTransportService.MyChannelFuture;
-import io.vavr.collection.HashMap;
-import io.vavr.collection.Map;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Default implementation of {@link Replicator}.
- */
+/** Default implementation of {@link Replicator}. */
 @Component
 public class DefaultReplicator extends AbstractLifecycleComponent implements Replicator {
 
@@ -32,7 +30,7 @@ public class DefaultReplicator extends AbstractLifecycleComponent implements Rep
     this.lock = new ReentrantLock();
     this.clusterDiscovery = clusterDiscovery;
     this.transportService = transportService;
-    this.unsentDownstreamUpdates = HashMap.empty();
+    this.unsentDownstreamUpdates = new HashMap<>();
   }
 
   @Override
@@ -51,8 +49,8 @@ public class DefaultReplicator extends AbstractLifecycleComponent implements Rep
         clusterDiscovery.getDiscoveryNodes().remove(clusterDiscovery.getSelf())) {
       final MyChannelFuture<Void> channelFuture = transportService.send(node, downstreamUpdate);
 
-      if (unsentDownstreamUpdates.get(node).getOrNull() == null) {
-        unsentDownstreamUpdates = unsentDownstreamUpdates.put(node, new ConcurrentLinkedDeque<>());
+      if (unsentDownstreamUpdates.get(node) == null) {
+        unsentDownstreamUpdates.put(node, new ConcurrentLinkedDeque<>());
       }
 
       if (channelFuture.getFuture().isFailure()) {
@@ -66,26 +64,30 @@ public class DefaultReplicator extends AbstractLifecycleComponent implements Rep
   private void maybeSentSavedDownstreamUpdates(DiscoveryNode discoveryNode) {
     unsentDownstreamUpdates
         .get(discoveryNode)
-        .get()
         .forEach(
             downstreamUpdate -> {
-              transportService.send(discoveryNode, downstreamUpdate);
-              unsentDownstreamUpdates.get(discoveryNode).get().remove(downstreamUpdate);
+              DownstreamUpdate<?, ?> newDownstreamUpdate =
+                  new DownstreamUpdate(
+                      downstreamUpdate.getCrdtId(),
+                      downstreamUpdate.getAtSourceResult(),
+                      downstreamUpdate.getCrdtType(),
+                      downstreamUpdate.getArgument(),
+                      System.nanoTime());
+              transportService.send(discoveryNode, newDownstreamUpdate);
+              unsentDownstreamUpdates.get(discoveryNode).remove(downstreamUpdate);
             });
   }
 
   private void saveUnsentDownstreamUpdates(
       DiscoveryNode discoveryNode, DownstreamUpdate<?, ?> downstreamUpdate) {
-    unsentDownstreamUpdates.get(discoveryNode).get().add(downstreamUpdate);
+    unsentDownstreamUpdates.get(discoveryNode).add(downstreamUpdate);
   }
 
   @Override
-  protected void doStart() {
-  }
+  protected void doStart() {}
 
   @Override
-  protected void doStop() {
-  }
+  protected void doStop() {}
 
   @Override
   protected void doClose() {}
