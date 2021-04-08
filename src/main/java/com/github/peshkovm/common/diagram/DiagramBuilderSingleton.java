@@ -15,6 +15,7 @@ import org.simpleframework.xml.convert.Registry;
 import org.simpleframework.xml.convert.RegistryStrategy;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.strategy.Strategy;
+import org.springframework.beans.factory.annotation.Value;
 
 @Data
 public class DiagramBuilderSingleton {
@@ -28,6 +29,12 @@ public class DiagramBuilderSingleton {
   private final Serializer serializer;
   private Map<NodeMessagePair, MxCellPojo> messageArrowMap;
   private boolean isActive;
+
+  @Value("${diagram.shouldContainText}")
+  private boolean shouldContainText;
+
+  @Value("${diagram.nodeHeight}")
+  private int nodeHeight;
 
   private DiagramBuilderSingleton(String diagramName, String outputFilePath, String outputFileName)
       throws Exception {
@@ -81,7 +88,7 @@ public class DiagramBuilderSingleton {
                 style,
                 1,
                 0,
-                new MxGeometryPojo(40, 40, 80, 1080, "geometry", new ArrayList<>()));
+                new MxGeometryPojo(40, 40, 80, nodeHeight, "geometry", new ArrayList<>()));
       } else {
         final int previousId = root.getMxCells().get(root.getMxCells().size() - 1).getId();
         int previousNodeX =
@@ -101,7 +108,7 @@ public class DiagramBuilderSingleton {
                 1,
                 0,
                 new MxGeometryPojo(
-                    previousNodeX + 160, 40, 80, 1080, "geometry", new ArrayList<>()));
+                    previousNodeX + 160, 40, 80, nodeHeight, "geometry", new ArrayList<>()));
       }
 
       root.getMxCells().add(node);
@@ -120,6 +127,11 @@ public class DiagramBuilderSingleton {
       long targetY) {
 
     if (isActive) {
+
+      if (!shouldContainText) {
+        arrowName = "";
+      }
+
       if (root.getMxCells().isEmpty()) {
         throw new IllegalStateException("Should create at least 2 nodes first");
       }
@@ -181,7 +193,6 @@ public class DiagramBuilderSingleton {
   }
 
   public synchronized void build() throws Exception {
-
     final List<MxCellPojo> arrows =
         root.getMxCells().stream()
             .filter(mxCell -> mxCell.getType().equals("arrow"))
@@ -255,8 +266,8 @@ public class DiagramBuilderSingleton {
   }
 
   private long fitNumberInRange(long x, long min, long max) {
-    final int b = 1080;
-    final int a = 160;
+    final int b = nodeHeight;
+    final int a = 120;
 
     return ((b - a) * (x - min)) / (max - min) + a;
   }

@@ -60,10 +60,10 @@ public class TestNodeDisconnection extends BaseClusterTest {
       sourceGCounter.increment();
 
       if (incrementNum == timesToIncrement / 2) {
-        partition(nodes.get(1));
+        partition(nodes.get(2));
       }
       if (incrementNum == timesToIncrement / 2 + 1) {
-        recoverFromPartition(nodes.get(1));
+        recoverFromPartition(nodes.get(2));
       }
     }
 

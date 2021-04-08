@@ -84,16 +84,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) {
       try {
-        if (diagramBuilder.isActive()) {
-          final long l;
-          final MxCellPojo arrow =
-              diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
-          if (arrow != null) {
-            l = System.nanoTime();
-            arrow.getMxGeometry().getMxPoints().get(1).setY(l);
-            //        logger.debug("Node{} received {}", () -> self.getPort() % 10, () -> l);
-          }
-        }
+        addArrowToDiagram(message);
 
         transportController.dispatch(message);
       } catch (Exception e) {
@@ -105,6 +96,19 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
       logger.error("Unexpected channel error, closing channel...", cause);
       ctx.close();
+    }
+  }
+
+  private void addArrowToDiagram(Message message) {
+    if (diagramBuilder.isActive()) {
+      final long l;
+      final MxCellPojo arrow =
+          diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
+      if (arrow != null) {
+        l = System.nanoTime();
+        arrow.getMxGeometry().getMxPoints().get(1).setY(l);
+        //        logger.debug("Node{} received {}", () -> self.getPort() % 10, () -> l);
+      }
     }
   }
 }
