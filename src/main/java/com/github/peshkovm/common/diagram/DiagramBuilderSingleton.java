@@ -120,34 +120,39 @@ public class DiagramBuilderSingleton {
       DiscoveryNode discoveryNode,
       Message message,
       String arrowName,
-      String arrowNameColor,
+      String arrowColor,
+      String startArrow,
+      String endArrow,
       String sourceNodeName,
       String targetNodeName,
       long sourceY,
       long targetY) {
 
     if (isActive) {
+      if (root.getMxCells().isEmpty()) {
+        throw new IllegalStateException("Should create at least 2 nodes first");
+      }
 
       if (!shouldContainText) {
         arrowName = "";
       }
 
-      if (root.getMxCells().isEmpty()) {
-        throw new IllegalStateException("Should create at least 2 nodes first");
-      }
-
       final int previousId = root.getMxCells().get(root.getMxCells().size() - 1).getId();
       final String style =
-          "endArrow=classic;"
-              + "strokeWidth=1;"
-              + "startArrow=oval;"
-              + "startFill=1;"
-              + "gradientColor=#b3b3b3;"
-              + "labelBackgroundColor="
-              + arrowNameColor
+          "strokeWidth=1;"
+              + "startArrow="
+              + startArrow
               + ";"
-              + "fillColor=#f5f5f5;"
-              + "strokeColor=#666666;";
+              + "endArrow="
+              + endArrow
+              + ";"
+              + "startFill=1;"
+              + "fillColor="
+              + arrowColor
+              + ";"
+              + "strokeColor="
+              + arrowColor
+              + ";";
 
       final MxCellPojo sourceNode =
           root.getMxCells().stream()
@@ -276,9 +281,31 @@ public class DiagramBuilderSingleton {
     this.isActive = isActive;
   }
 
-  public void removeArror(NodeMessagePair nodeMessagePair) {
-    final MxCellPojo arror = messageArrowMap.remove(nodeMessagePair);
+  public void removeArrow(NodeMessagePair nodeMessagePair) {
+    final MxCellPojo arrow = messageArrowMap.remove(nodeMessagePair);
 
-    root.getMxCells().remove(arror);
+    root.getMxCells().remove(arrow);
+  }
+
+  public void setEndArrow(NodeMessagePair nodeMessagePair, String endArrow) {
+    final MxCellPojo arrow = messageArrowMap.get(nodeMessagePair);
+
+    final String style = root.getMxCells().get(root.getMxCells().indexOf(arrow)).getStyle();
+
+    final String changedStyle = style.replace("classic", endArrow);
+
+    root.getMxCells().get(root.getMxCells().indexOf(arrow)).setStyle(changedStyle);
+    messageArrowMap.get(nodeMessagePair).setStyle(changedStyle);
+  }
+
+  public void setArrowColor(NodeMessagePair nodeMessagePair, String arrowColor) {
+    final MxCellPojo arrow = messageArrowMap.get(nodeMessagePair);
+
+    final String style = root.getMxCells().get(root.getMxCells().indexOf(arrow)).getStyle();
+
+    final String changedStyle = style.replace(DrawIOColor.GREY.strokeColor, arrowColor);
+
+    root.getMxCells().get(root.getMxCells().indexOf(arrow)).setStyle(changedStyle);
+    messageArrowMap.get(nodeMessagePair).setStyle(changedStyle);
   }
 }

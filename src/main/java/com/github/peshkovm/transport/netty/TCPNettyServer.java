@@ -106,6 +106,8 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
           diagramBuilder.getMessageArrowMap().get(new NodeMessagePair(self, message));
       if (arrow != null) {
         l = System.nanoTime();
+
+        logger.warn("Server l = {}", () -> l);
         arrow.getMxGeometry().getMxPoints().get(1).setY(l);
         //        logger.debug("Node{} received {}", () -> self.getPort() % 10, () -> l);
       }

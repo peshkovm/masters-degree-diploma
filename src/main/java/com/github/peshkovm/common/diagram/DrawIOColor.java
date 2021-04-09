@@ -8,7 +8,8 @@ public enum DrawIOColor {
   MAGENTA("#E1D5E7", "#9673A6"),
   YELLOW("#FFF2CC", "#D6B656"),
   RED("#F8CECC", "#B85450"),
-  WHITE("#FFFFFF", "#000000");
+  WHITE("#FFFFFF", "#000000"),
+  GREY("#666666", "#666666");
 
   public final String fillColor;
   public final String strokeColor;
