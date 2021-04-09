@@ -10,6 +10,7 @@ import com.github.peshkovm.common.diagram.NodeMessagePair;
 import com.github.peshkovm.common.netty.NettyClient;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
+import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.raft.protocol.ClientMessage;
@@ -32,6 +33,8 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import io.vavr.concurrent.Future;
 import io.vavr.concurrent.Promise;
+import io.vavr.control.Option;
+import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Data;
@@ -231,16 +234,19 @@ public class NettyTransportService extends NettyClient implements TransportServi
 
     if (message instanceof ClientMessage) {
       if (((ClientMessage) message).getMessage().getCommand() instanceof AddResource) {
-        arrowName = ((ClientMessage) message).getMessage().getCommand().toString();
+        final ResourceType resourceType =
+            ((AddResource) ((ClientMessage) message).getMessage().getCommand()).getResourceType();
+        final String resourceId =
+            ((AddResource) ((ClientMessage) message).getMessage().getCommand()).getResourceId();
+
+        arrowName = resourceType + " " + resourceId;
       }
     } else if (message instanceof ClientMessageSuccessful) {
-      arrowName = ((ClientMessageSuccessful) message).getCommandResult().getResult().toString();
     } else if (message instanceof DownstreamUpdate) {
-      final String simpleName = ((DownstreamUpdate<?, ?>) message).getCrdtType().getSimpleName();
-      final String crdtId = ((DownstreamUpdate<?, ?>) message).getCrdtId();
-      final String argument = ((DownstreamUpdate<?, ?>) message).getArgument().toString();
-      final String messageType = message.getClass().getSimpleName();
-      arrowName = messageType + "(" + simpleName + "," + crdtId + "," + argument + ")";
+      final Option<?> atSourceResult = ((DownstreamUpdate<?, ?>) message).getAtSourceResult();
+      final Serializable argument = ((DownstreamUpdate<?, ?>) message).getArgument();
+
+      arrowName = atSourceResult + ", " + argument;
     } else {
       arrowName = message.toString();
     }
