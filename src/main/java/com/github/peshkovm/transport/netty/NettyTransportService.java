@@ -188,26 +188,26 @@ public class NettyTransportService extends NettyClient implements TransportServi
       String startArrow = getStartArrow(message);
       String endArrow = getEndArrow(message);
 
-      //      if (message instanceof DownstreamUpdate) {
-      final int sourceNodeNum = self.getPort() % 10;
-      final int targetNodeNum = discoveryNode.getPort() % 10;
+      if (message instanceof DownstreamUpdate) {
+        final int sourceNodeNum = self.getPort() % 10;
+        final int targetNodeNum = discoveryNode.getPort() % 10;
 
-      final long l = System.nanoTime();
+        final long l = System.nanoTime();
 
-      logger.warn("Service l = {}", () -> l);
+        logger.warn("Service l = {}", () -> l);
 
-      diagramBuilder.addArrow(
-          discoveryNode,
-          message,
-          arrowName,
-          arrowColor,
-          startArrow,
-          endArrow,
-          "Node" + sourceNodeNum,
-          "Node" + targetNodeNum,
-          l,
-          0);
-      //      }
+        diagramBuilder.addArrow(
+            discoveryNode,
+            message,
+            arrowName,
+            arrowColor,
+            startArrow,
+            endArrow,
+            "Node" + sourceNodeNum,
+            "Node" + targetNodeNum,
+            l,
+            0);
+      }
     }
   }
 
