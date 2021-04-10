@@ -9,9 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Default implementation io {@link CrdtRegistry}.
- */
+/** Default implementation io {@link CrdtRegistry}. */
 @Component
 public class DefaultCrdtRegistry implements CrdtRegistry {
 
@@ -33,6 +31,20 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
         return false;
       }
       crdtMap = crdtMap.put(resourceId, new GCounterCmRDT(resourceId, replicator));
+      return true;
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
+  public boolean deleteGCounter(String resourceId) {
+    lock.lock();
+    try {
+      if (!crdtMap.containsKey(resourceId)) {
+        return false;
+      }
+      crdtMap = crdtMap.remove(resourceId);
       return true;
     } finally {
       lock.unlock();

@@ -5,6 +5,8 @@ import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
+import com.github.peshkovm.crdt.routing.fsm.DeleteResource;
+import com.github.peshkovm.crdt.routing.fsm.DeleteResourceResponse;
 import com.github.peshkovm.crdt.routing.fsm.GetPayload;
 import com.github.peshkovm.crdt.routing.fsm.GetPayloadResponse;
 import com.github.peshkovm.raft.Raft;
@@ -21,9 +23,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-/**
- * Default implementation of {@link CrdtService}.
- */
+/** Default implementation of {@link CrdtService}. */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class DefaultCrdtService implements CrdtService {
@@ -42,6 +42,7 @@ public class DefaultCrdtService implements CrdtService {
     this.crdtRegistry = crdtRegistry;
 
     registry.registerHandler(AddResource.class, this::handle);
+    registry.registerHandler(DeleteResource.class, this::handle);
     registry.registerHandler(GetPayload.class, this::handle);
     transportController.registerMessageHandler(DownstreamUpdate.class, this::handle);
   }
@@ -59,8 +60,20 @@ public class DefaultCrdtService implements CrdtService {
   }
 
   @Override
+  public Future<Vector<DeleteResourceResponse>> deleteResource(
+      String resourceId, ResourceType resourceType) {
+    return raft.command(new DeleteResource(resourceId, resourceType))
+        .map(Vector::ofAll)
+        .map(commandResults -> commandResults.map(CommandResult::getResult))
+        .filter(
+            commandResults ->
+                commandResults.forAll(result -> result instanceof DeleteResourceResponse))
+        .map(commandResults -> commandResults.map(result -> (DeleteResourceResponse) result));
+  }
+
+  @Override
   public <T extends Serializable, R extends Serializable, M extends Crdt<T, R>>
-  Future<Vector<R>> queryAllNodes(String crdtId, Class<M> crdtType) {
+      Future<Vector<R>> queryAllNodes(String crdtId, Class<M> crdtType) {
     return raft.command(new GetPayload<>(crdtId, crdtType))
         .map(Vector::ofAll)
         .map(commandResults -> commandResults.map(CommandResult::getResult))
@@ -95,6 +108,26 @@ public class DefaultCrdtService implements CrdtService {
     return isCreated;
   }
 
+  private boolean deleteCrdt(String resourceId, ResourceType resourceType) {
+    boolean isDeleted = false;
+
+    switch (resourceType) {
+      case GCounter:
+        isDeleted = crdtRegistry.deleteGCounter(resourceId);
+        break;
+      default:
+        logger.warn("Unexpected crdt type: {}", () -> resourceType);
+    }
+
+    if (isDeleted) {
+      logger.info("Successfully deleted GCounter");
+    } else {
+      logger.error("GCounter with id: {} doesn't exists", () -> resourceId);
+    }
+
+    return isDeleted;
+  }
+
   private CommandResult handle(AddResource resource) {
     final boolean isCreated = createCrdt(resource.getResourceId(), resource.getResourceType());
 
@@ -102,6 +135,15 @@ public class DefaultCrdtService implements CrdtService {
         new AddResourceResponse(resource.getResourceId(), resource.getResourceType());
 
     return new CommandResult(addResourceResponse, isCreated);
+  }
+
+  private CommandResult handle(DeleteResource resource) {
+    final boolean isDeleted = deleteCrdt(resource.getResourceId(), resource.getResourceType());
+
+    final DeleteResourceResponse deleteResourceResponse =
+        new DeleteResourceResponse(resource.getResourceId(), resource.getResourceType());
+
+    return new CommandResult(deleteResourceResponse, isDeleted);
   }
 
   private synchronized <T extends Serializable, R extends Serializable> void handle(
