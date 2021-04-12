@@ -112,7 +112,7 @@ public class DiagramBuilderSingleton {
 
     final ArrowMxCell newArrow =
         new ArrowMxCell(
-            arrows.size(),
+            nodes.size() + arrows.size(),
             name,
             startArrow,
             endArrow,
