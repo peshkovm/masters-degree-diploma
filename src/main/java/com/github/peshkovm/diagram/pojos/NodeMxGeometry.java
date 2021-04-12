@@ -1,6 +1,5 @@
 package com.github.peshkovm.diagram.pojos;
 
-import com.github.peshkovm.diagram.converters.ArrowMxGeometryConverter;
 import com.github.peshkovm.diagram.converters.NodeMxGeometryConverter;
 import lombok.Data;
 import org.simpleframework.xml.Attribute;
