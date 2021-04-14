@@ -14,13 +14,13 @@ public class GCounterCvRDT extends AbstractCvRDT<Long, Long, Vector<Long>> imple
    * Instantiates new CvRDT increment-only counter instance.
    *
    * @param identity crdt object identity, for example "countOfLikes"
-   * @param numOfNodes count of nodes in cluster
+   * @param amountOfNodes amount of nodes in cluster
    * @param id node's id in cluster
    * @param replicator {@link Replicator} instance
    */
-  public GCounterCvRDT(String identity, int numOfNodes, int id, Replicator replicator) {
+  public GCounterCvRDT(String identity, int amountOfNodes, int id, Replicator replicator) {
     super(identity, replicator);
-    this.integers = Vector.fill(numOfNodes, 0L); // initial payload value
+    this.integers = Vector.fill(amountOfNodes, 0L); // initial payload value
     this.id = id;
   }
 

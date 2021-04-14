@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Defines CvRDT operations
  *
  * @param <T> type of crdt update operation (optional) argument
- * @param <R> type of crdt update operation (optional) return value
+ * @param <R> type of crdt query operation return value
  */
 public interface CvRDT<T extends Serializable, R extends Serializable, U extends Serializable>
     extends Crdt<T, R> {
@@ -26,7 +26,7 @@ public interface CvRDT<T extends Serializable, R extends Serializable, U extends
   Option<R> update(T argument);
 
   /**
-   * Compares local payload with received payload from replica.
+   * Compares local payload with payload received from replica.
    *
    * <p><i>Is value1 ≤ value2 in semilattice?</i>
    *

@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
  * Abstract class with default implementation of {@link CvRDT} methods.
  *
  * @param <T> type of crdt update operation (optional) argument
- * @param <R> type of crdt update operation (optional) return value
+ * @param <R> type of crdt query operation return value
  */
 public abstract class AbstractCvRDT<
         T extends Serializable, R extends Serializable, U extends Serializable>
@@ -51,7 +51,7 @@ public abstract class AbstractCvRDT<
     if (updatePrecondition(argument)) {
       return updateImpl(argument);
     } else {
-      logger.warn("At source precondition is false");
+      logger.warn("Update precondition is false");
       return Option.none();
     }
   }

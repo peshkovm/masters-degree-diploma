@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
  * Abstract class with default implementation of {@link CmRDT} methods.
  *
  * @param <T> type of crdt update operation argument
- * @param <R> type of crdt update method (optional) return value
+ * @param <R> type of crdt query operation return value
  */
 public abstract class AbstractCmRDT<T extends Serializable, R extends Serializable>
     implements CmRDT<T, R> {
@@ -23,7 +23,7 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
   private final Class<AbstractCmRDT<T, R>> type = (Class<AbstractCmRDT<T, R>>) this.getClass();
 
   /**
-   * Instantiates new {@link CmRDT} object instance.
+   * Instantiates new {@link CmRDT} instance.
    *
    * @param identity crdt object identity, for example "countOfLikes"
    * @param replicator {@link Replicator} instance

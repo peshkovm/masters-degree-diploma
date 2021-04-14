@@ -5,7 +5,7 @@ import io.vavr.control.Option;
 
 /**
  * An op-based counter. Its payload is an long. Its empty atSource clause is omitted; the downstream
- * phase just adds or subtracts locally. It is wellknown that addition and subtraction commute,
+ * phase just adds or subtracts locally. It is well known that addition and subtraction commute,
  * assuming no overflow. Therefore, this data type is a CmRDT.
  */
 public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements CounterCRDT {
