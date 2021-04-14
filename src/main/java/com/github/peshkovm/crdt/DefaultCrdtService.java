@@ -128,8 +128,7 @@ public class DefaultCrdtService implements CrdtService {
 
     final var cvrdt = crdtRegistry().crdt(crdtId, crdtType);
 
-    final U mergedPayload = cvrdt.merge(cvrdt.getPayload(), replicaPayload.getPayload());
-    cvrdt.setPayload(mergedPayload);
+    cvrdt.merge(replicaPayload.getPayload());
   }
 
   private synchronized <T extends Serializable, R extends Serializable> CommandResult handle(

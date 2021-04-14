@@ -57,13 +57,18 @@ public abstract class AbstractCvRDT<
   }
 
   @Override
-  public synchronized boolean compare(U localPayload, U replicaPayload) {
+  public synchronized boolean compare(U replicaPayload) {
+    final U localPayload = getPayload();
     return compareImpl(localPayload, replicaPayload);
   }
 
   @Override
-  public synchronized U merge(U localPayload, U replicaPayload) {
-    return mergeImpl(localPayload, replicaPayload);
+  public synchronized U merge(U replicaPayload) {
+    final U localPayload = getPayload();
+    final U mergedPayload = mergeImpl(localPayload, replicaPayload);
+    setPayload(mergedPayload);
+
+    return mergedPayload;
   }
 
   protected boolean updatePrecondition(T argument) {
@@ -100,31 +105,29 @@ public abstract class AbstractCvRDT<
   protected abstract Option<R> updateImpl(T argument);
 
   /**
-   * {@link CvRDT#compare(Serializable, Serializable) compare operation}'s logic.
+   * {@link CvRDT#compare(Serializable) compare operation}'s logic.
    *
-   * @param localPayload {@link CvRDT#compare(Serializable, Serializable) compare operation}
-   *     argument
-   * @param replicaPayload {@link CvRDT#compare(Serializable, Serializable) compare operation}
-   *     argument
+   * @param localPayload {@link CvRDT#compare(Serializable) compare operation} argument
+   * @param replicaPayload {@link CvRDT#compare(Serializable) compare operation} argument
    * @return true if localPayload ≤ replicaPayload in semilattice, false otherwise
    */
   protected abstract boolean compareImpl(U localPayload, U replicaPayload);
 
   /**
-   * {@link CvRDT#merge(Serializable, Serializable) merge operation}'s logic.
+   * {@link CvRDT#merge(Serializable) merge operation}'s logic.
    *
-   * @param localPayload {@link CvRDT#merge Option, Option) merge operation} argument
-   * @param replicaPayload {@link CvRDT#merge(Serializable, Serializable) merge operation} argument
+   * @param localPayload {@link CvRDT#merge(Serializable) merge operation} argument
+   * @param replicaPayload {@link CvRDT#merge(Serializable) merge operation} argument
    * @return LUB of {localPayload, replicaPayload}
    */
   protected abstract U mergeImpl(U localPayload, U replicaPayload);
 
-  /**
-   * Transmits payload between arbitrary pairs of replicas, in order to propagate changes.
-   *
-   * @param payload
-   */
-  public synchronized void replicatePayload(U payload) {
-    replicator.replicate(new Payload<>(payload, this.identity, type));
+  /** Transmits payload between arbitrary pairs of replicas, in order to propagate changes. */
+  public synchronized void replicatePayload() {
+    replicator.replicate(new Payload<>(getPayload(), this.identity, type));
   }
+
+  protected abstract U getPayload();
+
+  protected abstract void setPayload(U mergedPayload);
 }

@@ -67,12 +67,12 @@ public class GCounterCvRDT extends AbstractCvRDT<Long, Long, Vector<Long>> imple
   }
 
   @Override
-  public Vector<Long> getPayload() {
+  protected Vector<Long> getPayload() {
     return integers;
   }
 
   @Override
-  public void setPayload(Vector<Long> mergedPayload) {
+  protected void setPayload(Vector<Long> mergedPayload) {
     integers = mergedPayload;
   }
 }

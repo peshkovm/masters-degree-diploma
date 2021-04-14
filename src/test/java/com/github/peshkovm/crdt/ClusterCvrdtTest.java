@@ -55,7 +55,7 @@ public class ClusterCvrdtTest extends BaseClusterTest {
               incrementNum += numOfCores) {
             final GCounterCvRDT sourceGCounter = gCounters.get(0);
             sourceGCounter.increment();
-            sourceGCounter.replicatePayload(sourceGCounter.getPayload());
+            sourceGCounter.replicatePayload();
           }
         });
 
@@ -116,7 +116,7 @@ public class ClusterCvrdtTest extends BaseClusterTest {
               incrementNum += numOfCores) {
             final GCounterCvRDT sourceGCounter = gCounters1.get(0);
             sourceGCounter.increment();
-            sourceGCounter.replicatePayload(sourceGCounter.getPayload());
+            sourceGCounter.replicatePayload();
           }
         });
 
@@ -127,7 +127,7 @@ public class ClusterCvrdtTest extends BaseClusterTest {
               incrementNum += numOfCores) {
             final GCounterCvRDT sourceGCounter = gCounters2.get(0);
             sourceGCounter.increment();
-            sourceGCounter.replicatePayload(sourceGCounter.getPayload());
+            sourceGCounter.replicatePayload();
           }
         });
 
@@ -172,7 +172,7 @@ public class ClusterCvrdtTest extends BaseClusterTest {
     for (int incrementNum = 0; incrementNum < timesToIncrement; incrementNum++) {
       final GCounterCvRDT sourceGCounter = gCounters.get(incrementNum % numOfNodes);
       sourceGCounter.increment();
-      sourceGCounter.replicatePayload(sourceGCounter.getPayload());
+      sourceGCounter.replicatePayload();
     }
 
     //    executeConcurrently(
@@ -209,7 +209,6 @@ public class ClusterCvrdtTest extends BaseClusterTest {
    *
    * @param crdt identity of crdt object
    * @param crdtType type of crdt object
-   * @return true if success, false otherwise
    */
   private void createResource(String crdt, ResourceType crdtType) {
     crdtServices.head().addResource(crdt, crdtType).get();

@@ -30,24 +30,18 @@ public interface CvRDT<T extends Serializable, R extends Serializable, U extends
    *
    * <p><i>Is value1 ≤ value2 in semilattice?</i>
    *
-   * @param localPayload local payload
    * @param replicaPayload payload received from replica
    * @return true if localPayload ≤ replicaPayload in semilattice, false otherwise
    */
-  boolean compare(U localPayload, U replicaPayload);
+  boolean compare(U replicaPayload);
 
   /**
    * Merges local payload with payload received from replica.
    *
    * <p><i>LUB merge of value1 and value2, at any replica</i>
    *
-   * @param localPayload local payload
    * @param replicaPayload payload received from replica
    * @return LUB of {localPayload, replicaPayload}
    */
-  U merge(U localPayload, U replicaPayload);
-
-  U getPayload();
-
-  void setPayload(U mergedPayload);
+  U merge(U replicaPayload);
 }
