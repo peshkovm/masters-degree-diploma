@@ -1,7 +1,7 @@
-package com.github.peshkovm.crdt.commutative;
+package com.github.peshkovm.crdt.operation;
 
 import com.github.peshkovm.crdt.Crdt;
-import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
+import com.github.peshkovm.crdt.operation.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
 import java.io.Serializable;
@@ -53,7 +53,7 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
   }
 
   private void replicateDownstream(Option<R> atSourceResult, T argument) {
-    replicator.append(new DownstreamUpdate<>(this.identity, atSourceResult, type, argument));
+    replicator.replicate(new DownstreamUpdate<>(this.identity, atSourceResult, type, argument));
   }
 
   @Override
@@ -76,7 +76,7 @@ public abstract class AbstractCmRDT<T extends Serializable, R extends Serializab
   }
 
   /**
-   * The {@link CmRDT#query() query operation} will be enabled only if this pre-condition returns
+   * The {@link Crdt#query() query operation} will be enabled only if this pre-condition returns
    * true.
    *
    * @return Is query pre-condition holds in the source’s current state

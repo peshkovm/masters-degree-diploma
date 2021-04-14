@@ -1,16 +1,14 @@
 package com.github.peshkovm.crdt.replication;
 
+import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.component.AbstractLifecycleComponent;
-import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.netty.NettyTransportService;
 import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Default implementation of {@link Replicator}.
- */
+/** Default implementation of {@link Replicator}. */
 @Component
 public class DefaultReplicator extends AbstractLifecycleComponent implements Replicator {
 
@@ -29,20 +27,20 @@ public class DefaultReplicator extends AbstractLifecycleComponent implements Rep
   }
 
   @Override
-  public void append(DownstreamUpdate<?, ?> downstreamUpdate) {
+  public void replicate(Message message) {
     lock.lock();
     try {
-      maybeSendEntries(downstreamUpdate);
+      maybeSendEntries(message);
     } finally {
       lock.unlock();
     }
   }
 
-  private void maybeSendEntries(DownstreamUpdate<?, ?> downstreamUpdate) {
+  private void maybeSendEntries(Message message) {
     clusterDiscovery
         .getDiscoveryNodes()
         .remove(clusterDiscovery.getSelf())
-        .forEach(node -> transportService.send(node, downstreamUpdate)); // send for all replicas
+        .forEach(node -> transportService.send(node, message)); // send for all replicas
   }
 
   @Override

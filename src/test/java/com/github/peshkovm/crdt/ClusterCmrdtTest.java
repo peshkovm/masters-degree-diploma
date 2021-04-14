@@ -1,7 +1,7 @@
 package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.common.BaseClusterTest;
-import com.github.peshkovm.crdt.commutative.GCounterCmRDT;
+import com.github.peshkovm.crdt.operation.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import io.vavr.collection.Vector;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class ClusterCrdtTest extends BaseClusterTest {
+public class ClusterCmrdtTest extends BaseClusterTest {
 
   private Vector<CrdtService> crdtServices;
 
@@ -26,17 +26,17 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @Test
   @DisplayName("Should replicate crdt to all replicas")
   void shouldReplicateCrdtToAllReplicas() {
-    createResource("countOfLikes", ResourceType.GCounter);
+    createResource("countOfLikes", ResourceType.GCounterCmRDT);
   }
 
   @Test
   @DisplayName("Should converge crdt on all replicas")
   void shouldConvergeCrdtOnAllReplicas() throws Exception {
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 100_000;
+    final int timesToIncrement = 10_000;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
-    createResource(crdtId, ResourceType.GCounter);
+    createResource(crdtId, ResourceType.GCounterCmRDT);
 
     final Vector<GCounterCmRDT> gCounters =
         crdtServices
@@ -77,8 +77,8 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @Test
   @DisplayName("Should create multiple crdt with different id")
   void shouldCreateMultipleCrdtWithDifferentId() {
-    createResource("countOfLikes", ResourceType.GCounter);
-    createResource("countOfViews", ResourceType.GCounter);
+    createResource("countOfLikes", ResourceType.GCounterCmRDT);
+    createResource("countOfViews", ResourceType.GCounterCmRDT);
   }
 
   @Test
@@ -90,8 +90,8 @@ public class ClusterCrdtTest extends BaseClusterTest {
     final int timesToIncrement2 = 500;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
 
-    createResource(crdtId1, ResourceType.GCounter);
-    createResource(crdtId2, ResourceType.GCounter);
+    createResource(crdtId1, ResourceType.GCounterCmRDT);
+    createResource(crdtId2, ResourceType.GCounterCmRDT);
 
     final Vector<GCounterCmRDT> gCounters1 =
         crdtServices
@@ -155,11 +155,11 @@ public class ClusterCrdtTest extends BaseClusterTest {
   @DisplayName("Should converge crdt updating by multiple clients")
   void shouldConvergeCrdtUpdatingByMultipleClients() throws Exception {
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 100_000;
+    final int timesToIncrement = 10_000;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
     final int numOfNodes = crdtServices.size();
 
-    createResource(crdtId, ResourceType.GCounter);
+    createResource(crdtId, ResourceType.GCounterCmRDT);
 
     final Vector<GCounterCmRDT> gCounters =
         crdtServices
@@ -203,7 +203,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
     final int timesToIncrement = 100_000;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
 
-    createResource(crdtId, ResourceType.GCounter);
+    createResource(crdtId, ResourceType.GCounterCmRDT);
 
     final Vector<GCounterCmRDT> gCounters =
         crdtServices
@@ -247,8 +247,7 @@ public class ClusterCrdtTest extends BaseClusterTest {
   /**
    * Tries to create crdt of specified type and id on all nodes.
    *
-   * <p>It's the blocking method. It will wait until crdt object is created on all nodes. If crdt
-   * is
+   * <p>It's the blocking method. It will wait until crdt object is created on all nodes. If crdt is
    * failed to create on one of nodes, method returns immediately with false.
    *
    * @param crdt identity of crdt object

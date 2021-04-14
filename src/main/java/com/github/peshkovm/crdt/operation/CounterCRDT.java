@@ -1,4 +1,4 @@
-package com.github.peshkovm.crdt.commutative;
+package com.github.peshkovm.crdt.operation;
 
 import com.github.peshkovm.crdt.Crdt;
 
@@ -11,13 +11,9 @@ import com.github.peshkovm.crdt.Crdt;
  */
 public interface CounterCRDT extends Crdt<Long, Long> {
 
-  /**
-   * Increments counter's payload.
-   */
+  /** Increments counter's payload. */
   void increment();
 
-  /**
-   * Decrements counter's payload.
-   */
+  /** Decrements counter's payload. */
   void decrement();
 }

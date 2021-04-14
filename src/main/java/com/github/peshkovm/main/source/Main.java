@@ -1,7 +1,7 @@
 package com.github.peshkovm.main.source;
 
 import com.github.peshkovm.crdt.CrdtService;
-import com.github.peshkovm.crdt.commutative.GCounterCmRDT;
+import com.github.peshkovm.crdt.operation.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.node.ExternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
@@ -26,7 +26,7 @@ public class Main {
 
       internalNode.start();
 
-      createResource(crdtId, ResourceType.GCounter);
+      createResource(crdtId, ResourceType.GCounterCmRDT);
 
       final GCounterCmRDT sourceGCounter =
           crdtService.crdtRegistry().crdt(crdtId, GCounterCmRDT.class);
@@ -69,8 +69,7 @@ public class Main {
   /**
    * Tries to create crdt of specified type and id on all nodes.
    *
-   * <p>It's the blocking method. It will wait until crdt object is created on all nodes. If crdt
-   * is
+   * <p>It's the blocking method. It will wait until crdt object is created on all nodes. If crdt is
    * failed to create on one of nodes, method returns immediately with false.
    *
    * @param crdt identity of crdt object

@@ -1,12 +1,13 @@
 package com.github.peshkovm.crdt;
 
-import com.github.peshkovm.crdt.commutative.protocol.DownstreamUpdate;
+import com.github.peshkovm.crdt.operation.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
 import com.github.peshkovm.crdt.routing.fsm.GetPayload;
 import com.github.peshkovm.crdt.routing.fsm.GetPayloadResponse;
+import com.github.peshkovm.crdt.state.protocol.Payload;
 import com.github.peshkovm.raft.Raft;
 import com.github.peshkovm.raft.protocol.CommandResult;
 import com.github.peshkovm.raft.resource.ResourceRegistry;
@@ -21,9 +22,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-/**
- * Default implementation of {@link CrdtService}.
- */
+/** Default implementation of {@link CrdtService}. */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class DefaultCrdtService implements CrdtService {
@@ -44,6 +43,7 @@ public class DefaultCrdtService implements CrdtService {
     registry.registerHandler(AddResource.class, this::handle);
     registry.registerHandler(GetPayload.class, this::handle);
     transportController.registerMessageHandler(DownstreamUpdate.class, this::handle);
+    transportController.registerMessageHandler(Payload.class, this::handle);
   }
 
   @Override
@@ -60,7 +60,7 @@ public class DefaultCrdtService implements CrdtService {
 
   @Override
   public <T extends Serializable, R extends Serializable, M extends Crdt<T, R>>
-  Future<Vector<R>> queryAllNodes(String crdtId, Class<M> crdtType) {
+      Future<Vector<R>> queryAllNodes(String crdtId, Class<M> crdtType) {
     return raft.command(new GetPayload<>(crdtId, crdtType))
         .map(Vector::ofAll)
         .map(commandResults -> commandResults.map(CommandResult::getResult))
@@ -79,17 +79,24 @@ public class DefaultCrdtService implements CrdtService {
     boolean isCreated = false;
 
     switch (resourceType) {
-      case GCounter:
-        isCreated = crdtRegistry.createGCounter(resourceId);
-        break;
+      case GCounterCmRDT:
+        {
+          isCreated = crdtRegistry.createGCounterCmRDT(resourceId);
+          break;
+        }
+      case GCounterCvRDT:
+        {
+          isCreated = crdtRegistry.createGCounterCvRDT(resourceId);
+          break;
+        }
       default:
         logger.warn("Unexpected crdt type: {}", () -> resourceType);
     }
 
     if (isCreated) {
-      logger.info("Successfully created GCounter");
+      logger.info("Successfully created " + resourceType);
     } else {
-      logger.error("GCounter with id: {} already exists", () -> resourceId);
+      logger.error(resourceType + " with id: {} already exists", () -> resourceId);
     }
 
     return isCreated;
@@ -109,12 +116,23 @@ public class DefaultCrdtService implements CrdtService {
     final String crdtId = downstreamUpdate.getCrdtId();
     final var crdtType = downstreamUpdate.getCrdtType();
 
-    final var cmRDT = crdtRegistry().crdt(crdtId, crdtType);
+    final var cmrdt = crdtRegistry().crdt(crdtId, crdtType);
 
-    cmRDT.downstream(downstreamUpdate.getAtSourceResult(), downstreamUpdate.getArgument());
+    cmrdt.downstream(downstreamUpdate.getAtSourceResult(), downstreamUpdate.getArgument());
   }
 
-  private <T extends Serializable, R extends Serializable> CommandResult handle(
+  private synchronized <T extends Serializable, R extends Serializable, U extends Serializable>
+      void handle(Payload<T, R, U> replicaPayload) {
+    final String crdtId = replicaPayload.getCrdtId();
+    final var crdtType = replicaPayload.getCrdtType();
+
+    final var cvrdt = crdtRegistry().crdt(crdtId, crdtType);
+
+    final U mergedPayload = cvrdt.merge(cvrdt.getPayload(), replicaPayload.getPayload());
+    cvrdt.setPayload(mergedPayload);
+  }
+
+  private synchronized <T extends Serializable, R extends Serializable> CommandResult handle(
       GetPayload<T, R> request) {
     final String crdtId = request.getCrdtId();
     final var crdtType = request.getCrdtType();

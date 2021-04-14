@@ -1,11 +1,9 @@
-package com.github.peshkovm.crdt.commutative;
+package com.github.peshkovm.crdt.operation;
 
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
 
-/**
- * Increment-only operation based counter.
- */
+/** Increment-only operation based counter. */
 public class GCounterCmRDT extends CounterCmRDT {
 
   /**
@@ -23,9 +21,7 @@ public class GCounterCmRDT extends CounterCmRDT {
     super.increment();
   }
 
-  /**
-   * Unsupported, because GCounter is increment-only counter.
-   */
+  /** Unsupported, because GCounter is increment-only counter. */
   @Override
   public void decrement() {
     throw new UnsupportedOperationException("GCounter is increment-only counter");

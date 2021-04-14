@@ -1,4 +1,4 @@
-package com.github.peshkovm.crdt.commutative;
+package com.github.peshkovm.crdt.operation;
 
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
@@ -10,7 +10,7 @@ import io.vavr.control.Option;
  */
 public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements CounterCRDT {
 
-  protected Long i = 0L; // Immutable payload
+  protected Long i; // Immutable payload
 
   /**
    * Instantiates new CmRDT counter instance.
@@ -38,25 +38,19 @@ public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements 
     return i;
   }
 
-  /**
-   * Empty.
-   */
+  /** Empty. */
   @Override
   public synchronized Option<Long> atSource(Long argument) {
     return Option.none();
   }
 
-  /**
-   * Always true
-   */
+  /** Always true */
   @Override
   protected boolean atSourcePrecondition(Long argument) {
     return true;
   }
 
-  /**
-   * Empty
-   */
+  /** Empty */
   @Override
   protected Option<Long> atSourceImpl(Long argument) {
     return Option.none();
