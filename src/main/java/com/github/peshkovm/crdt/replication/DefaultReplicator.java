@@ -6,10 +6,12 @@ import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.netty.NettyTransportService;
 import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /** Default implementation of {@link Replicator}. */
 @Component
+@Profile("test")
 public class DefaultReplicator extends AbstractLifecycleComponent implements Replicator {
 
   private final ReentrantLock lock;
