@@ -7,6 +7,7 @@ import io.vavr.collection.Vector;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -25,12 +26,14 @@ public class ClusterCmrdtTest extends BaseClusterTest {
 
   @Test
   @DisplayName("Should replicate crdt to all replicas")
+  @Disabled
   void shouldReplicateCrdtToAllReplicas() {
     createResource("countOfLikes", ResourceType.GCounterCmRDT);
   }
 
   @Test
   @DisplayName("Should converge crdt on all replicas")
+  @Disabled
   void shouldConvergeCrdtOnAllReplicas() throws Exception {
     final String crdtId = "countOfLikes";
     final int timesToIncrement = 10_000;
@@ -198,6 +201,7 @@ public class ClusterCmrdtTest extends BaseClusterTest {
 
   @Test
   @DisplayName("Should get payloads from all nodes")
+  @Disabled
   void shouldGetPayloadsFromAllNodes() throws Exception {
     final String crdtId = "countOfLikes";
     final int timesToIncrement = 100_000;

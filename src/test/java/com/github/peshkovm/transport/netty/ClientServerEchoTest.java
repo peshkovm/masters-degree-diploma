@@ -52,7 +52,7 @@ public class ClientServerEchoTest extends BaseIntegrationTest {
   void clientShouldSendMessageToServerAndReceiveItBack() throws InterruptedException {
     final TransportService clientTransportService = transportServices.get(1);
     final DiscoveryNode serverDiscoveryNode = transportServers.get(0).localNode();
-    final int exchangeCount = 5000;
+    final int exchangeCount = 1000;
 
     for (int exchangeNum = 0; exchangeNum < exchangeCount; exchangeNum++) {
       countDownLatch = new CountDownLatch(1);
