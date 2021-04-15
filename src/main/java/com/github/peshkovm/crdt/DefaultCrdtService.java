@@ -5,8 +5,6 @@ import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
-import com.github.peshkovm.crdt.routing.fsm.GetPayload;
-import com.github.peshkovm.crdt.routing.fsm.GetPayloadResponse;
 import com.github.peshkovm.crdt.state.protocol.Payload;
 import com.github.peshkovm.raft.Raft;
 import com.github.peshkovm.raft.protocol.CommandResult;
@@ -41,7 +39,6 @@ public class DefaultCrdtService implements CrdtService {
     this.crdtRegistry = crdtRegistry;
 
     registry.registerHandler(AddResource.class, this::handle);
-    registry.registerHandler(GetPayload.class, this::handle);
     transportController.registerMessageHandler(DownstreamUpdate.class, this::handle);
     transportController.registerMessageHandler(Payload.class, this::handle);
   }
@@ -56,18 +53,6 @@ public class DefaultCrdtService implements CrdtService {
             commandResults ->
                 commandResults.forAll(result -> result instanceof AddResourceResponse))
         .map(commandResults -> commandResults.map(result -> (AddResourceResponse) result));
-  }
-
-  @Override
-  public <T extends Serializable, R extends Serializable, M extends Crdt<T, R>>
-      Future<Vector<R>> queryAllNodes(String crdtId, Class<M> crdtType) {
-    return raft.command(new GetPayload<>(crdtId, crdtType))
-        .map(Vector::ofAll)
-        .map(commandResults -> commandResults.map(CommandResult::getResult))
-        .filter(
-            commandResults -> commandResults.forAll(result -> result instanceof GetPayloadResponse))
-        .map(commandResults -> commandResults.map(result -> (GetPayloadResponse<T, R>) result))
-        .map(getPayloadResponses -> getPayloadResponses.map(GetPayloadResponse::getPayload));
   }
 
   @Override
@@ -129,18 +114,5 @@ public class DefaultCrdtService implements CrdtService {
     final var cvrdt = crdtRegistry().crdt(crdtId, crdtType);
 
     cvrdt.merge(replicaPayload.getPayload());
-  }
-
-  private synchronized <T extends Serializable, R extends Serializable> CommandResult handle(
-      GetPayload<T, R> request) {
-    final String crdtId = request.getCrdtId();
-    final var crdtType = request.getCrdtType();
-
-    final var crdt = crdtRegistry.crdt(crdtId, crdtType);
-
-    final R payload = crdt.query();
-    final GetPayloadResponse<T, R> response = new GetPayloadResponse<>(crdtId, crdtType, payload);
-
-    return new CommandResult(response, true);
   }
 }

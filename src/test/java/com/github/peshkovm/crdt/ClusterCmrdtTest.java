@@ -199,55 +199,6 @@ public class ClusterCmrdtTest extends BaseClusterTest {
     }
   }
 
-  @Test
-  @DisplayName("Should get payloads from all nodes")
-  @Disabled
-  void shouldGetPayloadsFromAllNodes() throws Exception {
-    final String crdtId = "countOfLikes";
-    final int timesToIncrement = 100_000;
-    final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(10);
-
-    createResource(crdtId, ResourceType.GCounterCmRDT);
-
-    final Vector<GCounterCmRDT> gCounters =
-        crdtServices
-            .map(CrdtService::crdtRegistry)
-            .map(crdtRegistry -> crdtRegistry.crdt(crdtId, GCounterCmRDT.class));
-
-    executeConcurrently(
-        (threadNum, numOfCores) -> {
-          for (int incrementNum = threadNum;
-              incrementNum < timesToIncrement;
-              incrementNum += numOfCores) {
-            final GCounterCmRDT sourceGCounter = gCounters.get(0);
-            sourceGCounter.increment();
-          }
-        });
-
-    logger.info("Waiting for query");
-    for (int i = 0; i < numOfSecondsToWait / 100; i++) {
-      if (!crdtServices
-          .head()
-          .queryAllNodes(crdtId, GCounterCmRDT.class)
-          .get()
-          .forAll(payload -> payload == timesToIncrement)) {
-        TimeUnit.MILLISECONDS.sleep(100);
-      } else {
-        break;
-      }
-    }
-
-    try {
-      crdtServices
-          .head()
-          .queryAllNodes(crdtId, GCounterCmRDT.class)
-          .get()
-          .forEach(payload -> Assertions.assertEquals(payload, timesToIncrement));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
   /**
    * Tries to create crdt of specified type and id on all nodes.
    *
