@@ -20,6 +20,8 @@ public class ClusterCvrdtTest extends BaseClusterTest {
     createAndStartInternalNode();
     createAndStartInternalNode();
 
+    connectAllNodes();
+
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
   }
 

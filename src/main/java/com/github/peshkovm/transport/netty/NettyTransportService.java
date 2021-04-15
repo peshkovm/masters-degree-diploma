@@ -21,13 +21,14 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LoggingHandler;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
+import io.vavr.concurrent.Future;
+import io.vavr.concurrent.Promise;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Netty {@link TransportService} implementation.
- */
+/** Netty {@link TransportService} implementation. */
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
@@ -134,15 +135,19 @@ public class NettyTransportService extends NettyClient implements TransportServi
   }
 
   @Override
-  public void send(DiscoveryNode discoveryNode, Message message) {
+  public DiscoveryFuture send(DiscoveryNode discoveryNode, Message message) {
+    Promise<DiscoveryNode> sendPromise = Promise.make();
+
     try {
-      connectToNode(discoveryNode);
       logger.debug("Sending {} to node {}...", message, discoveryNode);
       final ChannelFuture future = getChannel(discoveryNode).writeAndFlush(message);
       future.addListener(
           FIRE_EXCEPTION_ON_FAILURE); // Let object serialisation exceptions propagate.
+
+      return new DiscoveryFuture(discoveryNode, sendPromise.success(null).future());
     } catch (Exception e) {
       logger.error("Error send message", e);
+      return new DiscoveryFuture(discoveryNode, sendPromise.failure(e).future());
     }
   }
 
@@ -153,6 +158,18 @@ public class NettyTransportService extends NettyClient implements TransportServi
       throw new IllegalArgumentException("Not connected to node: " + node);
     }
     return channel;
+  }
+
+  @Data
+  public static class DiscoveryFuture {
+
+    private final DiscoveryNode discoveryNode;
+    private final Future<? extends DiscoveryNode> future;
+
+    public DiscoveryFuture(DiscoveryNode discoveryNode, Future<? extends DiscoveryNode> future) {
+      this.discoveryNode = discoveryNode;
+      this.future = future;
+    }
   }
 
   @Override

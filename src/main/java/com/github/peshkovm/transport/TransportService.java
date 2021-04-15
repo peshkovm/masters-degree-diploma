@@ -1,10 +1,9 @@
 package com.github.peshkovm.transport;
 
 import com.github.peshkovm.common.codec.Message;
+import com.github.peshkovm.transport.netty.NettyTransportService.DiscoveryFuture;
 
-/**
- * Transport service for nodes network communication.
- */
+/** Transport service for nodes network communication. */
 public interface TransportService {
 
   /**
@@ -27,5 +26,5 @@ public interface TransportService {
    * @param discoveryNode node to send message to
    * @param message message to send
    */
-  void send(DiscoveryNode discoveryNode, Message message);
+  DiscoveryFuture send(DiscoveryNode discoveryNode, Message message);
 }
