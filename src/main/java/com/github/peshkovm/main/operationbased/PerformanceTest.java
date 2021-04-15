@@ -1,8 +1,8 @@
-package com.github.peshkovm.main.operation;
+package com.github.peshkovm.main.operationbased;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.crdt.CrdtService;
-import com.github.peshkovm.crdt.operation.GCounterCmRDT;
+import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
@@ -44,7 +44,7 @@ public class PerformanceTest {
   private static final int TIMES_TO_INCREMENT = 100;
   private static final long NUM_OF_SECONDS_TO_WAIT = TimeUnit.SECONDS.toMillis(2);
   private static final String RES_FILE_PATH =
-      "src/main/resources/main/operation/PerformanceTest.csv";
+      "src/main/resources/main/operationbased/PerformanceTest.csv";
 
   static {
     Configurator.setRootLevel(org.apache.logging.log4j.Level.WARN);
@@ -186,6 +186,7 @@ public class PerformanceTest {
     final Collection<RunResult> runResults = new Runner(opt).run();
 
     Files.deleteIfExists(Paths.get(RES_FILE_PATH));
+    Files.createDirectories(Paths.get(RES_FILE_PATH).getParent());
     Files.createFile(Paths.get(RES_FILE_PATH));
     Files.write(
         Paths.get(RES_FILE_PATH),

@@ -1,9 +1,9 @@
-package com.github.peshkovm.main.operation;
+package com.github.peshkovm.main.operationbased;
 
 import com.github.peshkovm.crdt.CrdtService;
-import com.github.peshkovm.crdt.operation.AbstractCmRDT;
-import com.github.peshkovm.crdt.operation.GCounterCmRDT;
-import com.github.peshkovm.crdt.operation.protocol.DownstreamUpdate;
+import com.github.peshkovm.crdt.operationbased.AbstractCmRDT;
+import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
+import com.github.peshkovm.crdt.operationbased.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.main.common.TestUtils;
 import com.github.peshkovm.node.InternalNode;
