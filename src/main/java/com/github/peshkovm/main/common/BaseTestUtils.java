@@ -1,4 +1,4 @@
-package com.github.peshkovm.tests.common;
+package com.github.peshkovm.main.common;
 
 import java.util.ArrayList;
 import java.util.Collection;

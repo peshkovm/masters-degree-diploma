@@ -1,4 +1,4 @@
-package com.github.peshkovm.tests.common;
+package com.github.peshkovm.main.common;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.node.InternalClusterFactory;
