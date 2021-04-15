@@ -1,9 +1,9 @@
-package com.github.peshkovm.main.operationbased;
+package com.github.peshkovm.main.statebased;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.crdt.CrdtService;
-import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
+import com.github.peshkovm.crdt.statebased.GCounterCvRDT;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
@@ -44,7 +44,7 @@ public class PerformanceTest {
   private static final int TIMES_TO_INCREMENT = 100;
   private static final long NUM_OF_SECONDS_TO_WAIT = TimeUnit.SECONDS.toMillis(2);
   private static final String RES_FILE_PATH =
-      "src/main/resources/main/operationbased/PerformanceTest.csv";
+      "src/main/resources/main/statebased/PerformanceTest.csv";
 
   @State(Scope.Benchmark)
   public abstract static class CrdtState {
@@ -113,7 +113,7 @@ public class PerformanceTest {
 
   public static class GCounterCmrdtState extends CrdtState {
     protected final String crdtId = "countOfLikes";
-    protected Vector<GCounterCmRDT> gCounters;
+    protected Vector<GCounterCvRDT> gCounters;
 
     @Override
     public void init() {
@@ -129,12 +129,12 @@ public class PerformanceTest {
 
     @Override
     public void prepareSet() {
-      createResource(crdtId, ResourceType.GCounterCmRDT);
+      createResource(crdtId, ResourceType.GCounterCvRDT);
 
       gCounters =
           crdtServices
               .map(CrdtService::crdtRegistry)
-              .map(crdtRegistry -> crdtRegistry.crdt(crdtId, GCounterCmRDT.class));
+              .map(crdtRegistry -> crdtRegistry.crdt(crdtId, GCounterCvRDT.class));
     }
 
     @TearDown(Level.Iteration)
@@ -171,8 +171,9 @@ public class PerformanceTest {
     @Measurement(batchSize = TIMES_TO_INCREMENT)
     @Benchmark
     public void increment(final GCounterCmrdtState state, final Blackhole bh) {
-      final GCounterCmRDT sourceGCounter = state.gCounters.get(0);
+      final GCounterCvRDT sourceGCounter = state.gCounters.get(0);
       sourceGCounter.increment();
+      sourceGCounter.replicatePayload();
 
       bh.consume(sourceGCounter);
     }

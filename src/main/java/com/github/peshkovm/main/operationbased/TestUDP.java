@@ -89,7 +89,7 @@ public class TestUDP extends TestUtils {
               if (!(index == 1
                   ? counter.query() == timesToIncrement + 1
                   : counter.query() == timesToIncrement)) {
-                logger.info("FAILURE");
+                logger.error("FAILURE");
                 throw new AssertionError(
                     "\nExpected :" + timesToIncrement + "\nActual   :" + counter.query());
               }

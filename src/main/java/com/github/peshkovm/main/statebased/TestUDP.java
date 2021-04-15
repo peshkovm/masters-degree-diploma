@@ -73,7 +73,7 @@ public class TestUDP extends TestUtils {
     gCounters.forEach(
         counter -> {
           if (counter.query() != timesToIncrement) {
-            logger.info("FAILURE");
+            logger.error("FAILURE");
             throw new AssertionError(
                 "\nExpected :" + timesToIncrement + "\nActual   :" + counter.query());
           }
