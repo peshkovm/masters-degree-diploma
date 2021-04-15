@@ -1,7 +1,7 @@
-package com.github.peshkovm.crdt.operation.protocol;
+package com.github.peshkovm.crdt.operationbased.protocol;
 
 import com.github.peshkovm.common.codec.Message;
-import com.github.peshkovm.crdt.operation.CmRDT;
+import com.github.peshkovm.crdt.operationbased.CmRDT;
 import io.vavr.control.Option;
 import java.io.Serializable;
 import lombok.Data;

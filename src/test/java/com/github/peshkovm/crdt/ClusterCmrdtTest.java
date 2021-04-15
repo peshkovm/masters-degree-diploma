@@ -1,7 +1,7 @@
 package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.common.BaseClusterTest;
-import com.github.peshkovm.crdt.operation.GCounterCmRDT;
+import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import io.vavr.collection.Vector;
 import java.util.concurrent.TimeUnit;

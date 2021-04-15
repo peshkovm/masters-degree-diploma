@@ -1,6 +1,6 @@
-package com.github.peshkovm.crdt.state;
+package com.github.peshkovm.crdt.statebased;
 
-import com.github.peshkovm.crdt.operation.CounterCRDT;
+import com.github.peshkovm.crdt.operationbased.CounterCRDT;
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.collection.Vector;
 import io.vavr.control.Option;

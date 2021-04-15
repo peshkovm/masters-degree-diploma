@@ -1,7 +1,7 @@
-package com.github.peshkovm.crdt.state.protocol;
+package com.github.peshkovm.crdt.statebased.protocol;
 
 import com.github.peshkovm.common.codec.Message;
-import com.github.peshkovm.crdt.state.CvRDT;
+import com.github.peshkovm.crdt.statebased.CvRDT;
 import java.io.Serializable;
 import lombok.Data;
 

@@ -1,8 +1,8 @@
-package com.github.peshkovm.crdt.state;
+package com.github.peshkovm.crdt.statebased;
 
 import com.github.peshkovm.crdt.Crdt;
 import com.github.peshkovm.crdt.replication.Replicator;
-import com.github.peshkovm.crdt.state.protocol.Payload;
+import com.github.peshkovm.crdt.statebased.protocol.Payload;
 import io.vavr.control.Option;
 import java.io.Serializable;
 import org.apache.logging.log4j.LogManager;

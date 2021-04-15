@@ -2,7 +2,7 @@ package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.common.BaseClusterTest;
 import com.github.peshkovm.crdt.routing.ResourceType;
-import com.github.peshkovm.crdt.state.GCounterCvRDT;
+import com.github.peshkovm.crdt.statebased.GCounterCvRDT;
 import io.vavr.collection.Vector;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;

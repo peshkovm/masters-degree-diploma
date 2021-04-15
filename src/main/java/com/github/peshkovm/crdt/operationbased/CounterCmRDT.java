@@ -1,4 +1,4 @@
-package com.github.peshkovm.crdt.operation;
+package com.github.peshkovm.crdt.operationbased;
 
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;

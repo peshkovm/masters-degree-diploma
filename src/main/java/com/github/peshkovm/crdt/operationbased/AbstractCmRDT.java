@@ -1,7 +1,7 @@
-package com.github.peshkovm.crdt.operation;
+package com.github.peshkovm.crdt.operationbased;
 
 import com.github.peshkovm.crdt.Crdt;
-import com.github.peshkovm.crdt.operation.protocol.DownstreamUpdate;
+import com.github.peshkovm.crdt.operationbased.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
 import java.io.Serializable;

@@ -1,11 +1,11 @@
 package com.github.peshkovm.crdt;
 
-import com.github.peshkovm.crdt.operation.protocol.DownstreamUpdate;
+import com.github.peshkovm.crdt.operationbased.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
-import com.github.peshkovm.crdt.state.protocol.Payload;
+import com.github.peshkovm.crdt.statebased.protocol.Payload;
 import com.github.peshkovm.raft.Raft;
 import com.github.peshkovm.raft.protocol.CommandResult;
 import com.github.peshkovm.raft.resource.ResourceRegistry;

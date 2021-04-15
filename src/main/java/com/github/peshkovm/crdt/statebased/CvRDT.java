@@ -1,4 +1,4 @@
-package com.github.peshkovm.crdt.state;
+package com.github.peshkovm.crdt.statebased;
 
 import com.github.peshkovm.crdt.Crdt;
 import io.vavr.control.Option;
