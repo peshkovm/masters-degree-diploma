@@ -155,7 +155,7 @@ public class PerformanceTest {
             }
           });
 
-      deleteResource(crdtId, ResourceType.GCounterCvRDT);
+      deleteResource(crdtId, ResourceType.GCounterCmRDT);
     }
   }
 
