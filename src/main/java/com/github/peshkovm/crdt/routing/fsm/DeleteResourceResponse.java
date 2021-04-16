@@ -5,12 +5,12 @@ import com.github.peshkovm.crdt.routing.ResourceType;
 import lombok.Data;
 
 @Data
-public class AddResourceResponse implements Message {
+public class DeleteResourceResponse implements Message {
 
   private final ResourceType resourceType;
   private final String resourceId;
 
-  public AddResourceResponse(String resourceId, ResourceType resourceType) {
+  public DeleteResourceResponse(String resourceId, ResourceType resourceType) {
     this.resourceId = resourceId;
     this.resourceType = resourceType;
   }

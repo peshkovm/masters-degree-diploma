@@ -44,6 +44,21 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
   }
 
   @Override
+  public boolean deleteCRDT(String resourceId, Class<? extends Crdt<?, ?>> resourceClass) {
+    lock.lock();
+    final CrdtIdClassPair pair = new CrdtIdClassPair(resourceId, resourceClass);
+    try {
+      if (!crdtMap.containsKey(pair)) {
+        return false;
+      }
+      crdtMap = crdtMap.remove(pair);
+      return true;
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
   public boolean createGCounterCvRDT(String resourceId) {
     lock.lock();
     final CrdtIdClassPair pair = new CrdtIdClassPair(resourceId, GCounterCvRDT.class);
