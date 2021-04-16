@@ -38,11 +38,10 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 public class PerformanceTest {
-  private static final int NUM_ITERATIONS = 10;
-  private static final int ITERATION_TIME = 100;
+  private static final int NUM_ITERATIONS = 20;
   private static final int NUM_OF_FORKS = 2;
-  private static final int TIMES_TO_INCREMENT = 100;
-  private static final long NUM_OF_SECONDS_TO_WAIT = TimeUnit.SECONDS.toMillis(2);
+  private static final int TIMES_TO_INCREMENT = 50_000;
+  private static final long NUM_OF_SECONDS_TO_WAIT = TimeUnit.SECONDS.toMicros(5);
   private static final String RES_FILE_PATH =
       "src/main/resources/main/operationbased/PerformanceTest.csv";
 
@@ -139,14 +138,6 @@ public class PerformanceTest {
 
     @TearDown(Level.Iteration)
     public void check(BenchmarkParams params) throws InterruptedException {
-      for (int i = 0; i < NUM_OF_SECONDS_TO_WAIT / 100; i++) {
-        if (!gCounters.forAll(counter -> counter.query() == TIMES_TO_INCREMENT)) {
-          TimeUnit.MILLISECONDS.sleep(100);
-        } else {
-          break;
-        }
-      }
-
       gCounters.forEach(
           counter -> {
             if (counter.query() != TIMES_TO_INCREMENT) {
@@ -160,8 +151,8 @@ public class PerformanceTest {
   }
 
   @Fork(NUM_OF_FORKS)
-  @Warmup(iterations = NUM_ITERATIONS, time = ITERATION_TIME, timeUnit = TimeUnit.MILLISECONDS)
-  @Measurement(iterations = NUM_ITERATIONS, time = ITERATION_TIME, timeUnit = TimeUnit.MILLISECONDS)
+  @Warmup(iterations = NUM_ITERATIONS, timeUnit = TimeUnit.MILLISECONDS)
+  @Measurement(iterations = NUM_ITERATIONS, timeUnit = TimeUnit.MILLISECONDS)
   @BenchmarkMode(Mode.SingleShotTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   public static class GCounterTest {
@@ -170,10 +161,20 @@ public class PerformanceTest {
     @Warmup(batchSize = TIMES_TO_INCREMENT)
     @Measurement(batchSize = TIMES_TO_INCREMENT)
     @Benchmark
-    public void increment(final GCounterCmrdtState state, final Blackhole bh) {
+    public void increment(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
       final GCounterCmRDT sourceGCounter = state.gCounters.get(0);
       sourceGCounter.increment();
 
+      if (sourceGCounter.query() == TIMES_TO_INCREMENT) {
+        for (int i = 0; i < NUM_OF_SECONDS_TO_WAIT / 100; i++) {
+          if (!state.gCounters.forAll(counter -> counter.query() == TIMES_TO_INCREMENT)) {
+            TimeUnit.MICROSECONDS.sleep(100);
+          } else {
+            break;
+          }
+        }
+      }
       bh.consume(sourceGCounter);
     }
   }
