@@ -9,7 +9,5 @@ public interface CrdtRegistry {
 
   boolean createGCounterCvRDT(String resourceId);
 
-  Crdt<?, ?> crdt(String crdtId);
-
   <T extends Crdt<?, ?>> T crdt(String crdtId, Class<T> crdtType);
 }
