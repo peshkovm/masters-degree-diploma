@@ -8,6 +8,8 @@ public interface CrdtRegistry {
 
   boolean createGCounterCmRDT(String resourceId);
 
+  boolean createLWWRegisterCmRDT(String resourceId);
+
   boolean createGCounterCvRDT(String resourceId);
 
   boolean deleteCRDT(String resourceId, Class<? extends Crdt<?, ?>> resourceClass);

@@ -91,6 +91,11 @@ public class DefaultCrdtService implements CrdtService {
           isCreated = crdtRegistry.createGCounterCvRDT(resourceId);
           break;
         }
+      case LWWRegisterCmRDT:
+        {
+          isCreated = crdtRegistry.createLWWRegisterCmRDT(resourceId);
+          break;
+        }
       default:
         logger.warn("Unexpected crdt type: {}", () -> resourceType);
     }

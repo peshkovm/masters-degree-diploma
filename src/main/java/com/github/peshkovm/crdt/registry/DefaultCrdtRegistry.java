@@ -2,6 +2,7 @@ package com.github.peshkovm.crdt.registry;
 
 import com.github.peshkovm.crdt.Crdt;
 import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
+import com.github.peshkovm.crdt.operationbased.LWWRegisterCmRDT;
 import com.github.peshkovm.crdt.replication.Replicator;
 import com.github.peshkovm.crdt.statebased.GCounterCvRDT;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
@@ -44,14 +45,14 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
   }
 
   @Override
-  public boolean deleteCRDT(String resourceId, Class<? extends Crdt<?, ?>> resourceClass) {
+  public boolean createLWWRegisterCmRDT(String resourceId) {
     lock.lock();
-    final CrdtIdClassPair pair = new CrdtIdClassPair(resourceId, resourceClass);
+    final CrdtIdClassPair pair = new CrdtIdClassPair(resourceId, LWWRegisterCmRDT.class);
     try {
-      if (!crdtMap.containsKey(pair)) {
+      if (crdtMap.containsKey(pair)) {
         return false;
       }
-      crdtMap = crdtMap.remove(pair);
+      crdtMap = crdtMap.put(pair, new LWWRegisterCmRDT(resourceId, replicator));
       return true;
     } finally {
       lock.unlock();
@@ -70,6 +71,21 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
       final int id = discovery.getDiscoveryNodes().toList().indexOf(discovery.getSelf());
 
       crdtMap = crdtMap.put(pair, new GCounterCvRDT(resourceId, numOfNodes, id, replicator));
+      return true;
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
+  public boolean deleteCRDT(String resourceId, Class<? extends Crdt<?, ?>> resourceClass) {
+    lock.lock();
+    final CrdtIdClassPair pair = new CrdtIdClassPair(resourceId, resourceClass);
+    try {
+      if (!crdtMap.containsKey(pair)) {
+        return false;
+      }
+      crdtMap = crdtMap.remove(pair);
       return true;
     } finally {
       lock.unlock();

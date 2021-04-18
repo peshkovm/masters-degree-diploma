@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class ClusterCmrdtTest extends BaseClusterTest {
+public class GCounterCmRDTTest extends BaseClusterTest {
 
   private Vector<CrdtService> crdtServices;
 
