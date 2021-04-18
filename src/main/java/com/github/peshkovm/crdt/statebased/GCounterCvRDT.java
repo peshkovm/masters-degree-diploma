@@ -35,6 +35,11 @@ public class GCounterCvRDT extends AbstractCvRDT<Long, Long, Vector<Long>> imple
   }
 
   @Override
+  public Long value() {
+    return query();
+  }
+
+  @Override
   protected Long queryImpl() {
     return integers.sum().longValue();
   }

@@ -35,6 +35,11 @@ public abstract class CounterCmRDT extends AbstractCmRDT<Long, Long> implements 
   }
 
   @Override
+  public Long value() {
+    return query();
+  }
+
+  @Override
   protected Long queryImpl() {
     return i;
   }

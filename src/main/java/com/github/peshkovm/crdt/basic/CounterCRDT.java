@@ -16,4 +16,11 @@ public interface CounterCRDT extends Crdt<Long, Long> {
 
   /** Decrements counter's payload. */
   void decrement();
+
+  /**
+   * Returns counter's payload
+   *
+   * @return
+   */
+  Long value();
 }

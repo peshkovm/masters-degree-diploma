@@ -65,7 +65,7 @@ public class ClusterCmrdtTest extends BaseClusterTest {
 
     logger.info("Waiting for query");
     for (int i = 0; i < numOfSecondsToWait / 100; i++) {
-      if (!gCounters.forAll(counter -> counter.query() == timesToIncrement)) {
+      if (!gCounters.forAll(counter -> counter.value() == timesToIncrement)) {
         TimeUnit.MILLISECONDS.sleep(100);
       } else {
         break;
@@ -73,7 +73,7 @@ public class ClusterCmrdtTest extends BaseClusterTest {
     }
 
     try {
-      gCounters.forEach(counter -> Assertions.assertEquals(counter.query(), timesToIncrement));
+      gCounters.forEach(counter -> Assertions.assertEquals(counter.value(), timesToIncrement));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -134,14 +134,14 @@ public class ClusterCmrdtTest extends BaseClusterTest {
         });
 
     for (int i = 0; i < numOfSecondsToWait / 100; i++) {
-      if (!gCounters1.forAll(counter -> counter.query() == timesToIncrement1)) {
+      if (!gCounters1.forAll(counter -> counter.value() == timesToIncrement1)) {
         TimeUnit.MILLISECONDS.sleep(100);
       } else {
         break;
       }
     }
     for (int i = 0; i < numOfSecondsToWait / 100; i++) {
-      if (!gCounters2.forAll(counter -> counter.query() == timesToIncrement2)) {
+      if (!gCounters2.forAll(counter -> counter.value() == timesToIncrement2)) {
         TimeUnit.MILLISECONDS.sleep(100);
       } else {
         break;
@@ -149,8 +149,8 @@ public class ClusterCmrdtTest extends BaseClusterTest {
     }
 
     try {
-      gCounters1.forEach(counter -> Assertions.assertEquals(counter.query(), timesToIncrement1));
-      gCounters2.forEach(counter -> Assertions.assertEquals(counter.query(), timesToIncrement2));
+      gCounters1.forEach(counter -> Assertions.assertEquals(counter.value(), timesToIncrement1));
+      gCounters2.forEach(counter -> Assertions.assertEquals(counter.value(), timesToIncrement2));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -187,7 +187,7 @@ public class ClusterCmrdtTest extends BaseClusterTest {
         });
 
     for (int i = 0; i < numOfSecondsToWait / 100; i++) {
-      if (!gCounters.forAll(counter -> counter.query() == timesToIncrement)) {
+      if (!gCounters.forAll(counter -> counter.value() == timesToIncrement)) {
         TimeUnit.MILLISECONDS.sleep(100);
       } else {
         break;
@@ -195,7 +195,7 @@ public class ClusterCmrdtTest extends BaseClusterTest {
     }
 
     try {
-      gCounters.forEach(counter -> Assertions.assertEquals(counter.query(), timesToIncrement));
+      gCounters.forEach(counter -> Assertions.assertEquals(counter.value(), timesToIncrement));
     } catch (Exception e) {
       e.printStackTrace();
     }
