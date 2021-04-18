@@ -1,4 +1,4 @@
-package com.github.peshkovm.crdt.operationbased;
+package com.github.peshkovm.crdt.basic;
 
 import com.github.peshkovm.crdt.Crdt;
 
