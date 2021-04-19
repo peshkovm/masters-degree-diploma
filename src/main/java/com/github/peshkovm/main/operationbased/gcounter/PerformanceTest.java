@@ -43,7 +43,7 @@ public class PerformanceTest {
   private static final int TIMES_TO_INCREMENT = 50_000;
   private static final long NUM_OF_SECONDS_TO_WAIT = TimeUnit.SECONDS.toMicros(5);
   private static final String RES_FILE_PATH =
-      "src/main/resources/main/operationbased/PerformanceTest.csv";
+      "src/main/resources/main/operationbased/gcounter/PerformanceTest.csv";
 
   @State(Scope.Benchmark)
   public abstract static class CrdtState {
