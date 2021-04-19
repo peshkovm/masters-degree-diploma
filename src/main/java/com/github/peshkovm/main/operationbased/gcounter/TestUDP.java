@@ -1,30 +1,36 @@
-package com.github.peshkovm.main.operationbased;
+package com.github.peshkovm.main.operationbased.gcounter;
 
 import com.github.peshkovm.crdt.CrdtService;
+import com.github.peshkovm.crdt.operationbased.AbstractCmRDT;
 import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
+import com.github.peshkovm.crdt.operationbased.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.main.common.TestUtils;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
+import com.github.peshkovm.transport.DiscoveryNode;
+import com.github.peshkovm.transport.TransportService;
 import com.github.peshkovm.transport.netty.NettyTransportService;
 import io.vavr.collection.Vector;
+import io.vavr.control.Option;
 import java.util.concurrent.TimeUnit;
 
-public class TestNodeDisconnection extends TestUtils {
+public class TestUDP extends TestUtils {
 
   private Vector<CrdtService> crdtServices;
+  private TransportService transportService;
 
   public static void main(String[] args) throws Exception {
-    final TestNodeDisconnection testInstance = new TestNodeDisconnection();
+    final TestUDP testInstance = new TestUDP();
     try {
       testInstance.setUpNodes();
-      testInstance.shouldConvergeWhenConnectionWillBeEstablished();
+      testInstance.shouldNotConvergeWhenUsingUdpProtocol();
     } finally {
       testInstance.tearDownNodes();
     }
   }
 
-  void shouldConvergeWhenConnectionWillBeEstablished() throws Exception {
+  void shouldNotConvergeWhenUsingUdpProtocol() throws Exception {
     final String crdtId = "countOfLikes";
     final int timesToIncrement = 100;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
@@ -40,31 +46,54 @@ public class TestNodeDisconnection extends TestUtils {
       final GCounterCmRDT sourceGCounter = gCounters.head();
       sourceGCounter.increment();
 
-      if (incrementNum == 25) {
-        partition(nodes.get(1));
-      }
-      if (incrementNum == 50) {
-        recoverFromPartition(nodes.get(1));
+      if (incrementNum == timesToIncrement / 2) {
+        final Class<AbstractCmRDT<Long, Long>> type =
+            (Class<AbstractCmRDT<Long, Long>>) ((AbstractCmRDT) sourceGCounter).getClass();
+
+        final DownstreamUpdate<Long, Long> downstreamUpdate =
+            new DownstreamUpdate<>(crdtId, Option.none(), type, 1L);
+
+        final DiscoveryNode nodeToSend =
+            nodes.get(1).getBeanFactory().getBean(ClusterDiscovery.class).getSelf();
+
+        transportService.send(nodeToSend, downstreamUpdate);
       }
     }
 
     logger.info("Waiting for query");
     for (int i = 0; i < numOfSecondsToWait / 100; i++) {
-      if (!gCounters.forAll(counter -> counter.query() == timesToIncrement)) {
+      if (!gCounters
+          .zipWithIndex()
+          .forAll(
+              tuple2 -> {
+                final GCounterCmRDT counter = tuple2._1();
+                final Integer index = tuple2._2();
+
+                return index == 1
+                    ? counter.query() == timesToIncrement + 1
+                    : counter.query() == timesToIncrement;
+              })) {
         TimeUnit.MILLISECONDS.sleep(100);
       } else {
         break;
       }
     }
 
-    gCounters.forEach(
-        counter -> {
-          if (counter.query() != timesToIncrement) {
-            logger.error("FAILURE");
-            throw new AssertionError(
-                "\nExpected :" + timesToIncrement + "\nActual   :" + counter.query());
-          }
-        });
+    gCounters
+        .zipWithIndex()
+        .forEach(
+            tuple2 -> {
+              final GCounterCmRDT counter = tuple2._1();
+              final Integer index = tuple2._2();
+
+              if (!(index == 1
+                  ? counter.query() == timesToIncrement + 1
+                  : counter.query() == timesToIncrement)) {
+                logger.error("FAILURE");
+                throw new AssertionError(
+                    "\nExpected :" + timesToIncrement + "\nActual   :" + counter.query());
+              }
+            });
     logger.info("SUCCESSFUL");
   }
 
@@ -76,6 +105,7 @@ public class TestNodeDisconnection extends TestUtils {
     connectAllNodes();
 
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
+    transportService = nodes.head().getBeanFactory().getBean(TransportService.class);
   }
 
   private void createResource(String crdt, ResourceType crdtType) {

@@ -1,4 +1,4 @@
-package com.github.peshkovm.main.operationbased;
+package com.github.peshkovm.main.operationbased.gcounter;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.crdt.CrdtService;

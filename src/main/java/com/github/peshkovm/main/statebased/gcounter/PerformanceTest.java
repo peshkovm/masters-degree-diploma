@@ -1,4 +1,4 @@
-package com.github.peshkovm.main.statebased;
+package com.github.peshkovm.main.statebased.gcounter;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.crdt.CrdtService;
