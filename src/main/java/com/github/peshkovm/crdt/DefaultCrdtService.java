@@ -1,6 +1,7 @@
 package com.github.peshkovm.crdt;
 
 import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
+import com.github.peshkovm.crdt.operationbased.LWWRegisterCmRDT;
 import com.github.peshkovm.crdt.operationbased.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.registry.CrdtRegistry;
 import com.github.peshkovm.crdt.routing.ResourceType;
@@ -86,14 +87,14 @@ public class DefaultCrdtService implements CrdtService {
           isCreated = crdtRegistry.createGCounterCmRDT(resourceId);
           break;
         }
+      case LWWRegisterCmRDT:
+      {
+        isCreated = crdtRegistry.createLWWRegisterCmRDT(resourceId);
+        break;
+      }
       case GCounterCvRDT:
         {
           isCreated = crdtRegistry.createGCounterCvRDT(resourceId);
-          break;
-        }
-      case LWWRegisterCmRDT:
-        {
-          isCreated = crdtRegistry.createLWWRegisterCmRDT(resourceId);
           break;
         }
       default:
@@ -118,6 +119,11 @@ public class DefaultCrdtService implements CrdtService {
           isDeleted = crdtRegistry.deleteCRDT(resourceId, GCounterCmRDT.class);
           break;
         }
+      case LWWRegisterCmRDT:
+      {
+        isDeleted = crdtRegistry.deleteCRDT(resourceId, LWWRegisterCmRDT.class);
+        break;
+      }
       case GCounterCvRDT:
         {
           isDeleted = crdtRegistry.deleteCRDT(resourceId, GCounterCvRDT.class);
