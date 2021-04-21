@@ -5,6 +5,7 @@ import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.netty.NettyClient;
 import com.github.peshkovm.common.netty.NettyProvider;
+import com.github.peshkovm.diagram.DiagramArrowCodec;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
+  private final DiagramArrowCodec diagramArrowCodec;
   private volatile Map<DiscoveryNode, Channel> connectedNodes = HashMap.empty();
   private final ReentrantLock connectionLock = new ReentrantLock();
   private final TransportController transportController;
@@ -43,9 +45,13 @@ public class NettyTransportService extends NettyClient implements TransportServi
    * @param transportController transport controller to dispatch messages
    */
   @Autowired
-  public NettyTransportService(NettyProvider provider, TransportController transportController) {
+  public NettyTransportService(
+      NettyProvider provider,
+      TransportController transportController,
+      DiagramArrowCodec diagramArrowCodec) {
     super(provider);
     this.transportController = transportController;
+    this.diagramArrowCodec = diagramArrowCodec;
   }
 
   @Override
@@ -63,6 +69,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+      pipeline.addLast(diagramArrowCodec);
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportClientHandler());
     }
   }
@@ -164,6 +171,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
   public static class DiscoveryFuture {
 
     private final DiscoveryNode discoveryNode;
+
     private final Future<? extends DiscoveryNode> future;
 
     public DiscoveryFuture(DiscoveryNode discoveryNode, Future<? extends DiscoveryNode> future) {

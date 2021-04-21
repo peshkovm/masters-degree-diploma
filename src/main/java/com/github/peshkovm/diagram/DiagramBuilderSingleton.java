@@ -49,6 +49,9 @@ public class DiagramBuilderSingleton {
   @Value("${diagram.nodeHeight}")
   private int nodeHeight;
 
+  @Value("${diagram.isActive}")
+  private boolean isActive;
+
   private DiagramBuilderSingleton() {
     Root root = new Root(new RootMxCell(), new DiagramMxCell());
     final MxGraphModel mxGraphModel = new MxGraphModel(root);
@@ -93,6 +96,8 @@ public class DiagramBuilderSingleton {
   }
 
   public synchronized DiagramBuilderSingleton addNode(String name, DrawIOColor color) {
+    if (!isActive) return instance;
+
     NodeMxCell newNode;
 
     newNode = new NodeMxCell(nodes.size(), name, color, new NodeMxGeometry(40, 40, 80, nodeHeight));
@@ -109,6 +114,8 @@ public class DiagramBuilderSingleton {
       ArrowEdgeShape endArrow,
       SourceMxPoint sourceMxPoint,
       TargetMxPoint targetMxPoint) {
+
+    if (!isActive) return instance;
 
     if (nodes.isEmpty()) {
       throw new IllegalStateException("Should create at least 2 nodes first");
@@ -129,6 +136,8 @@ public class DiagramBuilderSingleton {
   }
 
   public synchronized void build() throws Exception {
+    if (!isActive) return;
+
     final long minSourceX =
         arrows.stream()
             .map(arrow -> arrow.getMxGeometry().getSourceMxPoint().getX())

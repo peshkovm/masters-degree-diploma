@@ -10,6 +10,7 @@ import io.vavr.collection.Set;
 public final class InternalClusterFactory {
 
   private static Set<Integer> ports = HashSet.empty(); // List of cluster nodes ports
+  private static Set<String> diagramNodesNames = HashSet.empty(); // List of diagram nodes names
 
   private InternalClusterFactory() {}
 
@@ -32,6 +33,22 @@ public final class InternalClusterFactory {
             + " ports in application.conf");
   }
 
+  private static String diagramNodeName() {
+    final Config config = new ConfigBuilder().build();
+    for (String nodeName : config.getStringList("diagram.nodes")) {
+      if (!diagramNodesNames.contains(nodeName)) {
+        diagramNodesNames = diagramNodesNames.add(nodeName);
+        return nodeName;
+      }
+    }
+    throw new IllegalStateException(
+        "Trying to create "
+            + (diagramNodesNames.size() + 1)
+            + " diagram nodes but only has "
+            + diagramNodesNames.size()
+            + " diagram nodes in application.conf");
+  }
+
   /**
    * Creates internal node on same JVM with localhost and port form application.conf.
    *
@@ -40,8 +57,13 @@ public final class InternalClusterFactory {
   public static InternalNode createInternalNode(Object... optionalBeans) {
     final String host = "127.0.0.1";
     final int port = port();
+    final String diagramNodeName = diagramNodeName();
     final Config config =
-        new ConfigBuilder().with("transport.host", host).with("transport.port", port).build();
+        new ConfigBuilder()
+            .with("transport.host", host)
+            .with("transport.port", port)
+            .with("diagram.node.name", diagramNodeName)
+            .build();
 
     final InternalNode internalNode = new InternalNode(config, optionalBeans);
 

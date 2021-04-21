@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 
 @Data
 public class DiagramHelperSingleton {
@@ -24,6 +25,9 @@ public class DiagramHelperSingleton {
   private final Map<Long, ArrowSourceInfo> arrowsSourceMap;
   private final Map<Long, ArrowTargetInfo> arrowsTargetMap;
   private long id;
+
+  @Value("${diagram.isActive}")
+  private boolean isActive;
 
   private DiagramHelperSingleton() {
     nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
@@ -47,6 +51,7 @@ public class DiagramHelperSingleton {
   }
 
   public synchronized void addNode(String name, DrawIOColor color) {
+    if (!isActive) return;
     diagramBuilder.addNode(name, color);
     nodesMap.put(nodes.get(nodes.size() - 1).getValue(), nodes.get(nodes.size() - 1));
   }
@@ -57,6 +62,8 @@ public class DiagramHelperSingleton {
 
   public synchronized void addArrowSourcePoint(
       long id, ArrowEdgeShape startArrowShape, String nodeName, long y) {
+    if (!isActive) return;
+
     final NodeMxCell node = nodesMap.get(nodeName);
     final long x = node.getMxGeometry().getX();
 
@@ -65,6 +72,8 @@ public class DiagramHelperSingleton {
 
   public synchronized void addArrowTargetPoint(
       long id, ArrowEdgeShape endArrowShape, String nodeName, long y) {
+    if (!isActive) return;
+
     final NodeMxCell node = nodesMap.get(nodeName);
     final long x = node.getMxGeometry().getX();
 
@@ -72,6 +81,8 @@ public class DiagramHelperSingleton {
   }
 
   public synchronized void commitArrow(long id, String arrowName, DrawIOColor arrowColor) {
+    if (!isActive) return;
+
     final ArrowSourceInfo arrowSourceInfo = arrowsSourceMap.get(id);
     final ArrowTargetInfo arrowTargetInfo = arrowsTargetMap.get(id);
 

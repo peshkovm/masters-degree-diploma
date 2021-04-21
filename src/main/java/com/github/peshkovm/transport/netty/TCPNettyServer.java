@@ -3,6 +3,7 @@ package com.github.peshkovm.transport.netty;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.common.netty.NettyServer;
+import com.github.peshkovm.diagram.DiagramArrowCodec;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportServer;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 public class TCPNettyServer extends NettyServer implements TransportServer {
 
   private final TransportController transportController;
+  private final DiagramArrowCodec diagramArrowCodec;
 
   /**
    * Constructs a new instance.
@@ -39,11 +41,13 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
   public TCPNettyServer(
       @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") Config config,
       NettyProvider provider,
-      TransportController transportController) {
+      TransportController transportController,
+      DiagramArrowCodec diagramArrowCodec) {
     super(
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
         provider);
     this.transportController = transportController;
+    this.diagramArrowCodec = diagramArrowCodec;
   }
 
   @Override
@@ -61,6 +65,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+      pipeline.addLast(diagramArrowCodec);
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportServerHandler());
     }
   }
