@@ -11,8 +11,8 @@ import org.simpleframework.xml.convert.Convert;
 @Convert(NodeMxGeometryConverter.class)
 public class NodeMxGeometry {
 
-  @Attribute private final int x;
-  @Attribute private final int y;
+  @Attribute private final long x;
+  @Attribute private final long y;
   @Attribute private final int width;
   @Attribute private final int height;
   @Attribute private final String as = "geometry";

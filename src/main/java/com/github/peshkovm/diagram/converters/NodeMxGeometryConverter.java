@@ -14,8 +14,8 @@ public class NodeMxGeometryConverter implements Converter<NodeMxGeometry> {
 
   @Override
   public void write(OutputNode outputNode, NodeMxGeometry nodeMxGeometry) throws Exception {
-    final int x = nodeMxGeometry.getX();
-    final int y = nodeMxGeometry.getY();
+    final long x = nodeMxGeometry.getX();
+    final long y = nodeMxGeometry.getY();
     final int width = nodeMxGeometry.getWidth();
     final int height = nodeMxGeometry.getHeight();
     final String as = nodeMxGeometry.getAs();

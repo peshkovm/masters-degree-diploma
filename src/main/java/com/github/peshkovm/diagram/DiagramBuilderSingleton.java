@@ -49,7 +49,7 @@ public class DiagramBuilderSingleton {
   @Value("${diagram.nodeHeight}")
   private int nodeHeight;
 
-  private DiagramBuilderSingleton() throws Exception {
+  private DiagramBuilderSingleton() {
     Root root = new Root(new RootMxCell(), new DiagramMxCell());
     final MxGraphModel mxGraphModel = new MxGraphModel(root);
     final Diagram diagram = new Diagram(diagramName, mxGraphModel);
@@ -60,23 +60,27 @@ public class DiagramBuilderSingleton {
     serializer = bindConverters();
   }
 
-  private static Serializer bindConverters() throws Exception {
+  private static Serializer bindConverters() {
     final Serializer serializer;
     Registry registry = new Registry();
     Strategy strategy = new RegistryStrategy(registry);
     serializer = new Persister(strategy);
 
-    registry.bind(RootMxCell.class, RootMxCellConverter.class);
-    registry.bind(DiagramMxCell.class, DiagramMxCellConverter.class);
-    registry.bind(NodeMxCell.class, NodeMxCellConverter.class);
-    registry.bind(ArrowMxCell.class, ArrowMxCellConverter.class);
-    registry.bind(NodeMxGeometry.class, NodeMxGeometryConverter.class);
-    registry.bind(ArrowMxGeometry.class, ArrowMxGeometryConverter.class);
+    try {
+      registry.bind(RootMxCell.class, RootMxCellConverter.class);
+      registry.bind(DiagramMxCell.class, DiagramMxCellConverter.class);
+      registry.bind(NodeMxCell.class, NodeMxCellConverter.class);
+      registry.bind(ArrowMxCell.class, ArrowMxCellConverter.class);
+      registry.bind(NodeMxGeometry.class, NodeMxGeometryConverter.class);
+      registry.bind(ArrowMxGeometry.class, ArrowMxGeometryConverter.class);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
     return serializer;
   }
 
-  public static DiagramBuilderSingleton getInstance() throws Exception {
+  public static DiagramBuilderSingleton getInstance() {
     if (instance != null) {
       return instance;
     }
