@@ -73,22 +73,14 @@ public class RaftTest extends BaseClusterTest {
 
     public Future<String> setValue(String value) {
       return raft.command(new RegisterValue(value))
-          .map(Vector::ofAll)
-          .map(commandResults -> commandResults.map(CommandResult::getResult))
-          .filter(
-              commandResults -> commandResults.forAll(result -> result instanceof RegisterValue))
-          .map(commandResults -> commandResults.map(result -> (RegisterValue) result))
+          .getFuture(RegisterValue.class)
           .map(registerValues -> registerValues.map(response -> (String) response.getValue()))
           .map(Vector::head);
     }
 
     public Future<String> getValue() {
       return raft.command(new RegisterValue(""))
-          .map(Vector::ofAll)
-          .map(commandResults -> commandResults.map(CommandResult::getResult))
-          .filter(
-              commandResults -> commandResults.forAll(result -> result instanceof RegisterValue))
-          .map(commandResults -> commandResults.map(result -> (RegisterValue) result))
+          .getFuture(RegisterValue.class)
           .map(registerValues -> registerValues.map(response -> (String) response.getValue()))
           .map(Vector::head);
     }

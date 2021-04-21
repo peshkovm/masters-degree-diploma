@@ -53,24 +53,14 @@ public class DefaultCrdtService implements CrdtService {
   public Future<Vector<AddResourceResponse>> addResource(
       String resourceId, ResourceType resourceType) {
     return raft.command(new AddResource(resourceId, resourceType))
-        .map(Vector::ofAll)
-        .map(commandResults -> commandResults.map(CommandResult::getResult))
-        .filter(
-            commandResults ->
-                commandResults.forAll(result -> result instanceof AddResourceResponse))
-        .map(commandResults -> commandResults.map(result -> (AddResourceResponse) result));
+        .getFuture(AddResourceResponse.class);
   }
 
   @Override
   public Future<Vector<DeleteResourceResponse>> deleteResource(
       String resourceId, ResourceType resourceType) {
     return raft.command(new DeleteResource(resourceId, resourceType))
-        .map(Vector::ofAll)
-        .map(commandResults -> commandResults.map(CommandResult::getResult))
-        .filter(
-            commandResults ->
-                commandResults.forAll(result -> result instanceof DeleteResourceResponse))
-        .map(commandResults -> commandResults.map(result -> (DeleteResourceResponse) result));
+        .getFuture(DeleteResourceResponse.class);
   }
 
   @Override
@@ -88,10 +78,10 @@ public class DefaultCrdtService implements CrdtService {
           break;
         }
       case LWWRegisterCmRDT:
-      {
-        isCreated = crdtRegistry.createLWWRegisterCmRDT(resourceId);
-        break;
-      }
+        {
+          isCreated = crdtRegistry.createLWWRegisterCmRDT(resourceId);
+          break;
+        }
       case GCounterCvRDT:
         {
           isCreated = crdtRegistry.createGCounterCvRDT(resourceId);
@@ -120,10 +110,10 @@ public class DefaultCrdtService implements CrdtService {
           break;
         }
       case LWWRegisterCmRDT:
-      {
-        isDeleted = crdtRegistry.deleteCRDT(resourceId, LWWRegisterCmRDT.class);
-        break;
-      }
+        {
+          isDeleted = crdtRegistry.deleteCRDT(resourceId, LWWRegisterCmRDT.class);
+          break;
+        }
       case GCounterCvRDT:
         {
           isDeleted = crdtRegistry.deleteCRDT(resourceId, GCounterCvRDT.class);

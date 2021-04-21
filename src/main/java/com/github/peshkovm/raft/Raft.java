@@ -13,6 +13,7 @@ import com.github.peshkovm.raft.resource.ResourceRegistry;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
+import io.vavr.collection.Vector;
 import io.vavr.concurrent.Future;
 import io.vavr.concurrent.Promise;
 import java.util.Map;
@@ -66,7 +67,24 @@ public class Raft extends AbstractLifecycleComponent {
     this.registry = registry;
   }
 
-  public Future<ConcurrentLinkedDeque<CommandResult>> command(Message command) {
+  public static class CommandFuture {
+
+    private final Future<ConcurrentLinkedDeque<CommandResult>> future;
+
+    public CommandFuture(Future<ConcurrentLinkedDeque<CommandResult>> future) {
+      this.future = future;
+    }
+
+    public <T> Future<Vector<T>> getFuture(Class<T> responseClass) {
+      return future
+          .map(Vector::ofAll)
+          .map(commandResults -> commandResults.map(CommandResult::getResult))
+          .filter(commandResults -> commandResults.forAll(responseClass::isInstance))
+          .map(commandResults -> commandResults.map(responseClass::cast));
+    }
+  }
+
+  public CommandFuture command(Message command) {
     final Promise<ConcurrentLinkedDeque<CommandResult>> promise = Promise.make();
     Promise<ConcurrentLinkedDeque<CommandResult>> prev;
     long session;
@@ -86,7 +104,7 @@ public class Raft extends AbstractLifecycleComponent {
 
     apply(clientMessage);
 
-    return promise.future();
+    return new CommandFuture(promise.future());
   }
 
   public void apply(Message event) {
@@ -108,8 +126,7 @@ public class Raft extends AbstractLifecycleComponent {
 
   private abstract static class State {
 
-    @Getter
-    private final RaftMetadata meta;
+    @Getter private final RaftMetadata meta;
 
     private State(RaftMetadata meta) {
       this.meta = meta;
@@ -231,10 +248,8 @@ public class Raft extends AbstractLifecycleComponent {
   }
 
   @Override
-  protected void doStop() {
-  }
+  protected void doStop() {}
 
   @Override
-  protected void doClose() {
-  }
+  protected void doClose() {}
 }
