@@ -6,15 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Sinks;
 
-/**
- * Spring Configuration class for common beans.
- */
+/** Spring Configuration class for common beans. */
 @Configuration
 @ComponentScan("com.github.peshkovm")
-public class ComponentConfiguration {
-
-  @Bean
-  public Sinks.Many<Resource> eventBus() {
-    return Sinks.many().replay().all();
-  }
-}
+public class ComponentConfiguration {}
