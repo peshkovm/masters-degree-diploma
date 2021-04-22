@@ -11,6 +11,14 @@ import org.simpleframework.xml.convert.Convert;
 @Convert(DiagramMxCellConverter.class)
 public class DiagramMxCell {
 
-  @Attribute private final int id = 1;
-  @Attribute private final int parent = 0;
+  @Attribute private static final int id = 1;
+  @Attribute private static final int parent = 0;
+
+  public static int getId() {
+    return id;
+  }
+
+  public static int getParent() {
+    return parent;
+  }
 }

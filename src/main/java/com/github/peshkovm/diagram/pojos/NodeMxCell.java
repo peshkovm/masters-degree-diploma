@@ -19,7 +19,9 @@ public class NodeMxCell {
   @Transient private final DrawIOColor color;
   @Attribute private final String style;
   @Attribute private final int vertex = 1;
-  @Element private final NodeMxGeometry mxGeometry;
+
+  @Element(name = "mxGeometry")
+  private final NodeMxGeometry mxGeometry;
 
   public NodeMxCell(int id, String value, DrawIOColor color, NodeMxGeometry mxGeometry) {
     this.id = id + 2;

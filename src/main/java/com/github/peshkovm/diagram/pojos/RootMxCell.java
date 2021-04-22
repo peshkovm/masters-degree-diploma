@@ -11,5 +11,9 @@ import org.simpleframework.xml.convert.Convert;
 @Convert(RootMxCellConverter.class)
 public class RootMxCell {
 
-  @Attribute private final int id = 0;
+  @Attribute private static final int id = 0;
+
+  public static int getId() {
+    return id;
+  }
 }

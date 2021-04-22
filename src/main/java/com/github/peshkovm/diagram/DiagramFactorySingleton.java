@@ -2,11 +2,11 @@ package com.github.peshkovm.diagram;
 
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
-import com.github.peshkovm.diagram.pojos.ArrowMxCell;
 import com.github.peshkovm.diagram.pojos.ArrowMxCell.ArrowEdgeShape;
 import com.github.peshkovm.diagram.pojos.NodeMxCell;
 import com.github.peshkovm.diagram.pojos.SourceMxPoint;
 import com.github.peshkovm.diagram.pojos.TargetMxPoint;
+import com.github.peshkovm.node.InternalNode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -18,10 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 @Data
 public class DiagramFactorySingleton {
   private static volatile DiagramFactorySingleton instance;
-  private static volatile DiagramBuilderSingleton diagramBuilder =
-      DiagramBuilderSingleton.getInstance();
-  private final List<NodeMxCell> nodes;
-  private final List<ArrowMxCell> arrows;
+  private static volatile DiagramBuilderSingleton diagramBuilder;
+  private List<NodeMxCell> nodes;
   private final Map<String, NodeMxCell> nodesMap;
   private final Map<Long, ArrowSourceInfo> arrowsSourceMap;
   private final Map<Long, ArrowTargetInfo> arrowsTargetMap;
@@ -32,8 +30,6 @@ public class DiagramFactorySingleton {
   private boolean isActive;
 
   private DiagramFactorySingleton() {
-    nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
-    arrows = Collections.unmodifiableList(diagramBuilder.getArrows());
     nodesMap = new HashMap<>();
     arrowsSourceMap = new HashMap<>();
     arrowsTargetMap = new HashMap<>();
@@ -52,9 +48,20 @@ public class DiagramFactorySingleton {
     }
   }
 
-  public synchronized void addNode(String name, DrawIOColor color) {
+  public synchronized void createDiagram(String diagramName, int nodeHeight) {
+    diagramBuilder = DiagramBuilderSingleton.getInstance(diagramName, nodeHeight);
+    nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
+  }
+
+  public synchronized void addNode(InternalNode internalNode, DrawIOColor color) {
     if (!isActive) return;
-    diagramBuilder.addNode(name, color);
+
+    final DiagramNodeMeta nodeMeta = internalNode.getBeanFactory().getBean(DiagramNodeMeta.class);
+
+    if (nodes.isEmpty()) diagramBuilder.addNode(nodeMeta.getNodeName(), 40, color);
+    else
+      diagramBuilder.addNode(
+          nodeMeta.getNodeName(), nodes.get(nodes.size() - 1).getMxGeometry().getX() + 160, color);
     nodesMap.put(nodes.get(nodes.size() - 1).getValue(), nodes.get(nodes.size() - 1));
   }
 
@@ -108,8 +115,12 @@ public class DiagramFactorySingleton {
         arrowTargetInfo.targetMxPoint);
   }
 
-  public synchronized void setDiagramName(String diagramName) {
-    diagramBuilder.setDiagramName(diagramName);
+  public synchronized void buildDiagram() {
+    try {
+      diagramBuilder.build();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public synchronized void setOutputPath(String outputPath) {

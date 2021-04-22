@@ -13,12 +13,12 @@ public class DiagramMxCellConverter implements Converter<DiagramMxCell> {
   }
 
   @Override
-  public void write(OutputNode node, DiagramMxCell diagramMxCell) throws Exception {
-    final int id = diagramMxCell.getId();
-    final int parent = diagramMxCell.getParent();
+  public void write(OutputNode outputNode, DiagramMxCell diagramMxCell) throws Exception {
+    final int id = DiagramMxCell.getId();
+    final int parent = DiagramMxCell.getParent();
 
-    node.setAttribute("id", String.valueOf(id));
-    node.setAttribute("parent", String.valueOf(parent));
-    node.setName("mxCell");
+    outputNode.setAttribute("id", String.valueOf(id));
+    outputNode.setAttribute("parent", String.valueOf(parent));
+    outputNode.setName("mxCell");
   }
 }

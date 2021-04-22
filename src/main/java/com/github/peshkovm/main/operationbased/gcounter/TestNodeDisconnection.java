@@ -4,6 +4,7 @@ import com.github.peshkovm.crdt.CrdtService;
 import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
+import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.main.common.TestUtils;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
@@ -30,9 +31,12 @@ public class TestNodeDisconnection extends TestUtils {
 
   void shouldConvergeWhenConnectionWillBeEstablished() throws Exception {
     final String crdtId = "countOfLikes";
-    diagramHelper.setDiagramName("Should converge when connection will be established");
+    diagramHelper.createDiagram("Should converge when connection will be established", 280);
     diagramHelper.setOutputPath(
         "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml");
+    diagramHelper.addNode(nodes.get(0), DrawIOColor.ORANGE);
+    diagramHelper.addNode(nodes.get(1), DrawIOColor.BLUE);
+    diagramHelper.addNode(nodes.get(2), DrawIOColor.GREEN);
 
     final int timesToIncrement = 10;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
@@ -73,6 +77,8 @@ public class TestNodeDisconnection extends TestUtils {
                 "\nExpected :" + timesToIncrement + "\nActual   :" + counter.query());
           }
         });
+
+    diagramHelper.buildDiagram();
     logger.info("SUCCESSFUL");
   }
 

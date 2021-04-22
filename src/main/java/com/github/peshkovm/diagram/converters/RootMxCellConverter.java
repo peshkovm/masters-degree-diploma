@@ -13,10 +13,10 @@ public class RootMxCellConverter implements Converter<RootMxCell> {
   }
 
   @Override
-  public void write(OutputNode node, RootMxCell rootMxCell) throws Exception {
-    final int id = rootMxCell.getId();
+  public void write(OutputNode outputNode, RootMxCell rootMxCell) throws Exception {
+    final int id = RootMxCell.getId();
 
-    node.setAttribute("id", String.valueOf(id));
-    node.setName("mxCell");
+    outputNode.setAttribute("id", String.valueOf(id));
+    outputNode.setName("mxCell");
   }
 }

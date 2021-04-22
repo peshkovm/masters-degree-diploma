@@ -21,7 +21,9 @@ public class ArrowMxCell {
   @Attribute private final ArrowEdgeShape startArrow;
   @Attribute private final ArrowEdgeShape endArrow;
   @Transient private final DrawIOColor color;
-  @Element private final ArrowMxGeometry mxGeometry;
+
+  @Element(name = "arrowMxGeometry")
+  private final ArrowMxGeometry mxGeometry;
 
   public ArrowMxCell(
       int id,
