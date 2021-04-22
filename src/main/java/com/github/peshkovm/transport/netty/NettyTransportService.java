@@ -6,6 +6,8 @@ import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.netty.NettyClient;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.diagram.DiagramArrowCodec;
+import com.github.peshkovm.diagram.DiagramFactorySingleton;
+import com.github.peshkovm.diagram.DiagramNodeMeta;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
@@ -33,7 +35,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
-  private final DiagramArrowCodec diagramArrowCodec;
+  private final DiagramFactorySingleton diagramHelper;
+  private final DiagramNodeMeta diagramNodeMeta;
   private volatile Map<DiscoveryNode, Channel> connectedNodes = HashMap.empty();
   private final ReentrantLock connectionLock = new ReentrantLock();
   private final TransportController transportController;
@@ -48,10 +51,12 @@ public class NettyTransportService extends NettyClient implements TransportServi
   public NettyTransportService(
       NettyProvider provider,
       TransportController transportController,
-      DiagramArrowCodec diagramArrowCodec) {
+      DiagramFactorySingleton diagramHelper,
+      DiagramNodeMeta diagramNodeMeta) {
     super(provider);
     this.transportController = transportController;
-    this.diagramArrowCodec = diagramArrowCodec;
+    this.diagramHelper = diagramHelper;
+    this.diagramNodeMeta = diagramNodeMeta;
   }
 
   @Override
@@ -69,7 +74,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(diagramArrowCodec);
+      pipeline.addLast(new DiagramArrowCodec(diagramHelper, diagramNodeMeta));
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportClientHandler());
     }
   }

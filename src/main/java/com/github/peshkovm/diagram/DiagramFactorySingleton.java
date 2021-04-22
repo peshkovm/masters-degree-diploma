@@ -12,11 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 
 @Data
-public class DiagramHelperSingleton {
-  private static volatile DiagramHelperSingleton instance;
+public class DiagramFactorySingleton {
+  private static volatile DiagramFactorySingleton instance;
   private static volatile DiagramBuilderSingleton diagramBuilder =
       DiagramBuilderSingleton.getInstance();
   private final List<NodeMxCell> nodes;
@@ -27,9 +28,10 @@ public class DiagramHelperSingleton {
   private long id;
 
   @Value("${diagram.isActive}")
+  @Getter
   private boolean isActive;
 
-  private DiagramHelperSingleton() {
+  private DiagramFactorySingleton() {
     nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
     arrows = Collections.unmodifiableList(diagramBuilder.getArrows());
     nodesMap = new HashMap<>();
@@ -38,13 +40,13 @@ public class DiagramHelperSingleton {
     id = 0;
   }
 
-  public static DiagramHelperSingleton getInstance() {
+  public static DiagramFactorySingleton getInstance() {
     if (instance != null) {
       return instance;
     }
-    synchronized (DiagramHelperSingleton.class) {
+    synchronized (DiagramFactorySingleton.class) {
       if (instance == null) {
-        instance = new DiagramHelperSingleton();
+        instance = new DiagramFactorySingleton();
       }
       return instance;
     }
@@ -63,6 +65,9 @@ public class DiagramHelperSingleton {
   public synchronized void addArrowSourcePoint(
       long id, ArrowEdgeShape startArrowShape, String nodeName, long y) {
     if (!isActive) return;
+    if (nodes.isEmpty()) {
+      throw new IllegalStateException("Should create at least 2 nodes first");
+    }
 
     final NodeMxCell node = nodesMap.get(nodeName);
     final long x = node.getMxGeometry().getX();
@@ -74,6 +79,10 @@ public class DiagramHelperSingleton {
       long id, ArrowEdgeShape endArrowShape, String nodeName, long y) {
     if (!isActive) return;
 
+    if (nodes.isEmpty()) {
+      throw new IllegalStateException("Should create at least 2 nodes first");
+    }
+
     final NodeMxCell node = nodesMap.get(nodeName);
     final long x = node.getMxGeometry().getX();
 
@@ -82,6 +91,10 @@ public class DiagramHelperSingleton {
 
   public synchronized void commitArrow(long id, String arrowName, DrawIOColor arrowColor) {
     if (!isActive) return;
+
+    if (nodes.isEmpty()) {
+      throw new IllegalStateException("Should create at least 2 nodes first");
+    }
 
     final ArrowSourceInfo arrowSourceInfo = arrowsSourceMap.get(id);
     final ArrowTargetInfo arrowTargetInfo = arrowsTargetMap.get(id);
@@ -93,6 +106,14 @@ public class DiagramHelperSingleton {
         arrowTargetInfo.endArrow,
         arrowSourceInfo.sourceMxPoint,
         arrowTargetInfo.targetMxPoint);
+  }
+
+  public synchronized void setDiagramName(String diagramName) {
+    diagramBuilder.setDiagramName(diagramName);
+  }
+
+  public synchronized void setOutputPath(String outputPath) {
+    diagramBuilder.setOutputFilePath(outputPath);
   }
 
   @Data
