@@ -30,8 +30,7 @@ import org.springframework.stereotype.Component;
 public class TCPNettyServer extends NettyServer implements TransportServer {
 
   private final TransportController transportController;
-  private final DiagramFactorySingleton diagramHelper;
-  private final ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery;
+  private final DiagramArrowCodec diagramArrowCodec;
 
   /**
    * Constructs a new instance.
@@ -51,8 +50,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
         provider);
     this.transportController = transportController;
-    this.diagramHelper = diagramHelper;
-    this.clusterDiagramNodeDiscovery = clusterDiagramNodeDiscovery;
+    this.diagramArrowCodec = new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery);
   }
 
   @Override
@@ -70,7 +68,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery));
+      pipeline.addLast(diagramArrowCodec);
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportServerHandler());
     }
   }

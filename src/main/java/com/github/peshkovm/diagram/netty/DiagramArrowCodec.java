@@ -13,11 +13,13 @@ import com.github.peshkovm.raft.protocol.ClientMessage;
 import com.github.peshkovm.raft.protocol.ClientMessageSuccessful;
 import com.github.peshkovm.raft.protocol.CommandResult;
 import com.github.peshkovm.transport.DiscoveryNode;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import java.util.List;
 import lombok.Getter;
 
+@Sharable
 public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Message> {
 
   private final DiagramFactorySingleton diagramHelper;

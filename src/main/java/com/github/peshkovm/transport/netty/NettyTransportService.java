@@ -38,9 +38,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
   private volatile Map<DiscoveryNode, Channel> connectedNodes = HashMap.empty();
   private final ReentrantLock connectionLock = new ReentrantLock();
   private final TransportController transportController;
-  private final DiagramFactorySingleton diagramHelper;
-  private final ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery;
-  private final DiagramArrowCodec diagramArrowCodec;
+  private DiagramArrowCodec diagramArrowCodec;
 
   /**
    * Constructs a new instance using provider for bootstrapping.
@@ -56,8 +54,6 @@ public class NettyTransportService extends NettyClient implements TransportServi
       ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery) {
     super(provider);
     this.transportController = transportController;
-    this.diagramHelper = diagramHelper;
-    this.clusterDiagramNodeDiscovery = clusterDiagramNodeDiscovery;
     this.diagramArrowCodec = new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery);
   }
 
@@ -76,7 +72,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery));
+      pipeline.addLast(diagramArrowCodec);
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportClientHandler());
     }
   }
