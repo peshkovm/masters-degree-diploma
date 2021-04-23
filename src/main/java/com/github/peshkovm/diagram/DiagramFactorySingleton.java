@@ -29,9 +29,9 @@ public class DiagramFactorySingleton {
   @Getter
   private boolean isDiagramActive;
 
-  @Value("${diagram.shouldContainText}")
+  @Value("${diagram.isContainsText}")
   @Getter
-  private boolean shouldDiagramContainText;
+  private boolean isDiagramContainsText;
 
   private DiagramFactorySingleton() {
     nodesMap = new HashMap<>();
