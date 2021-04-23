@@ -16,7 +16,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
   public DiagramArrowCodec(DiagramFactorySingleton diagramHelper, DiagramNodeMeta diagramNodeMeta) {
     this.diagramHelper = diagramHelper;
-    isActive = diagramHelper.isActive();
+    isActive = diagramHelper.isDiagramIsActive();
     nodeName = diagramNodeMeta.getNodeName();
   }
 

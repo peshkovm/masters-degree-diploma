@@ -3,8 +3,6 @@ package com.github.peshkovm.main.operationbased.gcounter;
 import com.github.peshkovm.crdt.CrdtService;
 import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
-import com.github.peshkovm.diagram.DiagramFactorySingleton;
-import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.main.common.TestUtils;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
@@ -15,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 public class TestNodeDisconnection extends TestUtils {
 
   private Vector<CrdtService> crdtServices;
-  private DiagramFactorySingleton diagramHelper;
 
   public static void main(String[] args) throws Exception {
     final TestNodeDisconnection testInstance = new TestNodeDisconnection();
@@ -29,15 +26,22 @@ public class TestNodeDisconnection extends TestUtils {
     }
   }
 
+  void setUpNodes() {
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+
+    connectAllNodes();
+    setUpDiagram(
+        "Should converge when connection will be established",
+        600,
+        "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml");
+
+    crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
+  }
+
   void shouldConvergeWhenConnectionWillBeEstablished() throws Exception {
     final String crdtId = "countOfLikes";
-    diagramHelper.createDiagram("Should converge when connection will be established", 600);
-    diagramHelper.setOutputPath(
-        "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml");
-    diagramHelper.addNode(nodes.get(0), DrawIOColor.ORANGE);
-    diagramHelper.addNode(nodes.get(1), DrawIOColor.BLUE);
-    diagramHelper.addNode(nodes.get(2), DrawIOColor.GREEN);
-
     final int timesToIncrement = 10;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
 
@@ -78,24 +82,7 @@ public class TestNodeDisconnection extends TestUtils {
           }
         });
 
-    diagramHelper.buildDiagram();
     logger.info("SUCCESSFUL");
-  }
-
-  void setUpNodes() {
-    createAndStartInternalNode();
-    createAndStartInternalNode();
-    createAndStartInternalNode();
-
-    connectAllNodes();
-
-    crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
-    diagramHelper =
-        nodes.map(node -> node.getBeanFactory().getBean(DiagramFactorySingleton.class)).get(0);
-  }
-
-  private void createResource(String crdt, ResourceType crdtType) {
-    crdtServices.head().addResource(crdt, crdtType).get();
   }
 
   private void partition(InternalNode nodeToDisconnectFrom) {
@@ -116,5 +103,9 @@ public class TestNodeDisconnection extends TestUtils {
 
     sourceTransportService.connectToNode(
         nodeToConnectTo.getBeanFactory().getBean(ClusterDiscovery.class).getSelf());
+  }
+
+  private void createResource(String crdt, ResourceType crdtType) {
+    crdtServices.head().addResource(crdt, crdtType).get();
   }
 }

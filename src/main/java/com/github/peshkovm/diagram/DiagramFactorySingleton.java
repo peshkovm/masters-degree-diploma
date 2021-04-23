@@ -27,7 +27,7 @@ public class DiagramFactorySingleton {
 
   @Value("${diagram.isActive}")
   @Getter
-  private boolean isActive;
+  private boolean diagramIsActive;
 
   private DiagramFactorySingleton() {
     nodesMap = new HashMap<>();
@@ -54,8 +54,6 @@ public class DiagramFactorySingleton {
   }
 
   public synchronized void addNode(InternalNode internalNode, DrawIOColor color) {
-    if (!isActive) return;
-
     final DiagramNodeMeta nodeMeta = internalNode.getBeanFactory().getBean(DiagramNodeMeta.class);
 
     if (nodes.isEmpty()) diagramBuilder.addNode(nodeMeta.getNodeName(), 40, 80, color);
@@ -74,7 +72,6 @@ public class DiagramFactorySingleton {
 
   public synchronized void addArrowSourcePoint(
       long id, ArrowEdgeShape startArrowShape, String nodeName, long y) {
-    if (!isActive) return;
     if (nodes.isEmpty()) {
       throw new IllegalStateException("Should create at least 2 nodes first");
     }
@@ -87,8 +84,6 @@ public class DiagramFactorySingleton {
 
   public synchronized void addArrowTargetPoint(
       long id, ArrowEdgeShape endArrowShape, String nodeName, long y) {
-    if (!isActive) return;
-
     if (nodes.isEmpty()) {
       throw new IllegalStateException("Should create at least 2 nodes first");
     }
@@ -100,8 +95,6 @@ public class DiagramFactorySingleton {
   }
 
   public synchronized void commitArrow(long id, String arrowName, DrawIOColor arrowColor) {
-    if (!isActive) return;
-
     if (nodes.isEmpty()) {
       throw new IllegalStateException("Should create at least 2 nodes first");
     }
