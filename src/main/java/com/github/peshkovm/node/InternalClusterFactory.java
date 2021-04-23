@@ -73,5 +73,6 @@ public final class InternalClusterFactory {
   /** Resets cluster state to build new cluster from ground up */
   public static void reset() {
     ports = HashSet.empty();
+    diagramNodesNames = HashSet.empty();
   }
 }

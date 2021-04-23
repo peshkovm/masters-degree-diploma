@@ -17,7 +17,6 @@ import java.util.Map;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 
 @Data
 @Log4j2
@@ -32,13 +31,11 @@ public class DiagramFactorySingleton {
   private boolean isDrawOnError;
   private long id;
 
-  @Value("${diagram.isActive}")
-  @Getter
-  private boolean isDiagramActive;
+  //  @Value("${diagram.isActive}")
+  @Getter private boolean isDiagramActive;
 
-  @Value("${diagram.isContainsText}")
-  @Getter
-  private boolean isDiagramContainsText;
+  //  @Value("${diagram.isContainsText}")
+  @Getter private boolean isDiagramContainsText;
 
   private DiagramFactorySingleton() {
     nodesMap = new HashMap<>();
@@ -60,12 +57,19 @@ public class DiagramFactorySingleton {
   }
 
   public synchronized void createDiagram(
-      String diagramName, int nodeHeight, boolean isDrawOnError, MessageType... msgsToSkip) {
+      String diagramName,
+      int nodeHeight,
+      boolean isDiagramActive,
+      boolean isDiagramContainsText,
+      boolean isDrawOnError,
+      MessageType... msgsToSkip) {
     diagramBuilder = DiagramBuilderSingleton.getInstance(diagramName, nodeHeight);
     nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
+    this.isDrawOnError = isDrawOnError;
+    this.isDiagramActive = isDiagramActive;
+    this.isDiagramContainsText = isDiagramContainsText;
     this.msgsToSkip = HashSet.of(msgsToSkip);
     log.info("Skipping {}", this.msgsToSkip.mkString());
-    this.isDrawOnError = isDrawOnError;
   }
 
   public synchronized void addNode(InternalNode internalNode, DrawIOColor color) {

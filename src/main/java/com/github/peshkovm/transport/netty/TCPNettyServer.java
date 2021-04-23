@@ -31,6 +31,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
 
   private final TransportController transportController;
   private final DiagramArrowCodec diagramArrowCodec;
+  private final DiagramFactorySingleton diagramHelper;
 
   /**
    * Constructs a new instance.
@@ -50,6 +51,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
         provider);
     this.transportController = transportController;
+    this.diagramHelper = diagramHelper;
     this.diagramArrowCodec = new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery);
   }
 
@@ -68,7 +70,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(diagramArrowCodec);
+      if (diagramHelper.isDiagramActive()) pipeline.addLast(diagramArrowCodec);
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportServerHandler());
     }
   }

@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
+  private final DiagramFactorySingleton diagramHelper;
   private volatile Map<DiscoveryNode, Channel> connectedNodes = HashMap.empty();
   private final ReentrantLock connectionLock = new ReentrantLock();
   private final TransportController transportController;
@@ -54,6 +55,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
       ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery) {
     super(provider);
     this.transportController = transportController;
+    this.diagramHelper = diagramHelper;
     this.diagramArrowCodec = new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery);
   }
 
@@ -72,7 +74,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(diagramArrowCodec);
+      if (diagramHelper.isDiagramActive()) pipeline.addLast(diagramArrowCodec);
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportClientHandler());
     }
   }

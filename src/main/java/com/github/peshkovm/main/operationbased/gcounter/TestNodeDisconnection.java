@@ -40,6 +40,8 @@ public class TestNodeDisconnection extends TestUtils {
         600,
         "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
         true,
+        true,
+        true,
         MessageType.ADD_RESOURCE,
         MessageType.COMMAND_RESULT);
 

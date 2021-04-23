@@ -57,13 +57,21 @@ public class TestUtils extends BaseTestUtils {
       String diagramName,
       int nodeHeight,
       String outputPath,
+      boolean isDiagramActive,
+      boolean isDiagramContainsText,
       boolean isDrawOnError,
       MessageType... msgsToSkip) {
     diagramFactorySingleton =
         nodes.map(node -> node.getBeanFactory().getBean(DiagramFactorySingleton.class)).get(0);
 
     if (diagramFactorySingleton.isDiagramActive()) {
-      diagramFactorySingleton.createDiagram(diagramName, nodeHeight, isDrawOnError, msgsToSkip);
+      diagramFactorySingleton.createDiagram(
+          diagramName,
+          nodeHeight,
+          isDiagramActive,
+          isDiagramContainsText,
+          isDrawOnError,
+          msgsToSkip);
       diagramFactorySingleton.setOutputPath(outputPath);
       for (int i = 0; i < nodes.size(); i++) {
         final InternalNode internalNode = nodes.get(i);
