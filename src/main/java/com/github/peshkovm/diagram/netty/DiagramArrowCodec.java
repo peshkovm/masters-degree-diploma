@@ -6,6 +6,7 @@ import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.statebased.protocol.Payload;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
 import com.github.peshkovm.diagram.DiagramFactorySingleton.MessageWithId;
+import com.github.peshkovm.diagram.MessageType;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.diagram.discovery.ClusterDiagramNodeDiscovery;
 import com.github.peshkovm.diagram.pojos.ArrowMxCell.ArrowEdgeShape;
@@ -16,8 +17,8 @@ import com.github.peshkovm.transport.DiscoveryNode;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.vavr.collection.HashSet;
 import java.util.List;
-import lombok.Getter;
 
 @Sharable
 public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Message> {
@@ -37,7 +38,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
   @Override
   protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) {
-    if (!isActive) {
+    if (!isActive || shouldSkipMessage(msg)) {
       out.add(new MessageWithId(msg, 0L));
       return;
     }
@@ -51,7 +52,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
   @Override
   protected void decode(ChannelHandlerContext ctx, MessageWithId msg, List<Object> out) {
-    if (!isActive) {
+    if (!isActive || shouldSkipMessage(msg.getOriginalMessage())) {
       out.add(msg.getOriginalMessage());
       return;
     }
@@ -64,6 +65,23 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
     diagramHelper.commitArrow(msg.getId(), arrowName, DrawIOColor.GREY);
 
     out.add(msg.getOriginalMessage());
+  }
+
+  public void onException(Throwable cause, DiscoveryNode discoveryNode, Message msg) {
+    if (!isActive) return;
+
+    final MessageWithId messageWithId = diagramHelper.wrapMessage(msg);
+    diagramHelper.addArrowSourcePoint(
+        messageWithId.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
+
+    final String targetNodeName =
+        nodeDiscovery.getReplicas().get(discoveryNode).get().getNodeName();
+
+    diagramHelper.addArrowTargetPoint(
+        messageWithId.getId(), ArrowEdgeShape.CROSS, targetNodeName, System.nanoTime());
+
+    String arrowName = getArrowName(msg);
+    diagramHelper.commitArrow(messageWithId.getId(), arrowName, DrawIOColor.RED);
   }
 
   private String getArrowName(Message message) {
@@ -109,41 +127,22 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
     return message.toString();
   }
 
-  public void onException(Throwable cause, DiscoveryNode discoveryNode, Message msg) {
-    if (!isActive) return;
+  private boolean shouldSkipMessage(Message message) {
+    MessageType messageType;
+    Message msg;
 
-    final MessageWithId messageWithId = diagramHelper.wrapMessage(msg);
-    diagramHelper.addArrowSourcePoint(
-        messageWithId.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
-
-    final String targetNodeName =
-        nodeDiscovery.getReplicas().get(discoveryNode).get().getNodeName();
-
-    diagramHelper.addArrowTargetPoint(
-        messageWithId.getId(), ArrowEdgeShape.CROSS, targetNodeName, System.nanoTime());
-
-    String arrowName = getArrowName(msg);
-    diagramHelper.commitArrow(messageWithId.getId(), arrowName, DrawIOColor.RED);
-  }
-
-  private enum MessageType {
-    ADD_RESOURCE(AddResource.class),
-    COMMAND_RESULT(CommandResult.class),
-    DOWNSTREAM_UPDATE(DownstreamUpdate.class),
-    PAYLOAD(Payload.class);
-
-    @Getter private final Class<? extends Message> messageClass;
-
-    MessageType(Class<? extends Message> messageClass) {
-      this.messageClass = messageClass;
+    if (message instanceof ClientMessage) {
+      msg = ((ClientMessage) message).getMessage().getCommand();
+      messageType = MessageType.getMessageType(msg.getClass());
+    } else if (message instanceof ClientMessageSuccessful) {
+      msg = ((ClientMessageSuccessful) message).getCommandResult();
+      messageType = MessageType.getMessageType(msg.getClass());
+    } else {
+      msg = message;
+      messageType = MessageType.getMessageType(message.getClass());
     }
 
-    static MessageType getMessageType(Class<? extends Message> messageClass) {
-      for (MessageType messageType : values()) {
-        if (messageClass.equals(messageType.getMessageClass())) return messageType;
-      }
-
-      throw new RuntimeException("Unknown message type");
-    }
+    return diagramHelper.getMsgsToSkip().contains(messageType)
+        || !HashSet.of(MessageType.values()).contains(messageType);
   }
 }

@@ -8,15 +8,19 @@ import com.github.peshkovm.diagram.pojos.NodeMxCell;
 import com.github.peshkovm.diagram.pojos.SourceMxPoint;
 import com.github.peshkovm.diagram.pojos.TargetMxPoint;
 import com.github.peshkovm.node.InternalNode;
+import io.vavr.collection.HashSet;
+import io.vavr.collection.Set;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 
 @Data
+@Log4j2
 public class DiagramFactorySingleton {
   private static volatile DiagramFactorySingleton instance;
   private static volatile DiagramBuilderSingleton diagramBuilder;
@@ -24,6 +28,7 @@ public class DiagramFactorySingleton {
   private final Map<String, NodeMxCell> nodesMap;
   private final Map<Long, ArrowSourceInfo> arrowsSourceMap;
   private final Map<Long, ArrowTargetInfo> arrowsTargetMap;
+  private Set<MessageType> msgsToSkip;
   private long id;
 
   @Value("${diagram.isActive}")
@@ -53,9 +58,12 @@ public class DiagramFactorySingleton {
     }
   }
 
-  public synchronized void createDiagram(String diagramName, int nodeHeight) {
+  public synchronized void createDiagram(
+      String diagramName, int nodeHeight, MessageType... msgsToSkip) {
     diagramBuilder = DiagramBuilderSingleton.getInstance(diagramName, nodeHeight);
     nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
+    this.msgsToSkip = HashSet.of(msgsToSkip);
+    log.info("Skipping {}", this.msgsToSkip.mkString());
   }
 
   public synchronized void addNode(InternalNode internalNode, DrawIOColor color) {

@@ -3,6 +3,7 @@ package com.github.peshkovm.main.operationbased.gcounter;
 import com.github.peshkovm.crdt.CrdtService;
 import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
+import com.github.peshkovm.diagram.MessageType;
 import com.github.peshkovm.main.common.TestUtils;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
@@ -35,7 +36,9 @@ public class TestNodeDisconnection extends TestUtils {
     setUpDiagram(
         "Should converge when connection will be established",
         600,
-        "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml");
+        "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
+        MessageType.ADD_RESOURCE,
+        MessageType.COMMAND_RESULT);
 
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
   }

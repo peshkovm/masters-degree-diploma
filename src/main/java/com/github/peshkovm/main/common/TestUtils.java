@@ -2,6 +2,7 @@ package com.github.peshkovm.main.common;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
+import com.github.peshkovm.diagram.MessageType;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
@@ -13,7 +14,7 @@ import io.vavr.collection.Vector;
 public class TestUtils extends BaseTestUtils {
 
   protected Vector<InternalNode> nodes = Vector.empty();
-  private DiagramFactorySingleton diagramHelper;
+  private DiagramFactorySingleton diagramFactorySingleton;
 
   /** Creates and starts follower node on sme JVM with random port. */
   protected final void createAndStartInternalNode() {
@@ -46,8 +47,8 @@ public class TestUtils extends BaseTestUtils {
   }
 
   protected void tearDownNodes() {
-    if (diagramHelper != null && diagramHelper.isDiagramActive()) {
-      diagramHelper.buildDiagram();
+    if (diagramFactorySingleton != null && diagramFactorySingleton.isDiagramActive()) {
+      diagramFactorySingleton.buildDiagram();
     }
 
     nodes.forEach(LifecycleComponent::stop);
@@ -56,16 +57,17 @@ public class TestUtils extends BaseTestUtils {
     InternalClusterFactory.reset();
   }
 
-  protected void setUpDiagram(String diagramName, int nodeHeight, String outputPath) {
-    diagramHelper =
+  protected void setUpDiagram(
+      String diagramName, int nodeHeight, String outputPath, MessageType... msgsToSkip) {
+    diagramFactorySingleton =
         nodes.map(node -> node.getBeanFactory().getBean(DiagramFactorySingleton.class)).get(0);
 
-    if (diagramHelper.isDiagramActive()) {
-      diagramHelper.createDiagram(diagramName, nodeHeight);
-      diagramHelper.setOutputPath(outputPath);
-      diagramHelper.addNode(nodes.get(0), DrawIOColor.ORANGE);
-      diagramHelper.addNode(nodes.get(1), DrawIOColor.BLUE);
-      diagramHelper.addNode(nodes.get(2), DrawIOColor.GREEN);
+    if (diagramFactorySingleton.isDiagramActive()) {
+      diagramFactorySingleton.createDiagram(diagramName, nodeHeight, msgsToSkip);
+      diagramFactorySingleton.setOutputPath(outputPath);
+      diagramFactorySingleton.addNode(nodes.get(0), DrawIOColor.ORANGE);
+      diagramFactorySingleton.addNode(nodes.get(1), DrawIOColor.BLUE);
+      diagramFactorySingleton.addNode(nodes.get(2), DrawIOColor.GREEN);
     }
   }
 }
