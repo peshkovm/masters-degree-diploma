@@ -44,7 +44,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
     diagramHelper.addArrowTargetPoint(
         msg.getId(), ArrowEdgeShape.CLASSIC, nodeName, System.nanoTime());
-    diagramHelper.commitArrow(msg.getId(), msg.getOriginalMessage().toString(), DrawIOColor.GREY);
+    diagramHelper.commitArrow(msg.getId(), "", DrawIOColor.GREY);
 
     out.add(msg.getOriginalMessage());
   }

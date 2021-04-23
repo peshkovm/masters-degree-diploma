@@ -87,8 +87,14 @@ public class DiagramBuilderSingleton {
 
   public synchronized DiagramBuilderSingleton addNode(String name, long x, DrawIOColor color) {
     NodeMxCell newNode;
+    final int diagramMxCellId = DiagramMxCell.getId();
 
-    newNode = new NodeMxCell(nodes.size(), name, color, new NodeMxGeometry(x, 40, 80, nodeHeight));
+    newNode =
+        new NodeMxCell(
+            nodes.size() + 1 + diagramMxCellId,
+            name,
+            color,
+            new NodeMxGeometry(x, 40, 80, nodeHeight));
 
     nodes.add(newNode);
 
@@ -107,9 +113,11 @@ public class DiagramBuilderSingleton {
       throw new IllegalStateException("Should create at least 2 nodes first");
     }
 
+    final int diagramMxCellId = DiagramMxCell.getId();
+
     final ArrowMxCell newArrow =
         new ArrowMxCell(
-            nodes.size() + arrows.size(),
+            nodes.size() + arrows.size() + 1 + diagramMxCellId,
             name,
             startArrow,
             endArrow,

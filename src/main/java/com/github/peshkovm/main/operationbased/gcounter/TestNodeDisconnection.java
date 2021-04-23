@@ -31,7 +31,7 @@ public class TestNodeDisconnection extends TestUtils {
 
   void shouldConvergeWhenConnectionWillBeEstablished() throws Exception {
     final String crdtId = "countOfLikes";
-    diagramHelper.createDiagram("Should converge when connection will be established", 280);
+    diagramHelper.createDiagram("Should converge when connection will be established", 600);
     diagramHelper.setOutputPath(
         "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml");
     diagramHelper.addNode(nodes.get(0), DrawIOColor.ORANGE);

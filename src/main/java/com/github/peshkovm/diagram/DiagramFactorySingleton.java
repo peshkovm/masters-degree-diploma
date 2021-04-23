@@ -79,7 +79,7 @@ public class DiagramFactorySingleton {
     final NodeMxCell node = nodesMap.get(nodeName);
     final long x = node.getMxGeometry().getX();
 
-    arrowsSourceMap.put(id, new ArrowSourceInfo(startArrowShape, new SourceMxPoint(x, y)));
+    arrowsSourceMap.put(id, new ArrowSourceInfo(startArrowShape, new SourceMxPoint(x + 40, y)));
   }
 
   public synchronized void addArrowTargetPoint(
@@ -93,7 +93,7 @@ public class DiagramFactorySingleton {
     final NodeMxCell node = nodesMap.get(nodeName);
     final long x = node.getMxGeometry().getX();
 
-    arrowsTargetMap.put(id, new ArrowTargetInfo(endArrowShape, new TargetMxPoint(x, y)));
+    arrowsTargetMap.put(id, new ArrowTargetInfo(endArrowShape, new TargetMxPoint(x + 40, y)));
   }
 
   public synchronized void commitArrow(long id, String arrowName, DrawIOColor arrowColor) {

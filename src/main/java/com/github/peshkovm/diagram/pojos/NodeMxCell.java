@@ -24,7 +24,7 @@ public class NodeMxCell {
   private final NodeMxGeometry mxGeometry;
 
   public NodeMxCell(int id, String value, DrawIOColor color, NodeMxGeometry mxGeometry) {
-    this.id = id + 2;
+    this.id = id;
     this.value = value;
     this.color = color;
     this.mxGeometry = mxGeometry;

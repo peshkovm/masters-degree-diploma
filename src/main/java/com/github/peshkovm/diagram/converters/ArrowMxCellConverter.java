@@ -51,8 +51,6 @@ public class ArrowMxCellConverter implements Converter<ArrowMxCell> {
     arrowMxCellNode.setAttribute("value", String.valueOf(value));
     arrowMxCellNode.setAttribute("style", String.valueOf(style));
     arrowMxCellNode.setAttribute("edge", String.valueOf(edge));
-    arrowMxCellNode.setAttribute("startArrow", String.valueOf(startArrow));
-    arrowMxCellNode.setAttribute("endArrow", String.valueOf(endArrow));
     arrowMxCellNode.setName("mxCell");
   }
 
@@ -72,9 +70,9 @@ public class ArrowMxCellConverter implements Converter<ArrowMxCell> {
     final long x = sourceMxPoint.getX();
     final long y = sourceMxPoint.getY();
 
-    sourceMxPointNode.setAttribute("as", as);
     sourceMxPointNode.setAttribute("x", String.valueOf(x));
     sourceMxPointNode.setAttribute("y", String.valueOf(y));
+    sourceMxPointNode.setAttribute("as", as);
     sourceMxPointNode.setName("mxPoint");
   }
 
@@ -85,9 +83,9 @@ public class ArrowMxCellConverter implements Converter<ArrowMxCell> {
     final long x = targetMxPoint.getX();
     final long y = targetMxPoint.getY();
 
-    targetMxPointNode.setAttribute("as", as);
     targetMxPointNode.setAttribute("x", String.valueOf(x));
     targetMxPointNode.setAttribute("y", String.valueOf(y));
+    targetMxPointNode.setAttribute("as", as);
     targetMxPointNode.setName("mxPoint");
   }
 }
