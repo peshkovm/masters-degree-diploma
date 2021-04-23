@@ -68,7 +68,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
   }
 
   public void onException(Throwable cause, DiscoveryNode discoveryNode, Message msg) {
-    if (!isActive) return;
+    if (!isActive || shouldSkipMessage(msg) || !diagramHelper.isDrawOnError()) return;
 
     final MessageWithId messageWithId = diagramHelper.wrapMessage(msg);
     diagramHelper.addArrowSourcePoint(

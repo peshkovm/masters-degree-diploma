@@ -32,11 +32,14 @@ public class TestNodeDisconnection extends TestUtils {
     createAndStartInternalNode();
     createAndStartInternalNode();
 
+    checkNumberOfCreatedNodes();
+
     connectAllNodes();
     setUpDiagram(
         "Should converge when connection will be established",
         600,
         "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
+        true,
         MessageType.ADD_RESOURCE,
         MessageType.COMMAND_RESULT);
 

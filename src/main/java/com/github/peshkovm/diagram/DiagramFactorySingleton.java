@@ -29,6 +29,7 @@ public class DiagramFactorySingleton {
   private final Map<Long, ArrowSourceInfo> arrowsSourceMap;
   private final Map<Long, ArrowTargetInfo> arrowsTargetMap;
   private Set<MessageType> msgsToSkip;
+  private boolean isDrawOnError;
   private long id;
 
   @Value("${diagram.isActive}")
@@ -59,11 +60,12 @@ public class DiagramFactorySingleton {
   }
 
   public synchronized void createDiagram(
-      String diagramName, int nodeHeight, MessageType... msgsToSkip) {
+      String diagramName, int nodeHeight, boolean isDrawOnError, MessageType... msgsToSkip) {
     diagramBuilder = DiagramBuilderSingleton.getInstance(diagramName, nodeHeight);
     nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
     this.msgsToSkip = HashSet.of(msgsToSkip);
     log.info("Skipping {}", this.msgsToSkip.mkString());
+    this.isDrawOnError = isDrawOnError;
   }
 
   public synchronized void addNode(InternalNode internalNode, DrawIOColor color) {
@@ -119,6 +121,10 @@ public class DiagramFactorySingleton {
         arrowTargetInfo.endArrow,
         arrowSourceInfo.sourceMxPoint,
         arrowTargetInfo.targetMxPoint);
+  }
+
+  public boolean isDrawOnError() {
+    return isDrawOnError;
   }
 
   public synchronized void buildDiagram() {

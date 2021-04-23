@@ -31,18 +31,14 @@ public class TestUtils extends BaseTestUtils {
       final NettyTransportService transportService =
           sourceNode.getBeanFactory().getBean(NettyTransportService.class);
 
-      transportService.connectToNode(
-          nodes
-              .get((i + 1) % nodes.size())
-              .getBeanFactory()
-              .getBean(ClusterDiscovery.class)
-              .getSelf());
-      transportService.connectToNode(
-          nodes
-              .get((i + 2) % nodes.size())
-              .getBeanFactory()
-              .getBean(ClusterDiscovery.class)
-              .getSelf());
+      for (int j = 0; j < nodes.size() - 1; j++) {
+        transportService.connectToNode(
+            nodes
+                .get((i + j + 1) % nodes.size())
+                .getBeanFactory()
+                .getBean(ClusterDiscovery.class)
+                .getSelf());
+      }
     }
   }
 
@@ -58,16 +54,34 @@ public class TestUtils extends BaseTestUtils {
   }
 
   protected void setUpDiagram(
-      String diagramName, int nodeHeight, String outputPath, MessageType... msgsToSkip) {
+      String diagramName,
+      int nodeHeight,
+      String outputPath,
+      boolean isDrawOnError,
+      MessageType... msgsToSkip) {
     diagramFactorySingleton =
         nodes.map(node -> node.getBeanFactory().getBean(DiagramFactorySingleton.class)).get(0);
 
     if (diagramFactorySingleton.isDiagramActive()) {
-      diagramFactorySingleton.createDiagram(diagramName, nodeHeight, msgsToSkip);
+      diagramFactorySingleton.createDiagram(diagramName, nodeHeight, isDrawOnError, msgsToSkip);
       diagramFactorySingleton.setOutputPath(outputPath);
-      diagramFactorySingleton.addNode(nodes.get(0), DrawIOColor.ORANGE);
-      diagramFactorySingleton.addNode(nodes.get(1), DrawIOColor.BLUE);
-      diagramFactorySingleton.addNode(nodes.get(2), DrawIOColor.GREEN);
+      for (int i = 0; i < nodes.size(); i++) {
+        final InternalNode internalNode = nodes.get(i);
+        diagramFactorySingleton.addNode(internalNode, DrawIOColor.values()[i]);
+      }
     }
+  }
+
+  protected void checkNumberOfCreatedNodes() {
+    final ClusterDiscovery clusterDiscovery =
+        nodes.get(0).getBeanFactory().getBean(ClusterDiscovery.class);
+
+    if (nodes.size() != clusterDiscovery.getDiscoveryNodes().size())
+      throw new IllegalStateException(
+          "Created "
+              + nodes.size()
+              + " nodes, but has "
+              + clusterDiscovery.getDiscoveryNodes().size()
+              + " nodes in application.conf");
   }
 }
