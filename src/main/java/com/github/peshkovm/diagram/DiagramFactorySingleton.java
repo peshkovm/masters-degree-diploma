@@ -2,6 +2,7 @@ package com.github.peshkovm.diagram;
 
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
+import com.github.peshkovm.diagram.discovery.ClusterDiagramNodeDiscovery;
 import com.github.peshkovm.diagram.pojos.ArrowMxCell.ArrowEdgeShape;
 import com.github.peshkovm.diagram.pojos.NodeMxCell;
 import com.github.peshkovm.diagram.pojos.SourceMxPoint;
@@ -58,7 +59,8 @@ public class DiagramFactorySingleton {
   }
 
   public synchronized void addNode(InternalNode internalNode, DrawIOColor color) {
-    final DiagramNodeMeta nodeMeta = internalNode.getBeanFactory().getBean(DiagramNodeMeta.class);
+    final DiagramNodeMeta nodeMeta =
+        internalNode.getBeanFactory().getBean(ClusterDiagramNodeDiscovery.class).getSelf();
 
     if (nodes.isEmpty()) diagramBuilder.addNode(nodeMeta.getNodeName(), 40, 80, color);
     else

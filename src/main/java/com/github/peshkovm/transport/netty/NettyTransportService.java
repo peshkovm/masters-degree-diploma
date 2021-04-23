@@ -5,9 +5,9 @@ import static io.netty.channel.ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.netty.NettyClient;
 import com.github.peshkovm.common.netty.NettyProvider;
-import com.github.peshkovm.diagram.DiagramArrowCodec;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
-import com.github.peshkovm.diagram.DiagramNodeMeta;
+import com.github.peshkovm.diagram.discovery.ClusterDiagramNodeDiscovery;
+import com.github.peshkovm.diagram.netty.DiagramArrowCodec;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportService;
@@ -35,11 +35,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class NettyTransportService extends NettyClient implements TransportService {
 
-  private final DiagramFactorySingleton diagramHelper;
-  private final DiagramNodeMeta diagramNodeMeta;
   private volatile Map<DiscoveryNode, Channel> connectedNodes = HashMap.empty();
   private final ReentrantLock connectionLock = new ReentrantLock();
   private final TransportController transportController;
+  private final DiagramFactorySingleton diagramHelper;
+  private final ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery;
+  private final DiagramArrowCodec diagramArrowCodec;
 
   /**
    * Constructs a new instance using provider for bootstrapping.
@@ -52,11 +53,12 @@ public class NettyTransportService extends NettyClient implements TransportServi
       NettyProvider provider,
       TransportController transportController,
       DiagramFactorySingleton diagramHelper,
-      DiagramNodeMeta diagramNodeMeta) {
+      ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery) {
     super(provider);
     this.transportController = transportController;
     this.diagramHelper = diagramHelper;
-    this.diagramNodeMeta = diagramNodeMeta;
+    this.clusterDiagramNodeDiscovery = clusterDiagramNodeDiscovery;
+    this.diagramArrowCodec = new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery);
   }
 
   @Override
@@ -74,7 +76,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(new DiagramArrowCodec(diagramHelper, diagramNodeMeta));
+      pipeline.addLast(new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery));
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportClientHandler());
     }
   }
@@ -158,6 +160,7 @@ public class NettyTransportService extends NettyClient implements TransportServi
 
       return new DiscoveryFuture(discoveryNode, sendPromise.success(null).future());
     } catch (Exception e) {
+      diagramArrowCodec.onException(e, discoveryNode, message);
       logger.error("Error send message", e);
       return new DiscoveryFuture(discoveryNode, sendPromise.failure(e).future());
     }

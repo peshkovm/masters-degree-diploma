@@ -46,7 +46,7 @@ public class TestUtils extends BaseTestUtils {
   }
 
   protected void tearDownNodes() {
-    if (diagramHelper.isDiagramActive()) {
+    if (diagramHelper != null && diagramHelper.isDiagramActive()) {
       diagramHelper.buildDiagram();
     }
 

@@ -3,9 +3,9 @@ package com.github.peshkovm.transport.netty;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.common.netty.NettyServer;
-import com.github.peshkovm.diagram.DiagramArrowCodec;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
-import com.github.peshkovm.diagram.DiagramNodeMeta;
+import com.github.peshkovm.diagram.discovery.ClusterDiagramNodeDiscovery;
+import com.github.peshkovm.diagram.netty.DiagramArrowCodec;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportServer;
@@ -31,7 +31,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
 
   private final TransportController transportController;
   private final DiagramFactorySingleton diagramHelper;
-  private final DiagramNodeMeta diagramNodeMeta;
+  private final ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery;
 
   /**
    * Constructs a new instance.
@@ -46,13 +46,13 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
       NettyProvider provider,
       TransportController transportController,
       DiagramFactorySingleton diagramHelper,
-      DiagramNodeMeta diagramNodeMeta) {
+      ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery) {
     super(
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
         provider);
     this.transportController = transportController;
     this.diagramHelper = diagramHelper;
-    this.diagramNodeMeta = diagramNodeMeta;
+    this.clusterDiagramNodeDiscovery = clusterDiagramNodeDiscovery;
   }
 
   @Override
@@ -70,7 +70,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(new DiagramArrowCodec(diagramHelper, diagramNodeMeta));
+      pipeline.addLast(new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery));
       pipeline.addLast(/*provider.getExecutor(),*/ new TransportServerHandler());
     }
   }

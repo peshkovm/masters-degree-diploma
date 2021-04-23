@@ -3,8 +3,8 @@ package com.github.peshkovm.raft.discovery;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;
-import io.vavr.collection.HashSet;
 import io.vavr.collection.Set;
+import io.vavr.collection.TreeSet;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +20,7 @@ public class ClusterDiscovery {
 
   @Autowired
   public ClusterDiscovery(Config config) {
-    Set<DiscoveryNode> replicas = HashSet.empty();
+    Set<DiscoveryNode> replicas = TreeSet.empty();
     final DiscoveryNode self =
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port"));
 
@@ -44,7 +44,7 @@ public class ClusterDiscovery {
   }
 
   public Set<DiscoveryNode> getDiscoveryNodes() {
-    HashSet<DiscoveryNode> discoveryNodes = HashSet.of(self);
+    Set<DiscoveryNode> discoveryNodes = TreeSet.of(self);
     discoveryNodes = discoveryNodes.addAll(replicas);
 
     return discoveryNodes;

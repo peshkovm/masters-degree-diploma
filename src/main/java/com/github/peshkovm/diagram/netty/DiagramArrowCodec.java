@@ -1,15 +1,18 @@
-package com.github.peshkovm.diagram;
+package com.github.peshkovm.diagram.netty;
 
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.crdt.operationbased.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.statebased.protocol.Payload;
+import com.github.peshkovm.diagram.DiagramFactorySingleton;
 import com.github.peshkovm.diagram.DiagramFactorySingleton.MessageWithId;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
+import com.github.peshkovm.diagram.discovery.ClusterDiagramNodeDiscovery;
 import com.github.peshkovm.diagram.pojos.ArrowMxCell.ArrowEdgeShape;
 import com.github.peshkovm.raft.protocol.ClientMessage;
 import com.github.peshkovm.raft.protocol.ClientMessageSuccessful;
 import com.github.peshkovm.raft.protocol.CommandResult;
+import com.github.peshkovm.transport.DiscoveryNode;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import java.util.List;
@@ -20,11 +23,14 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
   private final DiagramFactorySingleton diagramHelper;
   private final String nodeName;
   private final boolean isActive;
+  private final ClusterDiagramNodeDiscovery nodeDiscovery;
 
-  public DiagramArrowCodec(DiagramFactorySingleton diagramHelper, DiagramNodeMeta diagramNodeMeta) {
+  public DiagramArrowCodec(
+      DiagramFactorySingleton diagramHelper, ClusterDiagramNodeDiscovery nodeDiscovery) {
     this.diagramHelper = diagramHelper;
+    this.nodeDiscovery = nodeDiscovery;
     isActive = diagramHelper.isDiagramActive();
-    nodeName = diagramNodeMeta.getNodeName();
+    nodeName = nodeDiscovery.getSelf().getNodeName();
   }
 
   @Override
@@ -99,6 +105,23 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
     }
 
     return message.toString();
+  }
+
+  public void onException(Throwable cause, DiscoveryNode discoveryNode, Message msg) {
+    if (!isActive) return;
+
+    final MessageWithId messageWithId = diagramHelper.wrapMessage(msg);
+    diagramHelper.addArrowSourcePoint(
+        messageWithId.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
+
+    final String targetNodeName =
+        nodeDiscovery.getReplicas().get(discoveryNode).get().getNodeName();
+
+    diagramHelper.addArrowTargetPoint(
+        messageWithId.getId(), ArrowEdgeShape.CROSS, targetNodeName, System.nanoTime());
+
+    String arrowName = getArrowName(msg);
+    diagramHelper.commitArrow(messageWithId.getId(), arrowName, DrawIOColor.RED);
   }
 
   private enum MessageType {
