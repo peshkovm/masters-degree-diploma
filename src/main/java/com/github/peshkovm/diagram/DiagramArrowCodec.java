@@ -16,12 +16,12 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
   public DiagramArrowCodec(DiagramFactorySingleton diagramHelper, DiagramNodeMeta diagramNodeMeta) {
     this.diagramHelper = diagramHelper;
-    isActive = diagramHelper.isDiagramIsActive();
+    isActive = diagramHelper.isDiagramActive();
     nodeName = diagramNodeMeta.getNodeName();
   }
 
   @Override
-  protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) throws Exception {
+  protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) {
     if (!isActive) {
       out.add(new MessageWithId(msg, 0L));
       return;
@@ -35,8 +35,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
   }
 
   @Override
-  protected void decode(ChannelHandlerContext ctx, MessageWithId msg, List<Object> out)
-      throws Exception {
+  protected void decode(ChannelHandlerContext ctx, MessageWithId msg, List<Object> out) {
     if (!isActive) {
       out.add(msg.getOriginalMessage());
       return;
@@ -44,8 +43,17 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
     diagramHelper.addArrowTargetPoint(
         msg.getId(), ArrowEdgeShape.CLASSIC, nodeName, System.nanoTime());
-    diagramHelper.commitArrow(msg.getId(), "", DrawIOColor.GREY);
+
+    String arrowName = getArrowName(msg.getOriginalMessage());
+
+    diagramHelper.commitArrow(msg.getId(), arrowName, DrawIOColor.GREY);
 
     out.add(msg.getOriginalMessage());
+  }
+
+  private String getArrowName(Message message) {
+    if (!diagramHelper.isShouldDiagramContainText()) return "";
+
+    return message.toString();
   }
 }

@@ -27,7 +27,11 @@ public class DiagramFactorySingleton {
 
   @Value("${diagram.isActive}")
   @Getter
-  private boolean diagramIsActive;
+  private boolean isDiagramActive;
+
+  @Value("${diagram.shouldContainText}")
+  @Getter
+  private boolean shouldDiagramContainText;
 
   private DiagramFactorySingleton() {
     nodesMap = new HashMap<>();
@@ -64,10 +68,6 @@ public class DiagramFactorySingleton {
           80,
           color);
     nodesMap.put(nodes.get(nodes.size() - 1).getValue(), nodes.get(nodes.size() - 1));
-  }
-
-  public synchronized MessageWithId wrapMessage(Message message) {
-    return new MessageWithId(message, ++id);
   }
 
   public synchronized void addArrowSourcePoint(
@@ -121,6 +121,10 @@ public class DiagramFactorySingleton {
 
   public synchronized void setOutputPath(String outputPath) {
     diagramBuilder.setOutputFilePath(outputPath);
+  }
+
+  public synchronized MessageWithId wrapMessage(Message message) {
+    return new MessageWithId(message, ++id);
   }
 
   @Data

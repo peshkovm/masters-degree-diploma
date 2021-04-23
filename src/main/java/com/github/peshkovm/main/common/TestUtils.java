@@ -46,7 +46,7 @@ public class TestUtils extends BaseTestUtils {
   }
 
   protected void tearDownNodes() {
-    if (diagramHelper.isDiagramIsActive()) {
+    if (diagramHelper.isDiagramActive()) {
       diagramHelper.buildDiagram();
     }
 
@@ -60,7 +60,7 @@ public class TestUtils extends BaseTestUtils {
     diagramHelper =
         nodes.map(node -> node.getBeanFactory().getBean(DiagramFactorySingleton.class)).get(0);
 
-    if (diagramHelper.isDiagramIsActive()) {
+    if (diagramHelper.isDiagramActive()) {
       diagramHelper.createDiagram(diagramName, nodeHeight);
       diagramHelper.setOutputPath(outputPath);
       diagramHelper.addNode(nodes.get(0), DrawIOColor.ORANGE);
