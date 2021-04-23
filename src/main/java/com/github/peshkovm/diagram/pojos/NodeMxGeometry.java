@@ -10,7 +10,7 @@ public class NodeMxGeometry {
 
   @Attribute private final long x;
   @Attribute private final long y;
-  @Attribute private final int width;
-  @Attribute private final int height;
+  @Attribute private final long width;
+  @Attribute private final long height;
   @Attribute private final String as = "geometry";
 }

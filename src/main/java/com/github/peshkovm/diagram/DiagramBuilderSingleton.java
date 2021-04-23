@@ -40,10 +40,12 @@ public class DiagramBuilderSingleton {
   private final List<NodeMxCell> nodes;
   private final List<ArrowMxCell> arrows;
   private final Serializer serializer;
-  private int nodeHeight;
+  private final int nodeHeight;
+  private final int nodeY;
 
-  private DiagramBuilderSingleton(String diagramName, int nodeHeight) {
+  private DiagramBuilderSingleton(String diagramName, int nodeHeight, int nodeY) {
     this.nodeHeight = nodeHeight;
+    this.nodeY = nodeY;
 
     Root root = new Root(new RootMxCell(), new DiagramMxCell());
     final MxGraphModel mxGraphModel = new MxGraphModel(root);
@@ -79,13 +81,14 @@ public class DiagramBuilderSingleton {
     }
     synchronized (DiagramBuilderSingleton.class) {
       if (instance == null) {
-        instance = new DiagramBuilderSingleton(diagramName, nodeHeight);
+        instance = new DiagramBuilderSingleton(diagramName, nodeHeight, 40);
       }
       return instance;
     }
   }
 
-  public synchronized DiagramBuilderSingleton addNode(String name, long x, DrawIOColor color) {
+  public synchronized DiagramBuilderSingleton addNode(
+      String name, long x, long width, DrawIOColor color) {
     NodeMxCell newNode;
     final int diagramMxCellId = DiagramMxCell.getId();
 
@@ -94,7 +97,7 @@ public class DiagramBuilderSingleton {
             nodes.size() + 1 + diagramMxCellId,
             name,
             color,
-            new NodeMxGeometry(x, 40, 80, nodeHeight));
+            new NodeMxGeometry(x, nodeY, width, nodeHeight));
 
     nodes.add(newNode);
 
@@ -171,10 +174,10 @@ public class DiagramBuilderSingleton {
     serializer.write(mxFile, outFile);
   }
 
-  private long fitNumberInRange(long num, long min, long max) {
-    final int b = nodeHeight;
-    final int a = 120;
+  private long fitNumberInRange(long x, long min, long max) {
+    final int a = nodeY + 80;
+    final int b = nodeY + nodeHeight - 40;
 
-    return ((b - a) * (num - min)) / (max - min) + a;
+    return ((b - a) * (x - min)) / (max - min) + a;
   }
 }

@@ -58,10 +58,13 @@ public class DiagramFactorySingleton {
 
     final DiagramNodeMeta nodeMeta = internalNode.getBeanFactory().getBean(DiagramNodeMeta.class);
 
-    if (nodes.isEmpty()) diagramBuilder.addNode(nodeMeta.getNodeName(), 40, color);
+    if (nodes.isEmpty()) diagramBuilder.addNode(nodeMeta.getNodeName(), 40, 80, color);
     else
       diagramBuilder.addNode(
-          nodeMeta.getNodeName(), nodes.get(nodes.size() - 1).getMxGeometry().getX() + 160, color);
+          nodeMeta.getNodeName(),
+          nodes.get(nodes.size() - 1).getMxGeometry().getX() + 160,
+          80,
+          color);
     nodesMap.put(nodes.get(nodes.size() - 1).getValue(), nodes.get(nodes.size() - 1));
   }
 

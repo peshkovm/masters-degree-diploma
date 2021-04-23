@@ -32,8 +32,8 @@ public class NodeMxCellConverter implements Converter<NodeMxCell> {
     final OutputNode mxGeometryNode = nodeMxCellNode.getChild("mxGeometry");
     final long x = mxGeometry.getX();
     final long y = mxGeometry.getY();
-    final int width = mxGeometry.getWidth();
-    final int height = mxGeometry.getHeight();
+    final long width = mxGeometry.getWidth();
+    final long height = mxGeometry.getHeight();
     final String as = mxGeometry.getAs();
 
     mxGeometryNode.setAttribute("x", String.valueOf(x));
