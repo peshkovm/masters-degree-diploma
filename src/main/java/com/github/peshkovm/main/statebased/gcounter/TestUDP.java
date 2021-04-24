@@ -24,6 +24,8 @@ public class TestUDP extends TestUtils {
     try {
       testInstance.setUpNodes();
       testInstance.shouldNotConvergeWhenUsingUdpProtocol();
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       testInstance.tearDownNodes();
     }

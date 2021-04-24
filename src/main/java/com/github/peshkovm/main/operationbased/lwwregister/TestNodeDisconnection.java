@@ -20,6 +20,8 @@ public class TestNodeDisconnection extends TestUtils {
     try {
       testInstance.setUpNodes();
       testInstance.shouldConvergeWhenConnectionWillBeEstablished();
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       testInstance.tearDownNodes();
     }
