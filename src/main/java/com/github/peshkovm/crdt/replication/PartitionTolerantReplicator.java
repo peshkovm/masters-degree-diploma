@@ -49,16 +49,16 @@ public class PartitionTolerantReplicator extends AbstractLifecycleComponent impl
     // send for all replicas
     for (DiscoveryNode node :
         clusterDiscovery.getDiscoveryNodes().remove(clusterDiscovery.getSelf())) {
-      final DiscoveryFuture channelFuture = transportService.send(node, message);
+      final DiscoveryFuture discoveryFuture = transportService.send(node, message);
 
       if (unsentMessages.get(node).getOrNull() == null) {
         unsentMessages = unsentMessages.put(node, new ConcurrentLinkedDeque<>());
       }
 
-      if (channelFuture.getFuture().isFailure()) {
-        saveUnsentDownstreamUpdates(channelFuture.getDiscoveryNode(), message);
-      } else if (channelFuture.getFuture().isSuccess()) {
-        maybeSentSavedDownstreamUpdates(channelFuture.getDiscoveryNode());
+      if (discoveryFuture.getFuture().isFailure()) {
+        saveUnsentDownstreamUpdates(discoveryFuture.getDiscoveryNode(), message);
+      } else if (discoveryFuture.getFuture().isSuccess()) {
+        maybeSentSavedDownstreamUpdates(discoveryFuture.getDiscoveryNode());
       }
     }
   }

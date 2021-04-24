@@ -2,7 +2,6 @@ package com.github.peshkovm.main.common;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
-import com.github.peshkovm.diagram.MessageType;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
@@ -14,7 +13,6 @@ import io.vavr.collection.Vector;
 public class TestUtils extends BaseTestUtils {
 
   protected Vector<InternalNode> nodes = Vector.empty();
-  private DiagramFactorySingleton diagramFactorySingleton;
 
   /** Creates and starts follower node on sme JVM with random port. */
   protected final void createAndStartInternalNode() {
@@ -43,41 +41,10 @@ public class TestUtils extends BaseTestUtils {
   }
 
   protected void tearDownNodes() {
-    if (diagramFactorySingleton != null && diagramFactorySingleton.isDiagramActive()) {
-      diagramFactorySingleton.buildDiagram();
-    }
-
     nodes.forEach(LifecycleComponent::stop);
     nodes.forEach(LifecycleComponent::close);
     nodes = Vector.empty();
     InternalClusterFactory.reset();
-  }
-
-  protected void setUpDiagram(
-      String diagramName,
-      int nodeHeight,
-      String outputPath,
-      boolean isDiagramActive,
-      boolean isDiagramContainsText,
-      boolean isDrawOnError,
-      MessageType... msgsToSkip) {
-    diagramFactorySingleton =
-        nodes.map(node -> node.getBeanFactory().getBean(DiagramFactorySingleton.class)).get(0);
-
-    if (diagramFactorySingleton.isDiagramActive()) {
-      diagramFactorySingleton.createDiagram(
-          diagramName,
-          nodeHeight,
-          isDiagramActive,
-          isDiagramContainsText,
-          isDrawOnError,
-          msgsToSkip);
-      diagramFactorySingleton.setOutputPath(outputPath);
-      for (int i = 0; i < nodes.size(); i++) {
-        final InternalNode internalNode = nodes.get(i);
-        diagramFactorySingleton.addNode(internalNode, DrawIOColor.values()[i]);
-      }
-    }
   }
 
   protected void checkNumberOfCreatedNodes() {

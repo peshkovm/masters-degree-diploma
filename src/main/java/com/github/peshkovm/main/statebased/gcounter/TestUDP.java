@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class TestUDP extends TestUtils {
 
   private Vector<CrdtService> crdtServices;
+
   private TransportService transportService;
 
   public static void main(String[] args) throws Exception {

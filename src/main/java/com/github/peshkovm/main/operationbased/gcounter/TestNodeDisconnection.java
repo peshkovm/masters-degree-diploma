@@ -3,17 +3,63 @@ package com.github.peshkovm.main.operationbased.gcounter;
 import com.github.peshkovm.crdt.CrdtService;
 import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.routing.ResourceType;
+import com.github.peshkovm.diagram.DiagramFactorySingleton;
 import com.github.peshkovm.diagram.MessageType;
-import com.github.peshkovm.main.common.TestUtils;
+import com.github.peshkovm.main.common.TestUtilsWithDiagram;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.netty.NettyTransportService;
 import io.vavr.collection.Vector;
 import java.util.concurrent.TimeUnit;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-public class TestNodeDisconnection extends TestUtils {
+public class TestNodeDisconnection extends TestUtilsWithDiagram {
 
   private Vector<CrdtService> crdtServices;
+
+  void setUpNodes() {
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+
+    checkNumberOfCreatedNodes();
+    addNodesToDiagram();
+
+    connectAllNodes();
+
+    crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
+  }
+
+  //  @Override
+  //  public DiagramFactorySingleton getInstance() {
+  //    return DiagramFactorySingleton.getInstance(
+  //        "Should converge when connection will be established",
+  //        "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
+  //        600,
+  //        true,
+  //        true,
+  //        MessageType.ADD_RESOURCE,
+  //        MessageType.COMMAND_RESULT);
+  //  }
+
+  @Configuration
+  @Profile("diagram")
+  public static class DiagramConfiguration {
+
+    @Bean
+    public DiagramFactorySingleton diagramFactorySingleton() {
+      return DiagramFactorySingleton.getInstance(
+          "Should converge when connection will be established",
+          "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
+          600,
+          true,
+          true,
+          MessageType.ADD_RESOURCE,
+          MessageType.COMMAND_RESULT);
+    }
+  }
 
   public static void main(String[] args) throws Exception {
     final TestNodeDisconnection testInstance = new TestNodeDisconnection();
@@ -25,27 +71,6 @@ public class TestNodeDisconnection extends TestUtils {
     } finally {
       testInstance.tearDownNodes();
     }
-  }
-
-  void setUpNodes() {
-    createAndStartInternalNode();
-    createAndStartInternalNode();
-    createAndStartInternalNode();
-
-    checkNumberOfCreatedNodes();
-
-    connectAllNodes();
-    setUpDiagram(
-        "Should converge when connection will be established",
-        600,
-        "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
-        true,
-        true,
-        true,
-        MessageType.ADD_RESOURCE,
-        MessageType.COMMAND_RESULT);
-
-    crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
   }
 
   void shouldConvergeWhenConnectionWillBeEstablished() throws Exception {

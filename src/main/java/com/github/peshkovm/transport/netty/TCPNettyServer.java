@@ -3,9 +3,6 @@ package com.github.peshkovm.transport.netty;
 import com.github.peshkovm.common.codec.Message;
 import com.github.peshkovm.common.netty.NettyProvider;
 import com.github.peshkovm.common.netty.NettyServer;
-import com.github.peshkovm.diagram.DiagramFactorySingleton;
-import com.github.peshkovm.diagram.discovery.ClusterDiagramNodeDiscovery;
-import com.github.peshkovm.diagram.netty.DiagramArrowCodec;
 import com.github.peshkovm.transport.DiscoveryNode;
 import com.github.peshkovm.transport.TransportController;
 import com.github.peshkovm.transport.TransportServer;
@@ -21,17 +18,17 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LoggingHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /** Default implementation of {@link NettyServer}. */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Profile("!diagram")
 public class TCPNettyServer extends NettyServer implements TransportServer {
 
   private final TransportController transportController;
-  private final DiagramArrowCodec diagramArrowCodec;
-  private final DiagramFactorySingleton diagramHelper;
 
   /**
    * Constructs a new instance.
@@ -44,15 +41,11 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
   public TCPNettyServer(
       @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") Config config,
       NettyProvider provider,
-      TransportController transportController,
-      DiagramFactorySingleton diagramHelper,
-      ClusterDiagramNodeDiscovery clusterDiagramNodeDiscovery) {
+      TransportController transportController) {
     super(
         new DiscoveryNode(config.getString("transport.host"), config.getInt("transport.port")),
         provider);
     this.transportController = transportController;
-    this.diagramHelper = diagramHelper;
-    this.diagramArrowCodec = new DiagramArrowCodec(diagramHelper, clusterDiagramNodeDiscovery);
   }
 
   @Override
@@ -60,7 +53,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
     return new ServerChannelInitializer();
   }
 
-  private class ServerChannelInitializer extends ChannelInitializer<Channel> {
+  protected class ServerChannelInitializer extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(Channel ch) throws Exception {
@@ -70,12 +63,14 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      if (diagramHelper.isDiagramActive()) pipeline.addLast(diagramArrowCodec);
-      pipeline.addLast(/*provider.getExecutor(),*/ new TransportServerHandler());
+      pipeline.addLast(
+          /*provider.getExecutor(),*/
+          TransportServerHandler.class.getSimpleName(),
+          new TransportServerHandler());
     }
   }
 
-  private class TransportServerHandler extends SimpleChannelInboundHandler<Message> {
+  protected class TransportServerHandler extends SimpleChannelInboundHandler<Message> {
 
     public TransportServerHandler() {
       super(false);

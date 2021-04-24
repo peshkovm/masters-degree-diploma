@@ -28,48 +28,55 @@ public class DiagramFactorySingleton {
   private final Map<Long, ArrowSourceInfo> arrowsSourceMap;
   private final Map<Long, ArrowTargetInfo> arrowsTargetMap;
   private Set<MessageType> msgsToSkip;
-  private boolean isDrawOnError;
+  @Getter private boolean isDrawOnError;
   private long id;
-
-  //  @Value("${diagram.isActive}")
-  @Getter private boolean isDiagramActive;
 
   //  @Value("${diagram.isContainsText}")
   @Getter private boolean isDiagramContainsText;
 
-  private DiagramFactorySingleton() {
+  private DiagramFactorySingleton(
+      String diagramName,
+      String outputPath,
+      int nodeHeight,
+      boolean isDiagramContainsText,
+      boolean isDrawOnError,
+      MessageType[] msgsToSkip) {
     nodesMap = new HashMap<>();
     arrowsSourceMap = new HashMap<>();
     arrowsTargetMap = new HashMap<>();
     id = 0;
+    diagramBuilder = DiagramBuilderSingleton.getInstance(diagramName, outputPath, nodeHeight);
+
+    nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
+    this.isDrawOnError = isDrawOnError;
+    this.isDiagramContainsText = isDiagramContainsText;
+    this.msgsToSkip = HashSet.of(msgsToSkip);
+    log.info("Skipping {}", this.msgsToSkip.mkString());
   }
 
-  public static DiagramFactorySingleton getInstance() {
+  public static DiagramFactorySingleton getInstance(
+      String diagramName,
+      String outputPath,
+      int nodeHeight,
+      boolean isDiagramContainsText,
+      boolean isDrawOnError,
+      MessageType... msgsToSkip) {
     if (instance != null) {
       return instance;
     }
     synchronized (DiagramFactorySingleton.class) {
       if (instance == null) {
-        instance = new DiagramFactorySingleton();
+        instance =
+            new DiagramFactorySingleton(
+                diagramName,
+                outputPath,
+                nodeHeight,
+                isDiagramContainsText,
+                isDrawOnError,
+                msgsToSkip);
       }
       return instance;
     }
-  }
-
-  public synchronized void createDiagram(
-      String diagramName,
-      int nodeHeight,
-      boolean isDiagramActive,
-      boolean isDiagramContainsText,
-      boolean isDrawOnError,
-      MessageType... msgsToSkip) {
-    diagramBuilder = DiagramBuilderSingleton.getInstance(diagramName, nodeHeight);
-    nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
-    this.isDrawOnError = isDrawOnError;
-    this.isDiagramActive = isDiagramActive;
-    this.isDiagramContainsText = isDiagramContainsText;
-    this.msgsToSkip = HashSet.of(msgsToSkip);
-    log.info("Skipping {}", this.msgsToSkip.mkString());
   }
 
   public synchronized void addNode(InternalNode internalNode, DrawIOColor color) {
@@ -127,20 +134,12 @@ public class DiagramFactorySingleton {
         arrowTargetInfo.targetMxPoint);
   }
 
-  public boolean isDrawOnError() {
-    return isDrawOnError;
-  }
-
   public synchronized void buildDiagram() {
     try {
       diagramBuilder.build();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  public synchronized void setOutputPath(String outputPath) {
-    diagramBuilder.setOutputFilePath(outputPath);
   }
 
   public synchronized MessageWithId wrapMessage(Message message) {

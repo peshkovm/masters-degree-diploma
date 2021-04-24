@@ -25,20 +25,18 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
   private final DiagramFactorySingleton diagramHelper;
   private final String nodeName;
-  private final boolean isActive;
   private final ClusterDiagramNodeDiscovery nodeDiscovery;
 
   public DiagramArrowCodec(
       DiagramFactorySingleton diagramHelper, ClusterDiagramNodeDiscovery nodeDiscovery) {
     this.diagramHelper = diagramHelper;
     this.nodeDiscovery = nodeDiscovery;
-    isActive = diagramHelper.isDiagramActive();
     nodeName = nodeDiscovery.getSelf().getNodeName();
   }
 
   @Override
   protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) {
-    if (!isActive || shouldSkipMessage(msg)) {
+    if (shouldSkipMessage(msg)) {
       out.add(new MessageWithId(msg, 0L));
       return;
     }
@@ -52,7 +50,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
   @Override
   protected void decode(ChannelHandlerContext ctx, MessageWithId msg, List<Object> out) {
-    if (!isActive || shouldSkipMessage(msg.getOriginalMessage())) {
+    if (shouldSkipMessage(msg.getOriginalMessage())) {
       out.add(msg.getOriginalMessage());
       return;
     }
@@ -68,7 +66,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
   }
 
   public void onException(Throwable cause, DiscoveryNode discoveryNode, Message msg) {
-    if (!isActive || shouldSkipMessage(msg) || !diagramHelper.isDrawOnError()) return;
+    if (shouldSkipMessage(msg) || !diagramHelper.isDrawOnError()) return;
 
     final MessageWithId messageWithId = diagramHelper.wrapMessage(msg);
     diagramHelper.addArrowSourcePoint(

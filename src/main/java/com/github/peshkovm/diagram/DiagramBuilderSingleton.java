@@ -35,7 +35,6 @@ public class DiagramBuilderSingleton {
 
   private static volatile DiagramBuilderSingleton instance;
   private String outputFilePath;
-  private String outputFileName;
   private final MxFile mxFile;
   private final List<NodeMxCell> nodes;
   private final List<ArrowMxCell> arrows;
@@ -43,9 +42,11 @@ public class DiagramBuilderSingleton {
   private final int nodeHeight;
   private final int nodeY;
 
-  private DiagramBuilderSingleton(String diagramName, int nodeHeight, int nodeY) {
+  private DiagramBuilderSingleton(
+      String diagramName, String outputFilePath, int nodeHeight, int nodeY) {
     this.nodeHeight = nodeHeight;
     this.nodeY = nodeY;
+    this.outputFilePath = outputFilePath;
 
     Root root = new Root(new RootMxCell(), new DiagramMxCell());
     final MxGraphModel mxGraphModel = new MxGraphModel(root);
@@ -75,13 +76,14 @@ public class DiagramBuilderSingleton {
     return serializer;
   }
 
-  public static DiagramBuilderSingleton getInstance(String diagramName, int nodeHeight) {
+  public static DiagramBuilderSingleton getInstance(
+      String diagramName, String outputPath, int nodeHeight) {
     if (instance != null) {
       return instance;
     }
     synchronized (DiagramBuilderSingleton.class) {
       if (instance == null) {
-        instance = new DiagramBuilderSingleton(diagramName, nodeHeight, 40);
+        instance = new DiagramBuilderSingleton(diagramName, outputPath, nodeHeight, 40);
       }
       return instance;
     }
@@ -169,6 +171,7 @@ public class DiagramBuilderSingleton {
     }
 
     File outFile = new File(outputFilePath);
+    Files.deleteIfExists(Paths.get(outputFilePath));
     Files.createDirectories(Paths.get(outputFilePath).getParent());
 
     serializer.write(mxFile, outFile);
