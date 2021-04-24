@@ -2,6 +2,7 @@ package com.github.peshkovm.main.common;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
 import com.github.peshkovm.node.InternalClusterFactory;
+import com.github.peshkovm.node.InternalClusterFactoryWithDiagram;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.netty.NettyTransportService;
@@ -14,7 +15,7 @@ public class TestUtils extends BaseTestUtils {
 
   /** Creates and starts follower node on sme JVM with random port. */
   protected void createAndStartInternalNode(Object... optionalBeans) {
-    final InternalNode node = InternalClusterFactory.createInternalNode(optionalBeans);
+    final InternalNode node = InternalClusterFactoryWithDiagram.createInternalNode(optionalBeans);
     nodes = nodes.append(node);
 
     node.start();
