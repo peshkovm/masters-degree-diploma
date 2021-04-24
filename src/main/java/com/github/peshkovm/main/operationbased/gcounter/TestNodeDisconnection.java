@@ -32,18 +32,6 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
   }
 
-  //  @Override
-  //  public DiagramFactorySingleton getInstance() {
-  //    return DiagramFactorySingleton.getInstance(
-  //        "Should converge when connection will be established",
-  //        "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
-  //        600,
-  //        true,
-  //        true,
-  //        MessageType.ADD_RESOURCE,
-  //        MessageType.COMMAND_RESULT);
-  //  }
-
   @Configuration
   @Profile("diagram")
   public static class DiagramConfiguration {

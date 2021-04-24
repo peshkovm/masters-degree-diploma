@@ -3,9 +3,6 @@ package com.github.peshkovm.main.common;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.node.InternalNode;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 public abstract class TestUtilsWithDiagram extends TestUtils {
 
@@ -31,16 +28,4 @@ public abstract class TestUtilsWithDiagram extends TestUtils {
       diagramFactorySingleton.addNode(internalNode, DrawIOColor.values()[i]);
     }
   }
-
-  //  public abstract DiagramFactorySingleton getInstance();
-  //
-  //  @Configuration
-  //  @Profile("diagram")
-  //  public class DiagramConfiguration {
-  //
-  //    @Bean
-  //    public DiagramFactorySingleton diagramFactorySingleton() {
-  //      return getInstance();
-  //    }
-  //  }
 }
