@@ -32,13 +32,17 @@ public class InternalNode extends AbstractLifecycleComponent implements Node {
    *
    * @param config config to be used by InternalNode instance
    */
-  public InternalNode(Config config) {
+  public InternalNode(Config config, Object... optionalBeans) {
     this.config = config;
 
     logger.info("Initializing...");
     final BeanFactoryBuilder beanFactoryBuilder = new BeanFactoryBuilder();
     beanFactoryBuilder.addBean(config, bd -> bd.setScope(ConfigurableBeanFactory.SCOPE_SINGLETON));
     beanFactoryBuilder.add(ComponentConfiguration.class);
+    for (Object optionalBean : optionalBeans) {
+      beanFactoryBuilder.addBean(
+          optionalBean, bd -> bd.setScope(ConfigurableBeanFactory.SCOPE_SINGLETON));
+    }
 
     beanFactory = beanFactoryBuilder.createBeanFactory();
     logger.info("Initialized");

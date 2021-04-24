@@ -6,9 +6,7 @@ import com.typesafe.config.Config;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.Set;
 
-/**
- * Factory class to creates {@link InternalNode} instances.
- */
+/** Factory class to creates {@link InternalNode} instances. */
 public final class InternalClusterFactory {
 
   private static Set<Integer> ports = HashSet.empty(); // List of cluster nodes ports
@@ -39,13 +37,13 @@ public final class InternalClusterFactory {
    *
    * @return newly created InternalNode instance
    */
-  public static InternalNode createInternalNode() {
+  public static InternalNode createInternalNode(Object... optionalBeans) {
     final String host = "127.0.0.1";
     final int port = port();
     final Config config =
         new ConfigBuilder().with("transport.host", host).with("transport.port", port).build();
 
-    final InternalNode internalNode = new InternalNode(config);
+    final InternalNode internalNode = new InternalNode(config, optionalBeans);
 
     return internalNode;
   }

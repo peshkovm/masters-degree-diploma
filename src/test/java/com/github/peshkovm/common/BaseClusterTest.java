@@ -14,8 +14,8 @@ public class BaseClusterTest extends BaseTest {
   protected Vector<InternalNode> nodes = Vector.empty();
 
   /** Creates and starts follower node on sme JVM with random port. */
-  protected final void createAndStartInternalNode() {
-    final InternalNode node = InternalClusterFactory.createInternalNode();
+  protected final void createAndStartInternalNode(Object... optionalBeans) {
+    final InternalNode node = InternalClusterFactory.createInternalNode(optionalBeans);
     nodes = nodes.append(node);
 
     node.start();
