@@ -11,9 +11,6 @@ import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.netty.NettyTransportService;
 import io.vavr.collection.Vector;
 import java.util.concurrent.TimeUnit;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 public class TestNodeDisconnection extends TestUtilsWithDiagram {
 
@@ -26,27 +23,21 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
 
     checkNumberOfCreatedNodes();
     addNodesToDiagram();
-
     connectAllNodes();
 
     crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
   }
 
-  @Configuration
-  @Profile("diagram")
-  public static class DiagramConfiguration {
-
-    @Bean
-    public DiagramFactorySingleton diagramFactorySingleton() {
-      return DiagramFactorySingleton.getInstance(
-          "Should converge when connection will be established",
-          "src/main/resources/diagram/shouldConvergeWhenConnectionWillBeEstablished.xml",
-          600,
-          true,
-          true,
-          MessageType.ADD_RESOURCE,
-          MessageType.COMMAND_RESULT);
-    }
+  @Override
+  protected DiagramFactorySingleton getDiagramInstance() {
+    return DiagramFactorySingleton.getInstance(
+        "Should converge when connection will be established",
+        "src/main/resources/diagram/operationbased/gcounter/shouldConvergeWhenConnectionWillBeEstablished.xml",
+        600,
+        true,
+        true,
+        MessageType.ADD_RESOURCE,
+        MessageType.COMMAND_RESULT);
   }
 
   public static void main(String[] args) throws Exception {

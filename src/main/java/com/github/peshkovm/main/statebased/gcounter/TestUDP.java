@@ -5,7 +5,9 @@ import com.github.peshkovm.crdt.routing.ResourceType;
 import com.github.peshkovm.crdt.statebased.AbstractCvRDT;
 import com.github.peshkovm.crdt.statebased.GCounterCvRDT;
 import com.github.peshkovm.crdt.statebased.protocol.Payload;
-import com.github.peshkovm.main.common.TestUtils;
+import com.github.peshkovm.diagram.DiagramFactorySingleton;
+import com.github.peshkovm.diagram.MessageType;
+import com.github.peshkovm.main.common.TestUtilsWithDiagram;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import com.github.peshkovm.transport.DiscoveryNode;
@@ -14,11 +16,35 @@ import com.github.peshkovm.transport.netty.NettyTransportService;
 import io.vavr.collection.Vector;
 import java.util.concurrent.TimeUnit;
 
-public class TestUDP extends TestUtils {
+public class TestUDP extends TestUtilsWithDiagram {
 
   private Vector<CrdtService> crdtServices;
-
   private TransportService transportService;
+
+  void setUpNodes() {
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+    createAndStartInternalNode();
+
+    checkNumberOfCreatedNodes();
+    addNodesToDiagram();
+    connectAllNodes();
+
+    crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
+    transportService = nodes.head().getBeanFactory().getBean(TransportService.class);
+  }
+
+  @Override
+  protected DiagramFactorySingleton getDiagramInstance() {
+    return DiagramFactorySingleton.getInstance(
+        "Should not converge when using udp protocol",
+        "src/main/resources/diagram/statebased/gcounter/shouldNotConvergeWhenUsingUdpProtocol.xml",
+        600,
+        true,
+        true,
+        MessageType.ADD_RESOURCE,
+        MessageType.COMMAND_RESULT);
+  }
 
   public static void main(String[] args) throws Exception {
     final TestUDP testInstance = new TestUDP();
@@ -34,7 +60,7 @@ public class TestUDP extends TestUtils {
 
   void shouldNotConvergeWhenUsingUdpProtocol() throws Exception {
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 100;
+    final int timesToIncrement = 10;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
 
     createResource(crdtId, ResourceType.GCounterCvRDT);
@@ -82,17 +108,6 @@ public class TestUDP extends TestUtils {
           }
         });
     logger.info("SUCCESSFUL");
-  }
-
-  void setUpNodes() {
-    createAndStartInternalNode();
-    createAndStartInternalNode();
-    createAndStartInternalNode();
-
-    connectAllNodes();
-
-    crdtServices = nodes.map(node -> node.getBeanFactory().getBean(CrdtService.class));
-    transportService = nodes.head().getBeanFactory().getBean(TransportService.class);
   }
 
   private void createResource(String crdt, ResourceType crdtType) {

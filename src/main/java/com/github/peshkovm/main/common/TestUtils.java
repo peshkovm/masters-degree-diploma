@@ -1,8 +1,6 @@
 package com.github.peshkovm.main.common;
 
 import com.github.peshkovm.common.component.LifecycleComponent;
-import com.github.peshkovm.diagram.DiagramFactorySingleton;
-import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.node.InternalClusterFactory;
 import com.github.peshkovm.node.InternalNode;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
@@ -15,8 +13,8 @@ public class TestUtils extends BaseTestUtils {
   protected Vector<InternalNode> nodes = Vector.empty();
 
   /** Creates and starts follower node on sme JVM with random port. */
-  protected final void createAndStartInternalNode() {
-    final InternalNode node = InternalClusterFactory.createInternalNode();
+  protected void createAndStartInternalNode(Object... optionalBeans) {
+    final InternalNode node = InternalClusterFactory.createInternalNode(optionalBeans);
     nodes = nodes.append(node);
 
     node.start();
