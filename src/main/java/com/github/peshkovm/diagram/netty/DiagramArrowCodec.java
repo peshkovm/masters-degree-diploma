@@ -5,7 +5,7 @@ import com.github.peshkovm.crdt.operationbased.protocol.DownstreamUpdate;
 import com.github.peshkovm.crdt.routing.fsm.AddResource;
 import com.github.peshkovm.crdt.statebased.protocol.Payload;
 import com.github.peshkovm.diagram.DiagramFactorySingleton;
-import com.github.peshkovm.diagram.DiagramFactorySingleton.MessageWithId;
+import com.github.peshkovm.diagram.DiagramFactorySingleton.MessageWithMeta;
 import com.github.peshkovm.diagram.MessageType;
 import com.github.peshkovm.diagram.commons.DrawIOColor;
 import com.github.peshkovm.diagram.discovery.ClusterDiagramNodeDiscovery;
@@ -21,7 +21,7 @@ import io.vavr.collection.HashSet;
 import java.util.List;
 
 @Sharable
-public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Message> {
+public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithMeta, Message> {
 
   private final DiagramFactorySingleton diagramHelper;
   private final String nodeName;
@@ -37,19 +37,20 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
   @Override
   protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) {
     if (shouldSkipMessage(msg)) {
-      out.add(new MessageWithId(msg, 0L));
+      out.add(new MessageWithMeta(msg, 0L, DrawIOColor.GREY));
       return;
     }
 
-    final MessageWithId messageWithId = diagramHelper.wrapMessage(msg);
+    final MessageWithMeta messageWithMeta =
+        diagramHelper.wrapMessage(msg, nodeDiscovery.getSelf().getNodeColor());
     diagramHelper.addArrowSourcePoint(
-        messageWithId.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
+        messageWithMeta.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
 
-    out.add(messageWithId);
+    out.add(messageWithMeta);
   }
 
   @Override
-  protected void decode(ChannelHandlerContext ctx, MessageWithId msg, List<Object> out) {
+  protected void decode(ChannelHandlerContext ctx, MessageWithMeta msg, List<Object> out) {
     if (shouldSkipMessage(msg.getOriginalMessage())) {
       out.add(msg.getOriginalMessage());
       return;
@@ -60,7 +61,7 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
 
     String arrowName = getArrowName(msg.getOriginalMessage());
 
-    diagramHelper.commitArrow(msg.getId(), arrowName, DrawIOColor.GREY);
+    diagramHelper.commitArrow(msg.getId(), arrowName, msg.getColor());
 
     out.add(msg.getOriginalMessage());
   }
@@ -68,18 +69,19 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithId, Mess
   public void onException(Throwable cause, DiscoveryNode discoveryNode, Message msg) {
     if (shouldSkipMessage(msg) || !diagramHelper.isDrawOnError()) return;
 
-    final MessageWithId messageWithId = diagramHelper.wrapMessage(msg);
+    final MessageWithMeta messageWithMeta =
+        diagramHelper.wrapMessage(msg, nodeDiscovery.getSelf().getNodeColor());
     diagramHelper.addArrowSourcePoint(
-        messageWithId.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
+        messageWithMeta.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
 
     final String targetNodeName =
         nodeDiscovery.getReplicas().get(discoveryNode).get().getNodeName();
 
     diagramHelper.addArrowTargetPoint(
-        messageWithId.getId(), ArrowEdgeShape.CROSS, targetNodeName, System.nanoTime());
+        messageWithMeta.getId(), ArrowEdgeShape.CROSS, targetNodeName, System.nanoTime());
 
     String arrowName = getArrowName(msg);
-    diagramHelper.commitArrow(messageWithId.getId(), arrowName, DrawIOColor.RED);
+    diagramHelper.commitArrow(messageWithMeta.getId(), arrowName, DrawIOColor.RED);
   }
 
   private String getArrowName(Message message) {

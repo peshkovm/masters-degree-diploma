@@ -11,6 +11,7 @@ public final class InternalClusterFactory {
 
   private static Set<Integer> ports = HashSet.empty(); // List of cluster nodes ports
   private static Set<String> diagramNodesNames = HashSet.empty(); // List of diagram nodes names
+  private static Set<String> diagramNodesColors = HashSet.empty(); // List of diagram nodes colors
 
   private InternalClusterFactory() {}
 
@@ -49,6 +50,22 @@ public final class InternalClusterFactory {
             + " diagram nodes in application.conf");
   }
 
+  private static String diagramNodeColor() {
+    final Config config = new ConfigBuilder().build();
+    for (String nodeColor : config.getStringList("diagram.colors")) {
+      if (!diagramNodesColors.contains(nodeColor)) {
+        diagramNodesColors = diagramNodesColors.add(nodeColor);
+        return nodeColor;
+      }
+    }
+    throw new IllegalStateException(
+        "Trying to create "
+            + (diagramNodesColors.size() + 1)
+            + " diagram nodes but only has "
+            + diagramNodesColors.size()
+            + " nodes colors in application.conf");
+  }
+
   /**
    * Creates internal node on same JVM with localhost and port form application.conf.
    *
@@ -63,6 +80,7 @@ public final class InternalClusterFactory {
             .with("transport.host", host)
             .with("transport.port", port)
             .with("diagram.node.name", diagramNodeName)
+            .with("diagram.node.color", diagramNodeColor())
             .build();
 
     final InternalNode internalNode = new InternalNode(config, optionalBeans);
@@ -74,5 +92,6 @@ public final class InternalClusterFactory {
   public static void reset() {
     ports = HashSet.empty();
     diagramNodesNames = HashSet.empty();
+    diagramNodesColors = HashSet.empty();
   }
 }

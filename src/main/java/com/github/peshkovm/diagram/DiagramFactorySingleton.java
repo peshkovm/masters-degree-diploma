@@ -142,8 +142,8 @@ public class DiagramFactorySingleton {
     }
   }
 
-  public synchronized MessageWithId wrapMessage(Message message) {
-    return new MessageWithId(message, ++id);
+  public synchronized MessageWithMeta wrapMessage(Message message, DrawIOColor color) {
+    return new MessageWithMeta(message, ++id, color);
   }
 
   @Data
@@ -169,13 +169,15 @@ public class DiagramFactorySingleton {
   }
 
   @Data
-  public static class MessageWithId implements Message {
+  public static class MessageWithMeta implements Message {
     private final Message originalMessage;
     private final long id;
+    private final DrawIOColor color;
 
-    public MessageWithId(Message originalMessage, long id) {
+    public MessageWithMeta(Message originalMessage, long id, DrawIOColor color) {
       this.originalMessage = originalMessage;
       this.id = id;
+      this.color = color;
     }
   }
 }
