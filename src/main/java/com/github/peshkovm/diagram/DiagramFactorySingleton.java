@@ -128,6 +128,7 @@ public class DiagramFactorySingleton {
     diagramBuilder.addArrow(
         arrowName,
         arrowColor,
+        arrowColor,
         arrowSourceInfo.startArrow,
         arrowTargetInfo.endArrow,
         arrowSourceInfo.sourceMxPoint,

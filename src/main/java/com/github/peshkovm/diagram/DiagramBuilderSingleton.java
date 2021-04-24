@@ -109,6 +109,7 @@ public class DiagramBuilderSingleton {
   public synchronized DiagramBuilderSingleton addArrow(
       String name,
       DrawIOColor color,
+      DrawIOColor fontColor,
       ArrowEdgeShape startArrow,
       ArrowEdgeShape endArrow,
       SourceMxPoint sourceMxPoint,
@@ -127,6 +128,7 @@ public class DiagramBuilderSingleton {
             startArrow,
             endArrow,
             color,
+            fontColor,
             new ArrowMxGeometry(sourceMxPoint, targetMxPoint));
 
     arrows.add(newArrow);
@@ -166,6 +168,7 @@ public class DiagramBuilderSingleton {
               arrow.getStartArrow(),
               arrow.getEndArrow(),
               arrow.getColor(),
+              arrow.getFontColor(),
               new ArrowMxGeometry(
                   new SourceMxPoint(sourceX, newSourceY), new TargetMxPoint(targetX, newTargetY))));
     }

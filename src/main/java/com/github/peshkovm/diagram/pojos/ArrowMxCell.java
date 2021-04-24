@@ -21,6 +21,7 @@ public class ArrowMxCell {
   @Transient private final ArrowEdgeShape startArrow;
   @Transient private final ArrowEdgeShape endArrow;
   @Transient private final DrawIOColor color;
+  @Transient private final DrawIOColor fontColor;
 
   @Element(name = "arrowMxGeometry")
   private final ArrowMxGeometry mxGeometry;
@@ -31,12 +32,14 @@ public class ArrowMxCell {
       ArrowEdgeShape startArrow,
       ArrowEdgeShape endArrow,
       DrawIOColor color,
+      DrawIOColor fontColor,
       ArrowMxGeometry arrowMxGeometry) {
     this.id = id;
     this.value = value;
     this.startArrow = startArrow;
     this.endArrow = endArrow;
     this.color = color;
+    this.fontColor = fontColor;
     this.mxGeometry = arrowMxGeometry;
     this.style =
         "strokeWidth=1;"
@@ -49,6 +52,8 @@ public class ArrowMxCell {
             + color.strokeColor
             + ";strokeColor="
             + color.strokeColor
+            + ";fontColor="
+            + fontColor.strokeColor
             + ";";
   }
 
