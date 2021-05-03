@@ -8,3 +8,6 @@ target/
 
 #Log
 *.log
+
+#Diagram
+/src/main/resources/diagram/
