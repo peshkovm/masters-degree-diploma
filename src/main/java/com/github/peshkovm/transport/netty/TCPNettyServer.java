@@ -21,9 +21,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-/**
- * Default implementation of {@link NettyServer}.
- */
+/** Default implementation of {@link NettyServer}. */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class TCPNettyServer extends NettyServer implements TransportServer {
@@ -63,7 +61,7 @@ public class TCPNettyServer extends NettyServer implements TransportServer {
               LoggingHandler.class.getName() + "." + this.getClass().getSimpleName() + ".Channel"));
       pipeline.addLast(new ObjectEncoder());
       pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-      pipeline.addLast(provider.getExecutor(), new TransportServerHandler());
+      pipeline.addLast(/*provider.getExecutor(),*/ new TransportServerHandler());
     }
   }
 

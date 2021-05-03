@@ -24,9 +24,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-/**
- * Provider class of Netty's components for a server and client bootstrapping.
- */
+/** Provider class of Netty's components for a server and client bootstrapping. */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 @Getter
@@ -73,23 +71,17 @@ public class NettyProvider extends AbstractLifecycleComponent {
       parentEventLoopGroup = new NioEventLoopGroup(numOfParentThreads);
       childEventLoopGroup = new NioEventLoopGroup(numOfChildThreads);
     }
-    executor = new DefaultEventExecutorGroup(2);
+    executor = new DefaultEventExecutorGroup(1);
     logger.debug("Initialized");
   }
 
-  /**
-   * Does nothing.
-   */
+  /** Does nothing. */
   @Override
-  protected void doStart() {
-  }
+  protected void doStart() {}
 
-  /**
-   * Does nothing.
-   */
+  /** Does nothing. */
   @Override
-  protected void doStop() {
-  }
+  protected void doStop() {}
 
   /** Shutdowns Netty's components. */
   @Override
