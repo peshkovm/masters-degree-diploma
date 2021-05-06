@@ -33,11 +33,13 @@ public class DiagramFactorySingleton {
 
   //  @Value("${diagram.isContainsText}")
   @Getter private boolean isDiagramContainsText;
+  private int distanceBetweenNodes;
 
   private DiagramFactorySingleton(
       String diagramName,
       String outputPath,
       int nodeHeight,
+      int distanceBetweenNodes,
       boolean isDiagramContainsText,
       boolean isDrawOnError,
       MessageType[] msgsToSkip) {
@@ -46,18 +48,20 @@ public class DiagramFactorySingleton {
     arrowsTargetMap = new HashMap<>();
     id = 0;
     diagramBuilder = DiagramBuilderSingleton.getInstance(diagramName, outputPath, nodeHeight);
+    this.distanceBetweenNodes = distanceBetweenNodes;
 
     nodes = Collections.unmodifiableList(diagramBuilder.getNodes());
     this.isDrawOnError = isDrawOnError;
     this.isDiagramContainsText = isDiagramContainsText;
     this.msgsToSkip = HashSet.of(msgsToSkip);
-    log.info("Skipping {}", this.msgsToSkip.mkString());
+    log.info("Skipping {}", this.msgsToSkip.mkString(", "));
   }
 
   public static DiagramFactorySingleton getInstance(
       String diagramName,
       String outputPath,
       int nodeHeight,
+      int distanceBetweenNodes,
       boolean isDiagramContainsText,
       boolean isDrawOnError,
       MessageType... msgsToSkip) {
@@ -71,6 +75,7 @@ public class DiagramFactorySingleton {
                 diagramName,
                 outputPath,
                 nodeHeight,
+                distanceBetweenNodes,
                 isDiagramContainsText,
                 isDrawOnError,
                 msgsToSkip);
@@ -87,7 +92,7 @@ public class DiagramFactorySingleton {
     else
       diagramBuilder.addNode(
           nodeMeta.getNodeName(),
-          nodes.get(nodes.size() - 1).getMxGeometry().getX() + 160,
+          nodes.get(nodes.size() - 1).getMxGeometry().getX() + distanceBetweenNodes,
           80,
           color);
     nodesMap.put(nodes.get(nodes.size() - 1).getValue(), nodes.get(nodes.size() - 1));

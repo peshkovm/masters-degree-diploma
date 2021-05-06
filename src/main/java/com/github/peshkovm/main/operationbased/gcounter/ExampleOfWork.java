@@ -31,6 +31,7 @@ public class ExampleOfWork extends TestUtilsWithDiagram {
         "exampleOfWork",
         "src/main/resources/diagram/operationbased/gcounter/exampleOfWork.xml",
         600,
+        160,
         true,
         true,
         MessageType.ADD_RESOURCE,

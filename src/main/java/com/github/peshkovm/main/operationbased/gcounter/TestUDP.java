@@ -41,6 +41,7 @@ public class TestUDP extends TestUtilsWithDiagram {
         "Should not converge when using udp protocol",
         "src/main/resources/diagram/operationbased/gcounter/shouldNotConvergeWhenUsingUdpProtocol.xml",
         600,
+        160,
         true,
         true,
         MessageType.ADD_RESOURCE,

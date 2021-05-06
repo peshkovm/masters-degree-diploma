@@ -40,6 +40,7 @@ public class TestUDP extends TestUtilsWithDiagram {
         "Should not converge when using udp protocol",
         "src/main/resources/diagram/operationbased/lwwregister/shouldNotConvergeWhenUsingUdpProtocol.xml",
         600,
+        160,
         true,
         true);
   }

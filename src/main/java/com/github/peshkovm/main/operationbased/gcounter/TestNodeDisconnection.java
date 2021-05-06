@@ -34,6 +34,7 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
         "Should converge when connection will be established",
         "src/main/resources/diagram/operationbased/gcounter/shouldConvergeWhenConnectionWillBeEstablished.xml",
         600,
+        240,
         true,
         true,
         MessageType.ADD_RESOURCE,
@@ -54,7 +55,7 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
 
   void shouldConvergeWhenConnectionWillBeEstablished() throws Exception {
     final String crdtId = "countOfLikes";
-    final int timesToIncrement = 10;
+    final int timesToIncrement = 5;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
 
     createResource(crdtId, ResourceType.GCounterCmRDT);
@@ -68,10 +69,10 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
       final GCounterCmRDT sourceGCounter = gCounters.head();
       sourceGCounter.increment();
 
-      if (incrementNum == timesToIncrement / 4) {
+      if (incrementNum == 1) {
         partition(nodes.get(1));
       }
-      if (incrementNum == timesToIncrement / 2) {
+      if (incrementNum == 3) {
         recoverFromPartition(nodes.get(1));
       }
     }

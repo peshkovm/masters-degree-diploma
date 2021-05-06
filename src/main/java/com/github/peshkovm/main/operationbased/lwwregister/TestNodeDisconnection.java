@@ -34,6 +34,7 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
         "Should converge when connection will be established",
         "src/main/resources/diagram/operationbased/lwwregister/shouldConvergeWhenConnectionWillBeEstablished.xml",
         600,
+        160,
         true,
         true,
         MessageType.ADD_RESOURCE,
@@ -54,7 +55,7 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
 
   void shouldConvergeWhenConnectionWillBeEstablished() throws Exception {
     final String crdtId = "totalPrice";
-    final int timesToIncrement = 10;
+    final int timesToIncrement = 5;
     final long numOfSecondsToWait = TimeUnit.SECONDS.toMillis(2);
 
     createResource(crdtId, ResourceType.LWWRegisterCmRDT);
@@ -68,10 +69,10 @@ public class TestNodeDisconnection extends TestUtilsWithDiagram {
       final LWWRegisterCmRDT sourceLWWRegister = lwwRegisters.head();
       sourceLWWRegister.assign(incrementNum + 1L);
 
-      if (incrementNum == 25) {
+      if (incrementNum == 1) {
         partition(nodes.get(1));
       }
-      if (incrementNum == 50) {
+      if (incrementNum == 3) {
         recoverFromPartition(nodes.get(1));
       }
     }
