@@ -59,6 +59,7 @@ public class ArrowMxCell {
 
   public enum ArrowEdgeShape {
     OVAL,
+    BOX,
     CLASSIC,
     CROSS
   }

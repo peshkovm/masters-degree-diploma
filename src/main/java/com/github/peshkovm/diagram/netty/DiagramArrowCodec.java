@@ -43,8 +43,11 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithMeta, Me
 
     final MessageWithMeta messageWithMeta =
         diagramHelper.wrapMessage(msg, nodeDiscovery.getSelf().getNodeColor());
+
+    final ArrowEdgeShape startArrowShape = getStartArrowShape(msg);
+
     diagramHelper.addArrowSourcePoint(
-        messageWithMeta.getId(), ArrowEdgeShape.OVAL, nodeName, System.nanoTime());
+        messageWithMeta.getId(), startArrowShape, nodeName, System.nanoTime());
 
     out.add(messageWithMeta);
   }
@@ -82,6 +85,45 @@ public class DiagramArrowCodec extends MessageToMessageCodec<MessageWithMeta, Me
 
     String arrowName = getArrowName(msg);
     diagramHelper.commitArrow(messageWithMeta.getId(), arrowName, DrawIOColor.RED);
+  }
+
+  private ArrowEdgeShape getStartArrowShape(Message message) {
+    MessageType messageType;
+    Message msg;
+
+    if (message instanceof ClientMessage) {
+      msg = ((ClientMessage) message).getMessage().getCommand();
+      messageType = MessageType.getMessageType(msg.getClass());
+    } else if (message instanceof ClientMessageSuccessful) {
+      msg = ((ClientMessageSuccessful) message).getCommandResult();
+      messageType = MessageType.getMessageType(msg.getClass());
+    } else {
+      msg = message;
+      messageType = MessageType.getMessageType(msg.getClass());
+    }
+
+    switch (messageType) {
+      case ADD_RESOURCE:
+        {
+          return ArrowEdgeShape.BOX;
+        }
+      case COMMAND_RESULT:
+        {
+          return ArrowEdgeShape.BOX;
+        }
+      case DOWNSTREAM_UPDATE:
+        {
+          return ArrowEdgeShape.OVAL;
+        }
+      case PAYLOAD:
+        {
+          return ArrowEdgeShape.OVAL;
+        }
+      default:
+        {
+          return ArrowEdgeShape.OVAL;
+        }
+    }
   }
 
   private String getArrowName(Message message) {
