@@ -1,6 +1,7 @@
 package com.github.peshkovm.crdt.basic;
 
 import com.github.peshkovm.crdt.Crdt;
+import java.io.Serializable;
 
 /**
  * A register is a memory cell storing an opaque atom or object (noted type X hereafter). It
@@ -8,19 +9,19 @@ import com.github.peshkovm.crdt.Crdt;
  * sequential semantics: the later one overwrites the earlier one. Unless safeguards are taken,
  * concurrent updates do not commute.
  */
-public interface RegisterCRDT extends Crdt<Long, Long> {
+public interface RegisterCRDT<T extends Serializable, R extends Serializable> extends Crdt<T, R> {
 
   /**
    * Updates register's value.
    *
    * @param value
    */
-  void assign(Long value);
+  void assign(T value);
 
   /**
    * Returns register's value.
    *
    * @return
    */
-  Long value();
+  R value();
 }

@@ -2,6 +2,7 @@ package com.github.peshkovm.crdt.routing;
 
 public enum ResourceType {
   GCounterCmRDT,
+  LWWRegisterCmRDT,
   GCounterCvRDT,
-  LWWRegisterCmRDT
+  MVRegisterCvRDT
 }

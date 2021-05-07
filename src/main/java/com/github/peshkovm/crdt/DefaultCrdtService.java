@@ -10,6 +10,7 @@ import com.github.peshkovm.crdt.routing.fsm.AddResourceResponse;
 import com.github.peshkovm.crdt.routing.fsm.DeleteResource;
 import com.github.peshkovm.crdt.routing.fsm.DeleteResourceResponse;
 import com.github.peshkovm.crdt.statebased.GCounterCvRDT;
+import com.github.peshkovm.crdt.statebased.MVRegisterCvRDT;
 import com.github.peshkovm.crdt.statebased.protocol.Payload;
 import com.github.peshkovm.raft.Raft;
 import com.github.peshkovm.raft.protocol.CommandResult;
@@ -87,6 +88,11 @@ public class DefaultCrdtService implements CrdtService {
           isCreated = crdtRegistry.createGCounterCvRDT(resourceId);
           break;
         }
+      case MVRegisterCvRDT:
+        {
+          isCreated = crdtRegistry.createMVRegisterCvRDT(resourceId);
+          break;
+        }
       default:
         logger.warn("Unexpected crdt type: {}", () -> resourceType);
     }
@@ -117,6 +123,11 @@ public class DefaultCrdtService implements CrdtService {
       case GCounterCvRDT:
         {
           isDeleted = crdtRegistry.deleteCRDT(resourceId, GCounterCvRDT.class);
+          break;
+        }
+      case MVRegisterCvRDT:
+        {
+          isDeleted = crdtRegistry.deleteCRDT(resourceId, MVRegisterCvRDT.class);
           break;
         }
       default:

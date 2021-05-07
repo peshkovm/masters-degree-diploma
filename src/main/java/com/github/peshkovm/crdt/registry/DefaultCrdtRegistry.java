@@ -5,6 +5,7 @@ import com.github.peshkovm.crdt.operationbased.GCounterCmRDT;
 import com.github.peshkovm.crdt.operationbased.LWWRegisterCmRDT;
 import com.github.peshkovm.crdt.replication.Replicator;
 import com.github.peshkovm.crdt.statebased.GCounterCvRDT;
+import com.github.peshkovm.crdt.statebased.MVRegisterCvRDT;
 import com.github.peshkovm.raft.discovery.ClusterDiscovery;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
@@ -71,6 +72,24 @@ public class DefaultCrdtRegistry implements CrdtRegistry {
       final int id = discovery.getDiscoveryNodes().toList().indexOf(discovery.getSelf());
 
       crdtMap = crdtMap.put(pair, new GCounterCvRDT(resourceId, numOfNodes, id, replicator));
+      return true;
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
+  public boolean createMVRegisterCvRDT(String resourceId) {
+    lock.lock();
+    final CrdtIdClassPair pair = new CrdtIdClassPair(resourceId, MVRegisterCvRDT.class);
+    try {
+      if (crdtMap.containsKey(pair)) {
+        return false;
+      }
+      final int numOfNodes = discovery.getDiscoveryNodes().length();
+      final int id = discovery.getDiscoveryNodes().toList().indexOf(discovery.getSelf());
+
+      crdtMap = crdtMap.put(pair, new MVRegisterCvRDT(resourceId, numOfNodes, id, replicator));
       return true;
     } finally {
       lock.unlock();

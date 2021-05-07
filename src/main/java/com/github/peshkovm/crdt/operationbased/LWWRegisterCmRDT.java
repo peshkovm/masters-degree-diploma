@@ -4,7 +4,8 @@ import com.github.peshkovm.crdt.basic.RegisterCRDT;
 import com.github.peshkovm.crdt.replication.Replicator;
 import io.vavr.control.Option;
 
-public class LWWRegisterCmRDT extends AbstractCmRDT<Long, Long> implements RegisterCRDT {
+public class LWWRegisterCmRDT extends AbstractCmRDT<Long, Long>
+    implements RegisterCRDT<Long, Long> {
 
   private Long x; // immutable payload
   private Long timestamp;

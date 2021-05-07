@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @param <T> type of crdt update operation (optional) argument
  * @param <R> type of crdt query operation return value
+ * @param <U> type of payload
  */
 public abstract class AbstractCvRDT<
         T extends Serializable, R extends Serializable, U extends Serializable>
