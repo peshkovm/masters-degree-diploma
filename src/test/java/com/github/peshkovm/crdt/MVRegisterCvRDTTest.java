@@ -65,17 +65,6 @@ public class MVRegisterCvRDTTest extends BaseClusterTest {
       sourceMVRegister.replicatePayload();
     }
 
-    //    executeConcurrently(
-    //        (threadNum, numOfCores) -> {
-    //          for (int incrementNum = threadNum;
-    //              incrementNum < timesToIncrement;
-    //              incrementNum += numOfCores) {
-    //            final MVRegisterCvRDT sourceGCounter = mvRegisters.get(0);
-    //            sourceGCounter.assign(incrementNum + "");
-    //            sourceGCounter.replicatePayload();
-    //          }
-    //        });
-
     logger.info("Waiting for query");
     for (int i = 0; i < numOfSecondsToWait / 100; i++) {
       if (!mvRegisters.forAll(
