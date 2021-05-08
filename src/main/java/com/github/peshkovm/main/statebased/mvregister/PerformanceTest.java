@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -39,9 +40,8 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 public class PerformanceTest {
-  private static final int NUM_ITERATIONS = 20;
-  private static final int NUM_OF_FORKS = 2;
-  private static final int TIMES_TO_INCREMENT = 50_000;
+  private static final int NUM_ITERATIONS = 40;
+  private static final int NUM_OF_FORKS = 4;
   private static final long NUM_OF_SECONDS_TO_WAIT = TimeUnit.SECONDS.toMicros(5);
   private static final String RES_FILE_PATH =
       "src/main/resources/main/statebased/mvregister/PerformanceTest.csv";
@@ -50,6 +50,7 @@ public class PerformanceTest {
   public abstract static class CrdtState {
     protected Vector<InternalNode> nodes = Vector.empty();
     protected Vector<CrdtService> crdtServices;
+    protected AtomicInteger timesToIncrement = new AtomicInteger(1);
 
     @Setup(Level.Trial)
     public void init0() {
@@ -111,7 +112,7 @@ public class PerformanceTest {
     }
   }
 
-  public static class GCounterCmrdtState extends CrdtState {
+  public static class MVRegisterCvrdtState extends CrdtState {
     protected final String crdtId = "text";
     protected Vector<MVRegisterCvRDT> mvRegisters;
 
@@ -139,14 +140,21 @@ public class PerformanceTest {
 
     @TearDown(Level.Iteration)
     public void check(BenchmarkParams params) throws InterruptedException {
+      final int timesToIncrement = this.timesToIncrement.get();
+
       mvRegisters.forEach(
           register -> {
             if (Integer.parseInt(
-                    register.value().map(Pair::getValue).reduce((str1, str2) -> str1 + str2))
-                != TIMES_TO_INCREMENT) {
+                    register
+                        .value()
+                        .map(Pair::getValue)
+                        .reduceOption((str1, str2) -> str1 + str2)
+                        .map(str -> str.equals("") ? "0" : str)
+                        .get())
+                != timesToIncrement) {
               throw new AssertionError(
                   "\nExpected :"
-                      + TIMES_TO_INCREMENT
+                      + timesToIncrement
                       + "\nActual   :"
                       + register.value().map(Pair::getValue).reduce((str1, str2) -> str1 + str2));
             }
@@ -161,17 +169,13 @@ public class PerformanceTest {
   @Measurement(iterations = NUM_ITERATIONS, timeUnit = TimeUnit.MILLISECONDS)
   @BenchmarkMode(Mode.SingleShotTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
-  public static class GCounterTest {
-
-    @Threads(1)
-    @Warmup(batchSize = TIMES_TO_INCREMENT)
-    @Measurement(batchSize = TIMES_TO_INCREMENT)
-    @Benchmark
-    public void increment(final GCounterCmrdtState state, final Blackhole bh)
+  public static class MVRegisterTest {
+    public void increment(final MVRegisterCvrdtState state, final Blackhole bh)
         throws InterruptedException {
+      final int timesToIncrement = state.timesToIncrement.get();
       final MVRegisterCvRDT sourceMVRegister = state.mvRegisters.get(0);
 
-      final Integer sourcePayload =
+      final int sourcePayload =
           Integer.parseInt(
               sourceMVRegister
                   .value()
@@ -184,14 +188,24 @@ public class PerformanceTest {
       sourceMVRegister.replicatePayload();
 
       if (Integer.parseInt(
-              sourceMVRegister.value().map(Pair::getValue).reduce((str1, str2) -> str1 + str2))
-          == TIMES_TO_INCREMENT) {
+              sourceMVRegister
+                  .value()
+                  .map(Pair::getValue)
+                  .reduceOption((str1, str2) -> str1 + str2)
+                  .map(str -> str.equals("") ? "0" : str)
+                  .get())
+          == timesToIncrement) {
         for (int i = 0; i < NUM_OF_SECONDS_TO_WAIT / 100; i++) {
           if (!state.mvRegisters.forAll(
               register ->
                   Integer.parseInt(
-                          register.value().map(Pair::getValue).reduce((str1, str2) -> str1 + str2))
-                      == TIMES_TO_INCREMENT)) {
+                          register
+                              .value()
+                              .map(Pair::getValue)
+                              .reduceOption((str1, str2) -> str1 + str2)
+                              .map(str -> str.equals("") ? "0" : str)
+                              .get())
+                      == timesToIncrement)) {
             TimeUnit.MICROSECONDS.sleep(100);
           } else {
             break;
@@ -200,6 +214,83 @@ public class PerformanceTest {
       }
 
       bh.consume(sourceMVRegister);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 1000)
+    @Measurement(batchSize = 1000)
+    @Benchmark
+    public void increment_1000(final MVRegisterCvrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(1000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 2000)
+    @Measurement(batchSize = 2000)
+    @Benchmark
+    public void increment_2000(final MVRegisterCvrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(2000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 4000)
+    @Measurement(batchSize = 4000)
+    @Benchmark
+    public void increment_4000(final MVRegisterCvrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(4000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 8000)
+    @Measurement(batchSize = 8000)
+    @Benchmark
+    public void increment_8000(final MVRegisterCvrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(8000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 16000)
+    @Measurement(batchSize = 16000)
+    @Benchmark
+    public void increment_16000(final MVRegisterCvrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(16000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 32000)
+    @Measurement(batchSize = 32000)
+    @Benchmark
+    public void increment_32000(final MVRegisterCvrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(32000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 64000)
+    @Measurement(batchSize = 64000)
+    @Benchmark
+    public void increment_64000(final MVRegisterCvrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(64000);
+
+      increment(state, bh);
     }
   }
 

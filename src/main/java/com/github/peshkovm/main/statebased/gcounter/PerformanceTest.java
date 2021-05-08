@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -38,9 +39,8 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 public class PerformanceTest {
-  private static final int NUM_ITERATIONS = 20;
-  private static final int NUM_OF_FORKS = 2;
-  private static final int TIMES_TO_INCREMENT = 50_000;
+  private static final int NUM_ITERATIONS = 40;
+  private static final int NUM_OF_FORKS = 4;
   private static final long NUM_OF_SECONDS_TO_WAIT = TimeUnit.SECONDS.toMicros(5);
   private static final String RES_FILE_PATH =
       "src/main/resources/main/statebased/gcounter/PerformanceTest.csv";
@@ -49,6 +49,7 @@ public class PerformanceTest {
   public abstract static class CrdtState {
     protected Vector<InternalNode> nodes = Vector.empty();
     protected Vector<CrdtService> crdtServices;
+    protected AtomicInteger timesToIncrement = new AtomicInteger(1);
 
     @Setup(Level.Trial)
     public void init0() {
@@ -138,11 +139,12 @@ public class PerformanceTest {
 
     @TearDown(Level.Iteration)
     public void check(BenchmarkParams params) throws InterruptedException {
+      final int timesToIncrement = this.timesToIncrement.get();
       gCounters.forEach(
           counter -> {
-            if (counter.query() != TIMES_TO_INCREMENT) {
+            if (counter.query() != timesToIncrement) {
               throw new AssertionError(
-                  "\nExpected :" + TIMES_TO_INCREMENT + "\nActual   :" + counter.query());
+                  "\nExpected :" + timesToIncrement + "\nActual   :" + counter.query());
             }
           });
 
@@ -156,20 +158,16 @@ public class PerformanceTest {
   @BenchmarkMode(Mode.SingleShotTime)
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   public static class GCounterTest {
-
-    @Threads(1)
-    @Warmup(batchSize = TIMES_TO_INCREMENT)
-    @Measurement(batchSize = TIMES_TO_INCREMENT)
-    @Benchmark
     public void increment(final GCounterCmrdtState state, final Blackhole bh)
         throws InterruptedException {
+      final int timesToIncrement = state.timesToIncrement.get();
       final GCounterCvRDT sourceGCounter = state.gCounters.get(0);
       sourceGCounter.increment();
       sourceGCounter.replicatePayload();
 
-      if (sourceGCounter.query() == TIMES_TO_INCREMENT) {
+      if (sourceGCounter.query() == timesToIncrement) {
         for (int i = 0; i < NUM_OF_SECONDS_TO_WAIT / 100; i++) {
-          if (!state.gCounters.forAll(counter -> counter.query() == TIMES_TO_INCREMENT)) {
+          if (!state.gCounters.forAll(counter -> counter.query() == timesToIncrement)) {
             TimeUnit.MICROSECONDS.sleep(100);
           } else {
             break;
@@ -178,6 +176,83 @@ public class PerformanceTest {
       }
 
       bh.consume(sourceGCounter);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 1000)
+    @Measurement(batchSize = 1000)
+    @Benchmark
+    public void increment_1000(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(1000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 2000)
+    @Measurement(batchSize = 2000)
+    @Benchmark
+    public void increment_2000(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(2000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 4000)
+    @Measurement(batchSize = 4000)
+    @Benchmark
+    public void increment_4000(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(4000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 8000)
+    @Measurement(batchSize = 8000)
+    @Benchmark
+    public void increment_8000(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(8000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 16000)
+    @Measurement(batchSize = 16000)
+    @Benchmark
+    public void increment_16000(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(16000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 32000)
+    @Measurement(batchSize = 32000)
+    @Benchmark
+    public void increment_32000(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(32000);
+
+      increment(state, bh);
+    }
+
+    @Threads(1)
+    @Warmup(batchSize = 64000)
+    @Measurement(batchSize = 64000)
+    @Benchmark
+    public void increment_64000(final GCounterCmrdtState state, final Blackhole bh)
+        throws InterruptedException {
+      state.timesToIncrement.set(64000);
+
+      increment(state, bh);
     }
   }
 
