@@ -4,9 +4,7 @@ import io.vavr.collection.Vector;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 
-@ToString
 @EqualsAndHashCode
 public class VersionVector implements Serializable, Cloneable {
   @Getter private final Vector<Long> versions;
@@ -51,5 +49,10 @@ public class VersionVector implements Serializable, Cloneable {
 
   public boolean isConcurrent(VersionVector that) {
     return !(isNewer(that) || isOlder(that) || isEqual(that));
+  }
+
+  @Override
+  public String toString() {
+    return "[" + versions.map(String::valueOf).reduce((long1, long2) -> long1 + ", " + long2) + "]";
   }
 }

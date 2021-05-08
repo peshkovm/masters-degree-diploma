@@ -112,5 +112,10 @@ public class MVRegisterCvRDT extends AbstractCvRDT<String, Set<Pair>, Set<Pair>>
       this.value = value;
       this.versionVector = versionVector;
     }
+
+    @Override
+    public String toString() {
+      return "(" + value + "," + versionVector + ")";
+    }
   }
 }
